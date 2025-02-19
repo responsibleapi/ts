@@ -11,6 +11,10 @@ import {
   unknown,
 } from "../responsible.ts"
 
+const VideoID = () => string({ minLength: 1 })
+const ChannelID = () => string({ minLength: 1 })
+const PlaylistID = () => string({ minLength: 1 })
+
 const Thumbnail = () =>
   object({
     "height?": int32({ minimum: 1 }),
@@ -18,80 +22,64 @@ const Thumbnail = () =>
     "width?": int32({ minimum: 1 }),
   })
 
-const schemas = {
-  ChannelID: string({ minLength: 1 }),
-  PlaylistID: string({ minLength: 1 }),
-  VideoID: string({ minLength: 1 }),
+const Localized = () => object()
 
-  get Channels() {
-    return object({
-      etag: string({ minLength: 1 }),
-      items: array(this.Item, { minItems: 0 }),
-      kind: string({ minLength: 1 }),
-      pageInfo: this.PageInfo,
-    })
-  },
+const PageInfo = () => object()
 
-  get ContentDetails() {
-    return object({
-      relatedPlaylists: this.RelatedPlaylists,
-    })
-  },
+const Snippet = () =>
+  object({
+    "country?": string,
+    "customUrl?": string,
+    "description?": string,
+    "localized?": Localized,
+    publishedAt: unixMillis,
+    "thumbnails?": dict(string, Thumbnail),
+    title: string,
+  })
 
-  get Item() {
-    return object({
-      id: this.VideoID,
-      "contentDetails?": this.ContentDetails,
-      "etag?": string({ minLength: 1 }),
-      "kind?": string({ minLength: 1 }),
-      "snippet?": this.Snippet,
-    })
-  },
+const RelatedPlaylists = () =>
+  object({
+    uploads: PlaylistID,
+    "watchHistory?": PlaylistID,
+    "watchLater?": PlaylistID,
+  })
 
-  get Localized() {
-    return object()
-  },
+const ContentDetails = () =>
+  object({
+    relatedPlaylists: RelatedPlaylists,
+  })
 
-  get PageInfo() {
-    return object()
-  },
+const Item = () =>
+  object({
+    id: VideoID,
+    "contentDetails?": ContentDetails,
+    "etag?": string({ minLength: 1 }),
+    "kind?": string({ minLength: 1 }),
+    "snippet?": Snippet,
+  })
 
-  Part: string({ enum: ["id", "snippet", "contentDetails", "statistics"] }),
-  get Parts() {
-    return array(this.Part)
-  },
+const Channels = () =>
+  object({
+    etag: string({ minLength: 1 }),
+    items: array(Item, { minItems: 0 }),
+    kind: string({ minLength: 1 }),
+    pageInfo: PageInfo,
+  })
 
-  PlaylistItems: object(),
-  Playlists: object(),
-  get RelatedPlaylists() {
-    return object({
-      uploads: this.PlaylistID,
-      "watchHistory?": this.PlaylistID,
-      "watchLater?": this.PlaylistID,
-    })
-  },
+const VideoIDs = () => array(VideoID)
 
-  get Snippet() {
-    return object({
-      "country?": string(),
-      "customUrl?": string(),
-      "description?": string(),
-      "localized?": this.Localized,
-      publishedAt: unixMillis(),
-      "thumbnails?": dict(string(), Thumbnail),
-      title: string(),
-    })
-  },
+const Part = () =>
+  string({ enum: ["id", "snippet", "contentDetails", "statistics"] })
 
-  get VideoIDs() {
-    return array(this.VideoID)
-  },
-  Videos: object(),
-} as const
+const Parts = () => array(Part)
 
-const securitySchemes = {
-  ApiToken: querySecurity({ name: "key" }),
-} as const
+const PlaylistItems = () => object()
+
+const Playlists = () => object()
+
+const Videos = () => object
+
+const security = () => querySecurity({ name: "key" })
 
 export const YouTubeAPI = openAPI(
   {
@@ -102,17 +90,12 @@ export const YouTubeAPI = openAPI(
     },
     servers: [{ url: "https://www.googleapis.com/youtube/v3" }],
   },
-  { schemas, securitySchemes },
   {
     forAll: {
-      req: {
-        security: "ApiToken",
-      },
+      req: { security },
       res: {
         mime: "application/json",
-        add: {
-          401: unknown(),
-        },
+        add: { 401: unknown },
       },
     },
     "scope /videos": {
@@ -120,51 +103,43 @@ export const YouTubeAPI = openAPI(
       GET: {
         req: {
           query: {
-            id: "VideoIDs",
+            id: VideoIDs,
             maxResults: int32({ minimum: 1, default: 50 }),
-            part: "Parts",
+            part: Parts,
           },
         },
-        res: {
-          200: "Videos",
-        },
+        res: { 200: Videos },
       },
     },
     "GET /playlistItems": {
       req: {
         query: {
-          playlistId: "PlaylistID",
+          playlistId: PlaylistID,
           maxResults: int32({ minimum: 1, default: 50 }),
-          part: "Parts",
+          part: Parts,
           "pageToken?": string({ minLength: 1 }),
         },
       },
-      res: {
-        200: "PlaylistItems",
-      },
+      res: { 200: PlaylistItems },
     },
     "GET /playlists": {
       req: {
         query: {
-          id: "PlaylistID",
-          part: "Parts",
+          id: PlaylistID,
+          part: Parts,
         },
       },
-      res: {
-        200: "Playlists",
-      },
+      res: { 200: Playlists },
     },
     "GET /channels": {
       req: {
         query: {
-          id: "ChannelID",
-          part: "Parts",
+          id: ChannelID,
+          part: Parts,
           "forUsername?": string({ minLength: 1 }),
         },
       },
-      res: {
-        200: "Channels",
-      },
+      res: { 200: Channels },
     },
   },
 )

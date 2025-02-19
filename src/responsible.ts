@@ -32,9 +32,9 @@ interface Int extends IntOpts {
   format: IntFormat
 }
 
-export type Obj<Schemas extends DefaultSchemas> = Readonly<{
+export type Obj = Readonly<{
   type: "object"
-  properties: Record<string, Schema<Schemas>>
+  properties: Record<string, Schema>
   required?: readonly string[]
 }>
 
@@ -46,10 +46,10 @@ type ArrayOpts = SchemaOpts &
     maxItems?: number
   }>
 
-type Arr<Schemas extends DefaultSchemas> = ArrayOpts &
+type Arr = ArrayOpts &
   Readonly<{
     type: "array"
-    items: Schema<Schemas>
+    items: Schema
     minItems?: number
   }>
 
@@ -57,45 +57,41 @@ interface Bool {
   type: "boolean"
 }
 
-type Dict<Schemas extends DefaultSchemas> = Readonly<{
+type Dict = Readonly<{
   type: "object"
-  propertyNames: Schema<Schemas>
-  additionalProperties: Schema<Schemas>
+  propertyNames: Schema
+  additionalProperties: Schema
 }>
 
 type DefaultSchemas = {
-  [k: string]: Schema<DefaultSchemas>
+  [k: string]: Schema
 }
 
 type DefaultSecurities = {
   [k: string]: Security<{}>
 }
 
-type OneOf<Schemas extends DefaultSchemas> = Readonly<{
-  oneOf: readonly Schema<Schemas>[]
+type OneOf = Readonly<{
+  oneOf: readonly Schema[]
 }>
 
-type AnyOf<Schemas extends DefaultSchemas> = Readonly<{
-  anyOf: readonly Schema<Schemas>[]
+type AnyOf = Readonly<{
+  anyOf: readonly Schema[]
 }>
 
-type Schema<Schemas extends DefaultSchemas> =
-  | (() => Schema<Schemas>)
-  | keyof Schemas
+type Schema =
+  | (() => Schema)
   | Str
   | Int
   | Bool
   | Unknown
-  | Obj<Schemas>
-  | Arr<Schemas>
-  | Dict<Schemas>
-  | OneOf<Schemas>
-  | AnyOf<Schemas>
+  | Obj
+  | Arr
+  | Dict
+  | OneOf
+  | AnyOf
 
-export const dict = <Schemas extends DefaultSchemas = {}>(
-  k: Schema<Schemas>,
-  v: Schema<Schemas>,
-): Dict<Schemas> => ({
+export const dict = (k: Schema, v: Schema): Dict => ({
   type: "object",
   propertyNames: k,
   additionalProperties: v,
@@ -103,9 +99,7 @@ export const dict = <Schemas extends DefaultSchemas = {}>(
 
 const isOptional = (k: string): k is `${string}?` => k.endsWith("?")
 
-export const object = <Schemas extends DefaultSchemas = {}>(
-  props: Record<string, Schema<Schemas>> = {},
-): Obj<Schemas> => ({
+export const object = (props: Record<string, Schema> = {}): Obj => ({
   type: "object",
   properties: Object.fromEntries(
     Object.entries(props).map(([k, v]) => [
@@ -142,20 +136,16 @@ export const string = (opts?: StringsOpts): Str => ({
   ...opts,
 })
 
-export const oneOf = <Schemas extends DefaultSchemas>(
-  oneOf: readonly Schema<Schemas>[],
-): OneOf<Schemas> => ({ oneOf })
+export const oneOf = (oneOf: readonly Schema[]): OneOf => ({ oneOf })
 
-export const anyOf = <Schemas extends DefaultSchemas>(
-  anyOf: readonly Schema<Schemas>[],
-): AnyOf<Schemas> => ({ anyOf })
+export const anyOf = (anyOf: readonly Schema[]): AnyOf => ({ anyOf })
 
 export const boolean = (): Bool => ({ type: "boolean" })
 
 export const array = <Schemas extends DefaultSchemas = DefaultSchemas>(
-  items: Schema<Schemas>,
+  items: Schema,
   opts?: ArrayOpts,
-): Arr<Schemas> => ({
+): Arr => ({
   type: "array",
   items,
   ...opts,
@@ -167,10 +157,10 @@ export const email = (): Str => string({ format: "email" })
 
 type Mime = `${string}/${string}`
 
-type Response<Schemas extends DefaultSchemas> = Readonly<{
-  body: Schema<Schemas> | Record<Mime, Schema<Schemas>>
+type Response = Readonly<{
+  body: Schema | Record<Mime, Schema>
   description?: string
-  headers?: Record<string, Schema<Schemas>>
+  headers?: Record<string, Schema>
 }>
 
 type QuerySecurity = Readonly<{
@@ -178,26 +168,21 @@ type QuerySecurity = Readonly<{
   name: string
 }>
 
-type Security<Securities extends DefaultSecurities> =
-  | QuerySecurity
-  | keyof Securities
+type Security = QuerySecurity | (() => Security)
 
-type Middleware<
-  Schemas extends DefaultSchemas,
-  Securities extends DefaultSecurities,
-> = Readonly<{
+type Middleware = Readonly<{
   req?: {
     mime?: Mime
-    security?: Security<Securities>
+    security?: Security
   }
   res?: {
     mime?: Mime
-    headers?: Record<string, Schema<Schemas>>
+    headers?: Record<string, Schema>
 
     /**
      * add responses in this scope
      */
-    add?: Record<number, Schema<Schemas> | Response<Schemas>>
+    add?: Record<number, Schema | Response>
   }
 }>
 
@@ -205,14 +190,14 @@ type Path = `/${string}`
 
 type Param = Readonly<{}>
 
-type Req<Schemas extends DefaultSchemas> = Readonly<{
-  query?: Record<string, Schema<Schemas>>
+type Req = Readonly<{
+  query?: Record<string, Schema>
 }>
 
-type Op<Schemas extends DefaultSchemas> = Readonly<{
+type Op = Readonly<{
   name?: string
-  req?: Schema<Schemas> | Req<Schemas>
-  res?: Record<number, Schema<Schemas> | Response<Schemas>>
+  req?: Schema | Req
+  res?: Record<number, Schema | Response>
 }>
 
 export const querySecurity = (param: { name: string }): QuerySecurity => ({
@@ -222,38 +207,25 @@ export const querySecurity = (param: { name: string }): QuerySecurity => ({
 
 type ScopeTemplate<P extends Path> = `scope ${P}`
 
-type OuterScope<
-  Schemas extends DefaultSchemas,
-  Securities extends DefaultSecurities,
-> = {
-  forAll?: Middleware<Schemas, Securities>
+type OuterScope = {
+  forAll?: Middleware
 } & {
-  [K in ScopeTemplate<Path>]?: InnerScope<Schemas, Securities>
+  [K in ScopeTemplate<Path>]?: InnerScope
 } & {
-  [K in `POST ${Path}`]?: Op<Schemas>
+  [K in `POST ${Path}`]?: Op
 } & {
-  [k in `GET ${Path}`]?: Op<Schemas>
+  [k in `GET ${Path}`]?: Op
 }
 
-interface InnerScope<
-  Schemas extends DefaultSchemas,
-  Securities extends DefaultSecurities,
-> extends OuterScope<Schemas, Securities> {
-  params?: Record<string, Schema<Schemas>>
-  POST?: Op<Schemas>
-  GET?: Op<Schemas>
+interface InnerScope extends OuterScope {
+  params?: Record<string, Schema>
+  POST?: Op
+  GET?: Op
 }
 
-export function openAPI<
-  Schemas extends DefaultSchemas,
-  Securities extends DefaultSecurities,
->(
+export function openAPI(
   doc: Partial<oas31.OpenAPIObject>,
-  components: {
-    schemas: Readonly<Schemas>
-    securitySchemes?: Readonly<Securities>
-  },
-  scope: OuterScope<Schemas, Securities>,
+  scope: OuterScope,
 ): Readonly<oas31.OpenAPIObject> {
   throw new Error("TODO")
 }
