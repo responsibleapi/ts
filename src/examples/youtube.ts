@@ -1,13 +1,15 @@
 import {
   array,
   dict,
-  httpURL,
+  GET,
   int32,
+  int64,
+  middleware,
   object,
   openAPI,
   querySecurity,
+  scope,
   string,
-  unixMillis,
   unknown,
 } from "../responsible.ts"
 
@@ -15,10 +17,16 @@ const VideoID = () => string({ minLength: 1 })
 const ChannelID = () => string({ minLength: 1 })
 const PlaylistID = () => string({ minLength: 1 })
 
+const HttpURL = () =>
+  string({
+    format: "uri",
+    pattern: /^https?:\/\/\S+$/,
+  })
+
 const Thumbnail = () =>
   object({
     "height?": int32({ minimum: 1 }),
-    "url?": httpURL(),
+    "url?": HttpURL,
     "width?": int32({ minimum: 1 }),
   })
 
@@ -26,15 +34,17 @@ const Localized = () => object()
 
 const PageInfo = () => object()
 
+const UnixMillis = () => int64({ description: "UNIX epoch milliseconds" })
+
 const Snippet = () =>
   object({
+    title: string,
+    publishedAt: UnixMillis,
     "country?": string,
     "customUrl?": string,
     "description?": string,
     "localized?": Localized,
-    publishedAt: unixMillis,
     "thumbnails?": dict(string, Thumbnail),
-    title: string,
   })
 
 const RelatedPlaylists = () =>
@@ -91,14 +101,14 @@ export const YouTubeAPI = openAPI(
     servers: [{ url: "https://www.googleapis.com/youtube/v3" }],
   },
   {
-    forAll: {
+    "/*": middleware({
       req: { security },
       res: {
         mime: "application/json",
         add: { 401: unknown },
       },
-    },
-    "scope /videos": {
+    }),
+    "/videos": scope({
       POST: {},
       GET: {
         req: {
@@ -110,8 +120,8 @@ export const YouTubeAPI = openAPI(
         },
         res: { 200: Videos },
       },
-    },
-    "GET /playlistItems": {
+    }),
+    "/playlistItems": GET({
       req: {
         query: {
           playlistId: PlaylistID,
@@ -121,8 +131,8 @@ export const YouTubeAPI = openAPI(
         },
       },
       res: { 200: PlaylistItems },
-    },
-    "GET /playlists": {
+    }),
+    "/playlists": GET({
       req: {
         query: {
           id: PlaylistID,
@@ -130,8 +140,8 @@ export const YouTubeAPI = openAPI(
         },
       },
       res: { 200: Playlists },
-    },
-    "GET /channels": {
+    }),
+    "/channels": GET({
       req: {
         query: {
           id: ChannelID,
@@ -140,6 +150,6 @@ export const YouTubeAPI = openAPI(
         },
       },
       res: { 200: Channels },
-    },
+    }),
   },
 )

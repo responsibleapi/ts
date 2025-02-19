@@ -11,7 +11,7 @@ interface StringsOpts extends SchemaOpts {
   format?: StringFormat
   minLength?: number
   maxLength?: number
-  pattern?: string
+  pattern?: string | RegExp
   enum?: readonly string[]
   const?: string
 }
@@ -25,6 +25,7 @@ type IntFormat = "int64" | "int32"
 interface IntOpts extends SchemaOpts {
   minimum?: number
   maximum?: number
+  example?: number
 }
 
 interface Int extends IntOpts {
@@ -59,17 +60,10 @@ interface Bool {
 
 type Dict = Readonly<{
   type: "object"
-  propertyNames: Schema
+  propertyNames: PropKeySchema
   additionalProperties: Schema
+  example?: Record<PropertyKey, unknown>
 }>
-
-type DefaultSchemas = {
-  [k: string]: Schema
-}
-
-type DefaultSecurities = {
-  [k: string]: Security<{}>
-}
 
 type OneOf = Readonly<{
   oneOf: readonly Schema[]
@@ -79,10 +73,12 @@ type AnyOf = Readonly<{
   anyOf: readonly Schema[]
 }>
 
+type Num = Int
+
 type Schema =
   | (() => Schema)
   | Str
-  | Int
+  | Num
   | Bool
   | Unknown
   | Obj
@@ -91,7 +87,9 @@ type Schema =
   | OneOf
   | AnyOf
 
-export const dict = (k: Schema, v: Schema): Dict => ({
+type PropKeySchema = (() => PropKeySchema) | Str | Num
+
+export const dict = (k: PropKeySchema, v: Schema): Dict => ({
   type: "object",
   propertyNames: k,
   additionalProperties: v,
@@ -142,10 +140,7 @@ export const anyOf = (anyOf: readonly Schema[]): AnyOf => ({ anyOf })
 
 export const boolean = (): Bool => ({ type: "boolean" })
 
-export const array = <Schemas extends DefaultSchemas = DefaultSchemas>(
-  items: Schema,
-  opts?: ArrayOpts,
-): Arr => ({
+export const array = (items: Schema, opts?: ArrayOpts): Arr => ({
   type: "array",
   items,
   ...opts,
@@ -178,7 +173,6 @@ type Middleware = Readonly<{
   res?: {
     mime?: Mime
     headers?: Record<string, Schema>
-
     /**
      * add responses in this scope
      */
@@ -187,8 +181,6 @@ type Middleware = Readonly<{
 }>
 
 type Path = `/${string}`
-
-type Param = Readonly<{}>
 
 type Req = Readonly<{
   query?: Record<string, Schema>
@@ -205,27 +197,42 @@ export const querySecurity = (param: { name: string }): QuerySecurity => ({
   ...param,
 })
 
-type ScopeTemplate<P extends Path> = `scope ${P}`
+type V2 =
+  | { type: "middleware"; middleware: Middleware }
+  | { type: "scope"; scope: ScopeOpts }
+  | { type: "GET"; op: Op }
+  | { type: "POST"; op: Op }
 
-type OuterScope = {
-  forAll?: Middleware
-} & {
-  [K in ScopeTemplate<Path>]?: InnerScope
-} & {
-  [K in `POST ${Path}`]?: Op
-} & {
-  [k in `GET ${Path}`]?: Op
+interface OuterV2 {
+  [p: Path]: V2
 }
 
-interface InnerScope extends OuterScope {
+interface ScopeOpts extends OuterV2 {
   params?: Record<string, Schema>
+
   POST?: Op
   GET?: Op
 }
 
+export function middleware(opts: Middleware): V2 {
+  throw new Error("TODO")
+}
+
+export function scope(opts: ScopeOpts): V2 {
+  throw new Error("TODO")
+}
+
+export function GET(op: Op): V2 {
+  throw new Error("TODO")
+}
+
+export function POST(op: Op): V2 {
+  throw new Error("TODO")
+}
+
 export function openAPI(
   doc: Partial<oas31.OpenAPIObject>,
-  scope: OuterScope,
+  scope: OuterV2,
 ): Readonly<oas31.OpenAPIObject> {
   throw new Error("TODO")
 }

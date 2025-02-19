@@ -115,9 +115,7 @@ const routes = {
     },
 
     "/show/:show_id": {
-      params: {
-        show_id: s.ShowID,
-      },
+      params: { show_id: s.ShowID },
 
       "*": {
         res: {

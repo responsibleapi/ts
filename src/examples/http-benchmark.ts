@@ -4,41 +4,45 @@ import {
   email,
   int32,
   int64,
+  middleware,
   object,
   openAPI,
+  POST,
   string,
-  unixMillis,
 } from "../responsible.ts"
+
+const PostID = () => int64({ minimum: 1 })
+
+const UserID = () => int64({ minimum: 1 })
+
+export const UnixMillis = () =>
+  int64({ description: "UNIX epoch milliseconds" })
+
+const Post = () =>
+  object({
+    id: PostID,
+    user_id: UserID,
+    content: string({ minLength: 1 }),
+    created_at: UnixMillis,
+    updated_at: UnixMillis,
+  })
+
+const NewPost = () =>
+  object({
+    email: email(),
+    content: string({ minLength: 1 }),
+  })
 
 export const httpBenchmark = openAPI(
   {
     openapi: "3.1.0",
     info: {
       title: "HTTP benchmarks",
-      version: "0.0.1",
+      version: "1",
     },
   },
   {
-    schemas: {
-      PostID: int64({ minimum: 1 }),
-      UserID: int64({ minimum: 1 }),
-      NewPost: object({
-        email: email(),
-        content: string({ minLength: 1 }),
-      }),
-      get Post() {
-        return object({
-          id: this.PostID,
-          user_id: this.UserID,
-          content: string({ minLength: 1 }),
-          created_at: unixMillis(),
-          updated_at: unixMillis(),
-        })
-      },
-    },
-  },
-  {
-    forAll: {
+    "/*": middleware({
       req: { mime: "application/json" },
       res: {
         mime: "application/json",
@@ -53,16 +57,16 @@ export const httpBenchmark = openAPI(
           },
         },
       },
-    },
-    "POST /posts": {
+    }),
+    "/posts": POST({
       name: "newPost",
-      req: "NewPost",
-      res: { 201: "Post" },
-    },
-    "POST /echo": {
+      req: NewPost,
+      res: { 201: Post },
+    }),
+    "/echo": POST({
       name: "echo",
-      req: "NewPost",
-      res: { 200: "Post" },
-    },
+      req: NewPost,
+      res: { 200: Post },
+    }),
   },
 )

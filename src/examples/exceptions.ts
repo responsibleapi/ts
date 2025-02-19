@@ -1,10 +1,12 @@
 import {
   anyOf,
   array,
+  int64,
+  middleware,
   object,
   openAPI,
+  scope,
   string,
-  unixMillis,
   unknown,
 } from "../responsible.ts"
 
@@ -26,21 +28,33 @@ const NewError = () =>
     }),
   ])
 
+const UnixMillis = () =>
+  int64({
+    description: "UNIX epoch milliseconds",
+    example: 1739982555384,
+  })
+
 const AppError = () =>
   object({
     id: ErrorID,
     "stack?": string({ minLength: 1 }),
     "message?": string({ minLength: 1 }),
-    "resolvedAt?": unixMillis,
+    "resolvedAt?": UnixMillis,
   })
 
 export const exceptionsAPI = openAPI(
   {
     openapi: "3.1.0",
+    info: {
+      title: "Exceptions API",
+      version: "1",
+    },
   },
   {
-    forAll: {
-      req: { mime: "application/json" },
+    "/*": middleware({
+      req: {
+        mime: "application/json",
+      },
       res: {
         mime: "application/json",
         add: {
@@ -48,8 +62,8 @@ export const exceptionsAPI = openAPI(
           400: unknown(),
         },
       },
-    },
-    "scope /app_errors/:appID": {
+    }),
+    "/app_errors/:appID": scope({
       params: { appID: AppID },
 
       POST: {
@@ -61,13 +75,13 @@ export const exceptionsAPI = openAPI(
         name: "appErrors",
         res: { 200: array(AppError) },
       },
-    },
-    "scope /errors/:errorID": {
+    }),
+    "/errors/:errorID": scope({
       params: { errorID: ErrorID },
 
       GET: {
         name: "errorOccurrences",
       },
-    },
+    }),
   },
 )
