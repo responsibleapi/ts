@@ -1,0 +1,15 @@
+{
+  "name": "responsibleapi",
+  "type": "module",
+  "dependencies": {
+    "openapi3-ts": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "prettier": "^3.5.1",
+    "prettier-plugin-organize-imports": "^4.1.0",
+    "prettier-plugin-packagejson": "^2.5.8",
+    "typescript": "^5.8.1-rc",
+    "vitest": "^3.0.5"
+  }
+}
