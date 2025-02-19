@@ -8,10 +8,12 @@ import {
   unknown,
 } from "../responsible.ts"
 
-const schemas = {
-  AppID: string({ pattern: "^app_[a-zA-Z0-9]+$" }),
-  ErrorID: string({ pattern: "^err_[a-zA-Z0-9]+$" }),
-  NewError: anyOf([
+const AppID = () => string({ pattern: "^app_[a-zA-Z0-9]+$" })
+
+const ErrorID = () => string({ pattern: "^err_[a-zA-Z0-9]+$" })
+
+const NewError = () =>
+  anyOf([
     object({
       stack: string({ minLength: 1 }),
       message: string({ minLength: 1 }),
@@ -22,41 +24,46 @@ const schemas = {
     object({
       stack: string({ minLength: 1 }),
     }),
-  ]),
-  get AppError() {
-    return object({
-      id: this.ErrorID,
-      "stack?": string({ minLength: 1 }),
-      "message?": string({ minLength: 1 }),
-      "resolvedAt?": unixMillis(),
-    })
-  },
-} as const
+  ])
+
+const AppError = () =>
+  object({
+    id: ErrorID,
+    "stack?": string({ minLength: 1 }),
+    "message?": string({ minLength: 1 }),
+    "resolvedAt?": unixMillis,
+  })
 
 export const exceptionsAPI = openAPI(
   {
     openapi: "3.1.0",
   },
-  { schemas },
   {
-    "scope /app_errors/:appID": {
-      params: { appID: "AppID" },
-
-      POST: {
-        req: "NewError",
-        res: {
-          201: unknown(),
-        },
-      },
-      GET: {
-        name: "appErrors",
-        res: {
-          200: array("AppError"),
+    forAll: {
+      req: { mime: "application/json" },
+      res: {
+        mime: "application/json",
+        add: {
+          /** TODO describe your validation lib err schema */
+          400: unknown(),
         },
       },
     },
+    "scope /app_errors/:appID": {
+      params: { appID: AppID },
+
+      POST: {
+        name: "newError",
+        req: NewError,
+        res: { 201: unknown() },
+      },
+      GET: {
+        name: "appErrors",
+        res: { 200: array(AppError) },
+      },
+    },
     "scope /errors/:errorID": {
-      params: { errorID: "ErrorID" },
+      params: { errorID: ErrorID },
 
       GET: {
         name: "errorOccurrences",
