@@ -46,6 +46,7 @@ type Unknown = Record<string, never>
 interface ArrayOpts extends SchemaOpts {
   minItems?: number
   maxItems?: number
+  example?: readonly unknown[]
 }
 
 interface Arr extends ArrayOpts {
@@ -72,6 +73,10 @@ interface AnyOf {
   anyOf: readonly Schema[]
 }
 
+interface AllOf {
+  allOf: readonly Schema[]
+}
+
 type Num = Int
 
 type Schema =
@@ -85,6 +90,7 @@ type Schema =
   | Dict
   | OneOf
   | AnyOf
+  | AllOf
 
 type PropKeySchema = (() => PropKeySchema) | Str | Num
 
@@ -140,6 +146,8 @@ export const string = (opts?: StringsOpts): Str => ({
 export const oneOf = (oneOf: readonly Schema[]): OneOf => ({ oneOf })
 
 export const anyOf = (anyOf: readonly Schema[]): AnyOf => ({ anyOf })
+
+export const allOf = (allOf: readonly Schema[]): AnyOf => ({ allOf })
 
 export const boolean = (opts?: SchemaOpts): Bool => ({
   type: "boolean",
@@ -211,6 +219,23 @@ type Middleware = Readonly<{
 }>
 
 type Path = `/${string}`
+
+const isPath = (x: unknown): x is Path =>
+  typeof x === "string" && x.startsWith("/")
+
+export function path(
+  strings: TemplateStringsArray,
+  ...params: readonly Schema[]
+): [Path, Record<string, Schema>] {
+  if (!isPath(strings[0])) throw new Error(`${strings[0]} must start with /`)
+
+  for (let i = 0; i < params.length; i++) {
+    console.log(strings[i], params[i])
+  }
+  console.log(strings[params.length])
+
+  throw new Error("TODO")
+}
 
 type Req = Readonly<{
   params?: Record<string, Schema>

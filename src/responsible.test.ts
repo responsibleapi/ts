@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { httpURL } from "./responsible.ts"
+import { httpURL, path, string } from "./responsible.ts"
 
 describe("responsible", () => {
   test("httpURL", () => {
@@ -7,5 +7,12 @@ describe("responsible", () => {
     expect("https://www.google.com").toMatch(re)
     expect("htps://www.google.com").not.toMatch(re)
     expect("https://www. google.com/").not.toMatch(re)
+  })
+
+  test("custom tag", () => {
+    path`/foo/${string}/bar`
+    path`/${string}`
+
+    JSON.stringify(undefined)
   })
 })

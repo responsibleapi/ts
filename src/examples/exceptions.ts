@@ -74,8 +74,8 @@ export const exceptionsAPI = openAPI(
         },
       },
     }),
-    "/app_errors/:appID": scope({
-      params: { appID: AppID },
+    "/app_errors/:app_id": scope({
+      params: { app_id: AppID },
 
       POST: {
         name: "newError",
@@ -87,8 +87,8 @@ export const exceptionsAPI = openAPI(
         res: { 200: array(OneErr) },
       },
     }),
-    "/errors/:errorID": scope({
-      params: { errorID: ErrID },
+    "/errors/:err_id": scope({
+      params: { err_id: ErrID },
 
       GET: {
         name: "errorOccurrences",
