@@ -58,16 +58,16 @@ interface Bool extends SchemaOpts {
   type: "boolean"
 }
 
-interface Dict {
+type Dict = Readonly<{
   type: "object"
   propertyNames: PropKeySchema
   additionalProperties: Schema
   example?: Record<PropertyKey, unknown>
-}
+}>
 
-interface OneOf {
+type OneOf = Readonly<{
   oneOf: readonly Schema[]
-}
+}>
 
 interface AnyOf {
   anyOf: readonly Schema[]
@@ -100,10 +100,10 @@ export const dict = (k: PropKeySchema, v: Schema): Dict => ({
   additionalProperties: v,
 })
 
-const isOptional = (k: string): k is `${string}?` => k.endsWith("?")
+const isOptional = (key: string): key is `${string}?` => key.endsWith("?")
 
 export const object = (
-  props: Record<string, Schema> = {},
+  props: Readonly<Record<string, Schema>> = {},
   opts?: SchemaOpts,
 ): Obj => ({
   ...opts,
@@ -147,7 +147,7 @@ export const oneOf = (oneOf: readonly Schema[]): OneOf => ({ oneOf })
 
 export const anyOf = (anyOf: readonly Schema[]): AnyOf => ({ anyOf })
 
-export const allOf = (allOf: readonly Schema[]): AnyOf => ({ allOf })
+export const allOf = (allOf: readonly Schema[]): AllOf => ({ allOf })
 
 export const boolean = (opts?: SchemaOpts): Bool => ({
   type: "boolean",
@@ -251,7 +251,7 @@ interface MiddlewareReq extends Req {
 }
 
 type Op = Readonly<{
-  name?: string
+  id?: string
   req?: Schema | Req
   res?: Record<number, Res>
   deprecated?: boolean

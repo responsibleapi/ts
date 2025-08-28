@@ -45,8 +45,12 @@ export const httpBenchmark = openAPI(
     "/*": middleware({
       req: { mime: "application/json" },
       res: {
-        mime: "application/json",
-        headers: { "Content-Length": int32({ minimum: 1 }) },
+        match: {
+          "100..599": {
+            mime: "application/json",
+            headers: { "Content-Length": int32({ minimum: 1 }) },
+          },
+        },
         add: {
           400: {
             description: "Bad Request",
@@ -59,12 +63,12 @@ export const httpBenchmark = openAPI(
       },
     }),
     "/posts": POST({
-      name: "newPost",
+      id: "newPost",
       req: NewPost,
       res: { 201: Post },
     }),
     "/echo": POST({
-      name: "echo",
+      id: "echo",
       req: NewPost,
       res: { 200: Post },
     }),

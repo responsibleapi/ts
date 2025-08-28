@@ -12,7 +12,5 @@ describe("responsible", () => {
   test("custom tag", () => {
     path`/foo/${string}/bar`
     path`/${string}`
-
-    JSON.stringify(undefined)
   })
 })

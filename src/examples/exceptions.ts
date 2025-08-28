@@ -78,12 +78,12 @@ export const exceptionsAPI = openAPI(
       params: { app_id: AppID },
 
       POST: {
-        name: "newError",
+        id: "newError",
         req: NewErr,
         res: { 201: unknown() },
       },
       GET: {
-        name: "appErrors",
+        id: "appErrors",
         res: { 200: array(OneErr) },
       },
     }),
@@ -91,7 +91,7 @@ export const exceptionsAPI = openAPI(
       params: { err_id: ErrID },
 
       GET: {
-        name: "errorOccurrences",
+        id: "errorOccurrences",
         res: { 200: array(ErrLog) },
       },
     }),

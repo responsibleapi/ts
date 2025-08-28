@@ -26,7 +26,7 @@ const HttpURL = () =>
   string({
     format: "uri",
     pattern: /^https?:\/\/\S+$/,
-    example: "https://example.com",
+    example: "https://example.com/path",
   })
 
 const SubmitReq = () => object({ url: HttpURL })
@@ -234,7 +234,7 @@ const authenticatedOps = scope({
   }),
 
   "/unsubscribe": POST({
-    name: "unsubscribe",
+    id: "unsubscribe",
     description: "Unsubscribe the email from product updates",
     req: object({ email: Email }),
     res: { 200: unknown() },
@@ -242,24 +242,24 @@ const authenticatedOps = scope({
 
   "/user": scope({
     GET: {
-      name: "getUser",
+      id: "getUser",
       res: { 200: UserResp },
     },
 
     /** why is this a POST */
     POST: {
-      name: "patchUser",
+      id: "patchUser",
       req: object({ updates: boolean() }),
       res: { 200: UserResp },
     },
 
     DELETE: {
-      name: "deleteUser",
+      id: "deleteUser",
       res: { 200: unknown() },
     },
 
     "/:email/shows": GET({
-      name: "showsByEmail",
+      id: "showsByEmail",
       deprecated: true,
       req: { params: { email: Email } },
       res: {
@@ -274,12 +274,12 @@ const authenticatedOps = scope({
   }),
 
   "/recent": GET({
-    name: "recentFeeds",
+    id: "recentFeeds",
     res: { 200: RecentResp },
   }),
 
   "/checkout": POST({
-    name: "stripeCheckout",
+    id: "stripeCheckout",
     description:
       "Redirect to the checkout page or to billing if already subscribed",
     req: object({
@@ -292,7 +292,7 @@ const authenticatedOps = scope({
   }),
 
   "/billing": POST({
-    name: "stripeBilling",
+    id: "stripeBilling",
     req: object({ return_url: HttpURL }),
     res: { 201: UrlResp },
   }),
@@ -310,18 +310,18 @@ const authenticatedOps = scope({
     }),
 
     PUT: {
-      name: "editShow",
+      id: "editShow",
       req: EditShowReq,
       res: { 200: Show },
     },
 
     DELETE: {
-      name: "deleteFeed",
+      id: "deleteFeed",
       res: { 200: unknown() },
     },
 
     "/downloads": GET({
-      name: "getDownloads",
+      id: "getDownloads",
       req: {
         query: {
           "timezone?": string({ minLength: 1 }),
@@ -331,7 +331,7 @@ const authenticatedOps = scope({
     }),
 
     "/episode_downloads": GET({
-      name: "episodeDownloads",
+      id: "episodeDownloads",
       res: {
         200: array(
           object({
@@ -346,13 +346,13 @@ const authenticatedOps = scope({
 
   "/later": scope({
     GET: {
-      name: "getLater",
+      id: "getLater",
       deprecated: true,
       res: { 200: Show },
     },
 
     POST: {
-      name: "submitLater",
+      id: "submitLater",
       req: SubmitReq,
       res: {
         200: Show,
@@ -361,7 +361,7 @@ const authenticatedOps = scope({
     },
 
     "/v2/v2": GET({
-      name: "getLater2",
+      id: "getLater2",
       req: {
         query: {
           "before?": ItemID,
@@ -375,7 +375,7 @@ const authenticatedOps = scope({
       params: { itemID: ItemID },
 
       POST: {
-        name: "addLater",
+        id: "addLater",
         res: {
           200: unknown(),
           402: UpgradeToAddMoreToListenLater,
@@ -383,14 +383,14 @@ const authenticatedOps = scope({
       },
 
       DELETE: {
-        name: "removeLater",
+        id: "removeLater",
         res: { 200: unknown() },
       },
     }),
   }),
 
   "/s3_presign_image": GET({
-    name: "preSignedImageUploadURL",
+    id: "preSignedImageUploadURL",
     req: {
       query: {
         filename: string({ minLength: 1 }),
@@ -403,7 +403,7 @@ const authenticatedOps = scope({
   }),
 
   "/reverse": POST({
-    name: "reversePlaylist",
+    id: "reversePlaylist",
     req: ReverseReq,
     res: {
       200: ReverseResp,
@@ -426,7 +426,7 @@ const jsonAPI = scope({
   }),
 
   "/login": POST({
-    name: "requestOtp",
+    id: "requestOtp",
     req: LoginReq,
     res: {
       200: object({
@@ -436,7 +436,7 @@ const jsonAPI = scope({
   }),
 
   "/otp": POST({
-    name: "submitOtp",
+    id: "submitOtp",
     req: object({
       email: Email,
       otp: string({ minLength: 1 }),
@@ -453,7 +453,7 @@ const jsonAPI = scope({
   }),
 
   "/submit": POST({
-    name: "submitUrl",
+    id: "submitUrl",
     req: SubmitReq,
     res: {
       200: object({
@@ -480,12 +480,12 @@ const jsonAPI = scope({
 
     GET: {
       deprecated: true,
-      name: "getShow",
+      id: "getShow",
       res: { 200: Show },
     },
 
     "/v2": GET({
-      name: "getShow2",
+      id: "getShow2",
       req: {
         "security?": AuthorizationHeader,
         query: {
@@ -497,7 +497,7 @@ const jsonAPI = scope({
     }),
 
     "/items2": GET({
-      name: "getItems2",
+      id: "getItems2",
       req: {
         query: {
           "before?": ItemID,
@@ -508,7 +508,7 @@ const jsonAPI = scope({
     }),
 
     "/items": GET({
-      name: "getItems",
+      id: "getItems",
       deprecated: true,
       req: {
         query: {
@@ -521,7 +521,7 @@ const jsonAPI = scope({
   }),
 
   "/cdn_log": POST({
-    name: "logCDN",
+    id: "logCDN",
     req: {
       body: {
         "application/json": WorkerEvent,
@@ -544,7 +544,7 @@ const jsonAPI = scope({
 
 const googleAuth = scope({
   GET: {
-    name: "googleSlash",
+    id: "googleSlash",
     res: {
       302: {
         headers: {
@@ -555,7 +555,7 @@ const googleAuth = scope({
   },
 
   "/callback": GET({
-    name: "googleCallback",
+    id: "googleCallback",
     req: {
       query: {
         code: string({ minLength: 1 }),
@@ -610,7 +610,7 @@ export const listenboxAPI = openAPI(
     "/oauth/google": googleAuth,
 
     "/rss/:showID/:type.rss": GET({
-      name: "rss",
+      id: "rss",
       req: {
         params: {
           showID: ShowID,
@@ -639,7 +639,7 @@ export const listenboxAPI = openAPI(
     }),
 
     "/a/:itemID.:ext": GET({
-      name: "audio",
+      id: "audio",
       req: {
         params: {
           itemID: ItemID,
@@ -664,7 +664,7 @@ export const listenboxAPI = openAPI(
     }),
 
     "/w/:itemID.:ext": GET({
-      name: "video",
+      id: "video",
       req: {
         params: {
           itemID: ItemID,
@@ -686,7 +686,7 @@ export const listenboxAPI = openAPI(
     }),
 
     "/stripe/hooks": POST({
-      name: "stripeWebhook",
+      id: "stripeWebhook",
       req: {
         headers: {
           "Stripe-Signature": string({ minLength: 1 }),
