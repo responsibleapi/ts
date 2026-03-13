@@ -1,4 +1,4 @@
-import { responsibleAPI, responsibleApi2 } from "../actual.ts"
+import { responsibleAPI, responsibleAPI } from "../final.ts"
 import { POST } from "../responsible.ts"
 import { float, int32, object, string, unknown } from "../schema.ts"
 
@@ -31,7 +31,7 @@ const Err = () =>
     message: string({ minLength: 1 }),
   })
 
-const smells2 = responsibleApi2({
+const smells2 = responsibleAPI({
   partialDoc: {
     openapi: "3.1.0",
     info: {

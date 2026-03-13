@@ -1,4 +1,4 @@
-import { responsibleApi2 } from "../actual.ts"
+import { responsibleAPI } from "../final.ts"
 import {
   GET,
   middleware,
@@ -94,7 +94,7 @@ const Videos = () => object
 
 const security = () => querySecurity({ name: "key" })
 
-export const YouTubeAPI2 = responsibleApi2({
+export const YouTubeAPI2 = responsibleAPI({
   partialDoc: {
     openapi: "3.1.0",
     info: {

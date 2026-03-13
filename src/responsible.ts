@@ -1,5 +1,4 @@
-import type { oas31 } from "openapi3-ts"
-import type { Route } from "./actual.ts"
+import type { Route } from "./final.ts"
 import type { Schema } from "./schema.ts"
 
 type Nameable<T> = (() => T) | T
@@ -158,11 +157,4 @@ export function POST(idOrOp: string | Op, maybeOp?: Op): Route {
     method: "POST",
     op: idOrOp as Op,
   }
-}
-
-export function openAPI(
-  doc: Partial<oas31.OpenAPIObject>,
-  scope: ScopeOpts,
-): Readonly<oas31.OpenAPIObject> {
-  throw new Error("TODO")
 }

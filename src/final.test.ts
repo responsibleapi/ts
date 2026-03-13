@@ -1,6 +1,6 @@
 import { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
-import { responsibleAPI } from "./actual.ts"
+import { responsibleAPI } from "./final.ts"
 import { POST } from "./responsible.ts"
 import { int32, object, string } from "./schema.ts"
 import { validate } from "./validate.ts"
