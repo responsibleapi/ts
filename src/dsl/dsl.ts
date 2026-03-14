@@ -7,7 +7,7 @@ interface ScopeReq {
   mime?: Mime
   security?: Security
   "security?"?: Security
-  params: Record<string, Schema>
+  params?: Record<string, Schema>
 }
 
 interface StatusMatch {

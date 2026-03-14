@@ -242,190 +242,204 @@ const ReverseResp = () => object({ value: boolean() })
 const NotYourShow = () =>
   response({ description: "You can't edit somebody else's show" })
 
-const authenticatedOps = scope({
-  req: { security: AuthorizationHeader },
-  res: { add: { 401: unknown() } },
-
-  "/unsubscribe": POST({
-    id: "unsubscribe",
-    description: "Unsubscribe the email from product updates",
-    req: object({ email: Email }),
-    res: { 200: unknown() },
-  }),
-
-  "/user": scope({
-    GET: {
-      id: "getUser",
-      res: { 200: UserResp },
+const authenticatedOps = scope(
+  {
+    req: {
+      security: AuthorizationHeader,
     },
-
-    /** why is this a POST */
-    POST: {
-      id: "patchUser",
-      req: object({ updates: boolean() }),
-      res: { 200: UserResp },
-    },
-
-    DELETE: {
-      id: "deleteUser",
-      res: { 200: unknown() },
-    },
-
-    "/:email/shows": GET({
-      id: "showsByEmail",
-      deprecated: true,
-      req: { params: { email: Email } },
-      res: {
-        200: array(
-          object({
-            id: ShowID,
-            title: string({ minLength: 1 }),
-          }),
-        ),
-      },
-    }),
-  }),
-
-  "/recent": GET({
-    id: "recentFeeds",
-    res: { 200: RecentResp },
-  }),
-
-  "/checkout": POST({
-    id: "stripeCheckout",
-    description:
-      "Redirect to the checkout page or to billing if already subscribed",
-    req: object({
-      plan: Plan,
-      interval: PlanInterval,
-      success_url: HttpURL,
-      cancel_url: HttpURL,
-    }),
-    res: { 201: UrlResp },
-  }),
-
-  "/billing": POST({
-    id: "stripeBilling",
-    req: object({ return_url: HttpURL }),
-    res: { 201: UrlResp },
-  }),
-
-  "/show/:show_id": scope({
-    params: { show_id: ShowID },
     res: {
       add: {
-        403: NotYourShow,
-        404: unknown(),
+        401: unknown(),
       },
     },
-
-    PUT: {
-      id: "editShow",
-      req: EditShowReq,
-      res: { 200: Show },
-    },
-
-    DELETE: {
-      id: "deleteFeed",
+  },
+  {
+    "/unsubscribe": POST({
+      id: "unsubscribe",
+      description: "Unsubscribe the email from product updates",
+      req: object({ email: Email }),
       res: { 200: unknown() },
-    },
+    }),
 
-    "/downloads": GET({
-      id: "getDownloads",
-      req: {
-        query: {
-          "timezone?": string({ minLength: 1 }),
+    "/user": scope({
+      GET: {
+        id: "getUser",
+        res: { 200: UserResp },
+      },
+
+      /** why is this a POST */
+      POST: {
+        id: "patchUser",
+        req: object({ updates: boolean() }),
+        res: { 200: UserResp },
+      },
+
+      DELETE: {
+        id: "deleteUser",
+        res: { 200: unknown() },
+      },
+
+      "/:email/shows": GET({
+        id: "showsByEmail",
+        deprecated: true,
+        req: { params: { email: Email } },
+        res: {
+          200: array(
+            object({
+              id: ShowID,
+              title: string({ minLength: 1 }),
+            }),
+          ),
         },
-      },
-      res: { 200: DownloadsChart },
+      }),
     }),
 
-    "/episode_downloads": GET({
-      id: "episodeDownloads",
-      res: {
-        200: array(
-          object({
-            title: string(),
-            url: HttpURL,
-            downloads: int32({ minimum: 0 }),
-          }),
-        ),
-      },
-    }),
-  }),
-
-  "/later": scope({
-    GET: {
-      id: "getLater",
-      deprecated: true,
-      res: { 200: Show },
-    },
-
-    POST: {
-      id: "submitLater",
-      req: SubmitReq,
-      res: {
-        200: Show,
-        402: UpgradeToAddMoreToListenLater,
-      },
-    },
-
-    "/v2/v2": GET({
-      id: "getLater2",
-      req: {
-        query: {
-          "before?": ItemID,
-          "after?": ItemID,
-        },
-      },
-      res: { 200: Show2 },
+    "/recent": GET({
+      id: "recentFeeds",
+      res: { 200: RecentResp },
     }),
 
-    "/:itemID": scope(
+    "/checkout": POST({
+      id: "stripeCheckout",
+      description:
+        "Redirect to the checkout page or to billing if already subscribed",
+      req: object({
+        plan: Plan,
+        interval: PlanInterval,
+        success_url: HttpURL,
+        cancel_url: HttpURL,
+      }),
+      res: { 201: UrlResp },
+    }),
+
+    "/billing": POST({
+      id: "stripeBilling",
+      req: object({ return_url: HttpURL }),
+      res: { 201: UrlResp },
+    }),
+
+    "/show/:show_id": scope(
       {
         req: {
-          params: { itemID: ItemID },
+          params: { show_id: ShowID },
+        },
+        res: {
+          add: {
+            403: NotYourShow,
+            404: unknown(),
+          },
         },
       },
       {
-        POST: {
-          id: "addLater",
-          res: {
-            200: unknown(),
-            402: UpgradeToAddMoreToListenLater,
-          },
+        PUT: {
+          id: "editShow",
+          req: EditShowReq,
+          res: { 200: Show },
         },
 
         DELETE: {
-          id: "removeLater",
+          id: "deleteFeed",
           res: { 200: unknown() },
         },
+
+        "/downloads": GET({
+          id: "getDownloads",
+          req: {
+            query: {
+              "timezone?": string({ minLength: 1 }),
+            },
+          },
+          res: { 200: DownloadsChart },
+        }),
+
+        "/episode_downloads": GET({
+          id: "episodeDownloads",
+          res: {
+            200: array(
+              object({
+                title: string(),
+                url: HttpURL,
+                downloads: int32({ minimum: 0 }),
+              }),
+            ),
+          },
+        }),
       },
     ),
-  }),
 
-  "/s3_presign_image": GET({
-    id: "preSignedImageUploadURL",
-    req: {
-      query: {
-        filename: string({ minLength: 1 }),
+    "/later": scope({
+      GET: {
+        id: "getLater",
+        deprecated: true,
+        res: { 200: Show },
       },
-    },
-    res: {
-      200: PreSignedUploadURL,
-      402: { description: "Only Creators can upload images" },
-    },
-  }),
 
-  "/reverse": POST({
-    id: "reversePlaylist",
-    req: ReverseReq,
-    res: {
-      200: ReverseResp,
-      403: NotYourShow,
-    },
-  }),
-})
+      POST: {
+        id: "submitLater",
+        req: SubmitReq,
+        res: {
+          200: Show,
+          402: UpgradeToAddMoreToListenLater,
+        },
+      },
+
+      "/v2/v2": GET({
+        id: "getLater2",
+        req: {
+          query: {
+            "before?": ItemID,
+            "after?": ItemID,
+          },
+        },
+        res: { 200: Show2 },
+      }),
+
+      "/:itemID": scope(
+        {
+          req: {
+            params: { itemID: ItemID },
+          },
+        },
+        {
+          POST: {
+            id: "addLater",
+            res: {
+              200: unknown(),
+              402: UpgradeToAddMoreToListenLater,
+            },
+          },
+
+          DELETE: {
+            id: "removeLater",
+            res: { 200: unknown() },
+          },
+        },
+      ),
+    }),
+
+    "/s3_presign_image": GET({
+      id: "preSignedImageUploadURL",
+      req: {
+        query: {
+          filename: string({ minLength: 1 }),
+        },
+      },
+      res: {
+        200: PreSignedUploadURL,
+        402: { description: "Only Creators can upload images" },
+      },
+    }),
+
+    "/reverse": POST({
+      id: "reversePlaylist",
+      req: ReverseReq,
+      res: {
+        200: ReverseResp,
+        403: NotYourShow,
+      },
+    }),
+  },
+)
 
 const jsonAPI = scope({
   req: { mime: "application/json" },

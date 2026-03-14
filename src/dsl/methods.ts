@@ -17,14 +17,12 @@ function decodeNameable<T>(n: Nameable<T>): { name?: string; value: T } {
 
 export type Mime = `${string}/${string}`
 
-export type Response = Nameable<
-  Readonly<{
-    body?: Schema | Record<Mime, Schema>
-    description?: string
-    headers?: Record<string, Schema>
-    cookies?: Record<string, Schema>
-  }>
->
+export type Response = Nameable<{
+  body?: Schema | Record<Mime, Schema>
+  description?: string
+  headers?: Record<string, Schema>
+  cookies?: Record<string, Schema>
+}>
 
 export const response = (param: Response): Response => param
 
@@ -112,26 +110,7 @@ export type Op = Readonly<{
   description?: string
 }>
 
-type V2 =
-  | { type: "middleware"; middleware: Middleware }
-  | { type: "scope"; scope: ScopeOpts }
-  | { type: "GET"; op: Op }
-  | { type: "POST"; op: Op }
-
-interface OuterV2 {
-  [p: Path]: V2
-}
-
-interface ScopeOpts extends OuterV2 {
-  params?: Record<string, Schema>
-
-  GET?: Op
-  POST?: Op
-  PUT?: Op
-  DELETE?: Op
-}
-
-export function GET(op: Op): V2 {
+export function GET(op: Op): Route {
   throw new Error("TODO")
 }
 
