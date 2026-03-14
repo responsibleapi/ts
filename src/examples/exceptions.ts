@@ -1,4 +1,4 @@
-import { middleware, openAPI, scope } from "../responsible.ts"
+import { responsibleAPI, scope } from "../dsl.ts"
 import { anyOf, array, int64, object, string, unknown } from "../schema.ts"
 
 const AppID = () =>
@@ -43,7 +43,7 @@ const ErrLog = () =>
     ts: UnixMillis,
   })
 
-export const exceptionsAPI = openAPI(
+export const exceptionsAPI = responsibleAPI(
   {
     openapi: "3.1.0",
     info: {

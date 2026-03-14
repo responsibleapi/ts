@@ -1,6 +1,9 @@
-import type { Route } from "./final.ts"
+import type { Route } from "./dsl.ts"
 import type { Schema } from "./schema.ts"
 
+/**
+ * equivalent of OpenAPI #components/
+ */
 type Nameable<T> = (() => T) | T
 
 function decodeNameable<T>(n: Nameable<T>): { name?: string; value: T } {
@@ -125,18 +128,6 @@ interface ScopeOpts extends OuterV2 {
   POST?: Op
   PUT?: Op
   DELETE?: Op
-}
-
-export function middleware(opts: Middleware): V2 {
-  throw new Error("TODO")
-}
-
-export function scope(opts: ScopeOpts): V2 {
-  throw new Error("TODO")
-}
-
-export function scope2(middleware: Middleware, endpoints: ScopeOpts): V2 {
-  throw new Error("TODO")
 }
 
 export function GET(op: Op): V2 {

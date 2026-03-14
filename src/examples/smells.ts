@@ -1,5 +1,5 @@
-import { responsibleAPI } from "../final.ts"
-import { POST } from "../responsible.ts"
+import { responsibleAPI } from "../dsl.ts"
+import { POST } from "../methods.ts"
 import { float, int32, object, string, unknown } from "../schema.ts"
 
 const LatLng = () =>

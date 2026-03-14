@@ -1,0 +1,2 @@
+- strict tsconfig
+- strict eslint

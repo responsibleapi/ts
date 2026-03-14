@@ -1,4 +1,4 @@
-import { openAPI, scope } from "../responsible.ts"
+import { openAPI, scope } from "../methods.ts"
 import { allOf, array, object, string } from "../schema.ts"
 
 const baseError = () =>

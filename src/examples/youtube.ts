@@ -1,11 +1,5 @@
-import { responsibleAPI } from "../final.ts"
-import {
-  GET,
-  middleware,
-  openAPI,
-  querySecurity,
-  scope,
-} from "../responsible.ts"
+import { responsibleAPI, scope } from "../dsl.ts"
+import { GET, querySecurity } from "../methods.ts"
 import {
   array,
   dict,

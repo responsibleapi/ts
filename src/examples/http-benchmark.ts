@@ -1,5 +1,5 @@
-import { responsibleAPI } from "../final.ts"
-import { POST } from "../responsible.ts"
+import { responsibleAPI } from "../dsl.ts"
+import { POST } from "../methods.ts"
 import { array, dict, email, int32, int64, object, string } from "../schema.ts"
 
 const PostID = () => int64({ minimum: 1 })

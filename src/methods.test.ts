@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { path } from "./responsible.ts"
+import { path } from "./methods.ts"
 import { httpURL, string } from "./schema.ts"
 
 describe("responsible", () => {

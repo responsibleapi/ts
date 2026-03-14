@@ -6,7 +6,7 @@ import {
   POST,
   response,
   scope,
-} from "../responsible.ts"
+} from "../methods.ts"
 import {
   array,
   boolean,
