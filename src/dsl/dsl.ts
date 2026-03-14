@@ -47,15 +47,17 @@ interface ScopeOpts {
   res: ScopeRes
 }
 
+interface ResponsibleAPI {
+  partialDoc: Partial<oas31.OpenAPIObject>
+  forAll: ScopeOpts
+  routes: Routes
+}
+
 export function responsibleAPI({
   partialDoc,
   forAll,
   routes,
-}: {
-  partialDoc: Partial<oas31.OpenAPIObject>
-  forAll: ScopeOpts
-  routes: Routes
-}): oas31.OpenAPIObject {
+}: ResponsibleAPI): oas31.OpenAPIObject {
   throw new Error("TODO")
 }
 
@@ -65,7 +67,7 @@ interface Scope {
 }
 
 export function scope(routes: Routes): Scope
-export function scope(opts: ScopeOpts, routes: Routes): Scope
+export function scope(forAll: ScopeOpts, routes: Routes): Scope
 export function scope(
   ...args: [routes: Routes] | [opts: ScopeOpts, routes: Routes]
 ): Scope {
