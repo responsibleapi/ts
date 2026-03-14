@@ -1,6 +1,6 @@
 import { oas31 } from "openapi3-ts"
 import { typesafeLowercase } from "./lib.ts"
-import type { Mime, Response, Security } from "./methods.ts"
+import type { Mime, Op, Response, Security } from "./methods.ts"
 import type { Schema } from "./schema.ts"
 
 interface ScopeReq {
@@ -29,6 +29,7 @@ export interface Route {
   method: "GET" | "POST" | "PUT" | "DELETE"
   req: ScopeReq
   res: ScopeRes
+  op?: Op
 }
 
 type ScopeOrRoute = Route | Scope

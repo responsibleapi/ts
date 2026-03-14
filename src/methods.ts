@@ -2,7 +2,7 @@ import type { Route } from "./dsl.ts"
 import type { Schema } from "./schema.ts"
 
 /**
- * equivalent of OpenAPI #components/
+ * either named reference in `#components/` or an actual inline thing
  */
 type Nameable<T> = (() => T) | T
 
@@ -52,9 +52,10 @@ export const headerSecurity = (param: { name: string }): HeaderSecurity => ({
 
 type MatchStatus = number | `${number}..${number}`
 
-interface MiddlewareResponse extends Response {
-  mime?: Mime
-}
+/**
+ * `type` because {@link Response} is nameable
+ */
+type MiddlewareResponse = Response & { mime?: Mime }
 
 type Res = Schema | Response | (() => Response)
 
@@ -103,7 +104,7 @@ interface MiddlewareReq extends Req {
   mime?: Mime
 }
 
-type Op = Readonly<{
+export type Op = Readonly<{
   id?: string
   req?: Schema | Req
   res?: Record<number, Res>
@@ -137,15 +138,5 @@ export function GET(op: Op): V2 {
 export function POST(op: Op): Route
 export function POST(id: string, op: Op): Route
 export function POST(idOrOp: string | Op, maybeOp?: Op): Route {
-  if (typeof idOrOp === "string" && maybeOp) {
-    return {
-      method: "POST",
-      id: idOrOp,
-      op: { id: idOrOp, ...maybeOp },
-    }
-  }
-  return {
-    method: "POST",
-    op: idOrOp as Op,
-  }
+  throw new Error("TODO")
 }
