@@ -6,7 +6,7 @@ import {
   POST,
   response,
   scope,
-} from "../methods.ts"
+} from "../dsl/methods.ts"
 import {
   array,
   boolean,
@@ -16,7 +16,7 @@ import {
   object,
   string,
   unknown,
-} from "../schema.ts"
+} from "../dsl/schema.ts"
 
 const Email = () => string({ format: "email" })
 

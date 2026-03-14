@@ -1,5 +1,5 @@
-import { responsibleAPI, scope } from "../dsl.ts"
-import { GET, querySecurity } from "../methods.ts"
+import { responsibleAPI, scope } from "../dsl/dsl.ts"
+import { GET, querySecurity } from "../dsl/methods.ts"
 import {
   array,
   dict,
@@ -8,7 +8,7 @@ import {
   object,
   string,
   unknown,
-} from "../schema.ts"
+} from "../dsl/schema.ts"
 
 const VideoID = () => string({ minLength: 1 })
 const ChannelID = () => string({ minLength: 1 })

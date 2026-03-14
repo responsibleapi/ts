@@ -1,6 +1,6 @@
-import { responsibleAPI } from "../dsl.ts"
-import { POST } from "../methods.ts"
-import { float, int32, object, string, unknown } from "../schema.ts"
+import { responsibleAPI } from "../dsl/dsl.ts"
+import { POST } from "../dsl/methods.ts"
+import { float, int32, object, string, unknown } from "../dsl/schema.ts"
 
 const LatLng = () =>
   object({

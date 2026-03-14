@@ -1,5 +1,5 @@
 import { oas31 } from "openapi3-ts"
-import { typesafeLowercase } from "./lib.ts"
+import { typesafeLowercase } from "../lib.ts"
 import type { Mime, Op, Response, Security } from "./methods.ts"
 import type { Schema } from "./schema.ts"
 
@@ -60,14 +60,16 @@ export function responsibleAPI({
 }
 
 interface Scope {
-  opts: ScopeOpts
+  opts?: ScopeOpts
   routes: Routes
 }
 
-export const scope = (opts: ScopeOpts, routes: Routes): Scope => ({
-  opts,
-  routes,
-})
+export function scope(opts: ScopeOpts, routes: Routes): Scope {
+  return {
+    opts,
+    routes,
+  }
+}
 
 function scopeToPaths(s: Scope): oas31.PathsObject {
   const paths: Record<string, oas31.PathItemObject> = {}

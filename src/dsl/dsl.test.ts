@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest"
 import { responsibleAPI } from "./dsl.ts"
 import { POST } from "./methods.ts"
 import { int32, object, string } from "./schema.ts"
-import { validate } from "./validate.ts"
+import { validate } from "../validate.ts"
 
 const Err = object({ messsage: string() })
 

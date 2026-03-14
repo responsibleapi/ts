@@ -1,6 +1,6 @@
-import { responsibleAPI } from "../dsl.ts"
-import { POST } from "../methods.ts"
-import { array, dict, email, int32, int64, object, string } from "../schema.ts"
+import { responsibleAPI } from "../dsl/dsl.ts"
+import { POST } from "../dsl/methods.ts"
+import { array, dict, email, int32, int64, object, string } from "../dsl/schema.ts"
 
 const PostID = () => int64({ minimum: 1 })
 

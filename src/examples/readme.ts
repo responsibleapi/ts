@@ -1,5 +1,5 @@
-import { openAPI, scope } from "../methods.ts"
-import { allOf, array, object, string } from "../schema.ts"
+import { openAPI, scope } from "../dsl/methods.ts"
+import { allOf, array, object, string } from "../dsl/schema.ts"
 
 const baseError = () =>
   object({
