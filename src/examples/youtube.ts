@@ -84,7 +84,7 @@ const PlaylistItems = () => object()
 
 const Playlists = () => object()
 
-const Videos = () => object
+const Videos = () => object()
 
 const security = () => querySecurity({ name: "key" })
 

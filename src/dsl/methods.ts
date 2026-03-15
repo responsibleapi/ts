@@ -83,24 +83,12 @@ type Req = Readonly<{
   body?: Schema | Record<Mime, Schema>
 }>
 
-interface MiddlewareReq extends Req {
-  mime?: Mime
-}
-
-export type Op = Readonly<{
-  id?: string
-  req?: Schema | Req
-  res?: Record<number, Res>
-  deprecated?: boolean
-  description?: string
-}>
-
-export function GET(_op: Op): Route {
+export function GET(_op: Route): Route {
   throw new Error("TODO")
 }
 
-export function POST(op: Op): Route
-export function POST(id: string, op: Op): Route
-export function POST(_idOrOp: string | Op, _maybeOp?: Op): Route {
+export function POST(op: Route): Route
+export function POST(id: string, op: Route): Route
+export function POST(_idOrOp: string | Route, _maybeOp?: Route): Route {
   throw new Error("TODO")
 }
