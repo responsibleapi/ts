@@ -1,34 +1,17 @@
 import js from "@eslint/js"
-import globals from "globals"
 import tseslint from "typescript-eslint"
 
 export default tseslint.config(
   {
-    ignores: [
-      "bun.lock",
-      "eslint.config.js",
-      "node_modules/**",
-      "src/examples/readme.yaml",
-    ],
+    ignores: ["src/examples/readme.yaml"],
     linterOptions: {
       reportUnusedDisableDirectives: "error",
     },
   },
   {
-    files: [
-      "**/*.js",
-      "**/*.mjs",
-      "**/*.cjs",
-      "**/*.ts",
-      "**/*.mts",
-      "**/*.cts",
-    ],
+    files: ["src/**/*.ts", "src/**/*.mts", "src/**/*.cts"],
     languageOptions: {
       ecmaVersion: "latest",
-      globals: {
-        ...globals.node,
-        ...globals.bunBuiltin,
-      },
       sourceType: "module",
     },
   },
