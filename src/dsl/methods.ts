@@ -48,8 +48,6 @@ export const headerSecurity = (param: { name: string }): HeaderSecurity => ({
   ...param,
 })
 
-type MatchStatus = number | `${number}..${number}`
-
 /**
  * `type` because {@link Response} is nameable
  */

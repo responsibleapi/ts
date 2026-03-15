@@ -1,5 +1,4 @@
 import type { oas31 } from "openapi3-ts"
-import { typesafeLowercase } from "../lib.ts"
 import type { Mime, Response, Security } from "./methods.ts"
 import type { Schema } from "./schema.ts"
 
@@ -16,10 +15,12 @@ interface StatusMatch {
   headers: Record<string, Schema>
 }
 
+type MatchStatus = number | `${number}..${number}`
+
 type ScopeRes =
   | {
       mime?: Mime
-      match?: Record<string, StatusMatch>
+      match?: Record<MatchStatus, StatusMatch>
       add?: Record<number, Response | Schema>
     }
   | Record<number, Response | Schema>
@@ -89,20 +90,6 @@ export function scope(
   }
 }
 
-function _scopeToPaths(s: Scope): oas31.PathsObject {
-  const paths: Partial<Record<string, oas31.PathItemObject>> = {}
-
-  for (const k in s.routes) {
-    const path = k as keyof typeof s.routes
-    const route = s.routes[path]
-    if (isScope(route)) {
-      // depth first search
-    } else {
-      const pathItem = (paths[k] ??= {})
-      const lkMethod = typesafeLowercase(route.method)
-      pathItem[lkMethod] ??= {}
-    }
-  }
-
-  return paths as oas31.PathsObject
+function _scopeToPaths(_: Scope): oas31.PathsObject {
+  throw new Error("not even sure if we need this function")
 }
