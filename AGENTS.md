@@ -16,3 +16,11 @@ shape, we can start implementing the compiler and use them as test cases.
 ## Docs
 
 - field-by-field `package.json` rationale lives in `docs/package.jsonc`
+
+## TODO
+
+Single pass compiler design:
+
+Each nested level inherits and extends the context, and as you return up the
+stack, you merge the generated OpenAPI paths. No AST needed - just function
+calls and return values
