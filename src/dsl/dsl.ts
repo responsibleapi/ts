@@ -9,7 +9,7 @@ interface ScopeReq {
   params?: Record<string, Schema>
   query?: Record<string, Schema>
   headers?: Record<string, Schema>
-  body?: Schema
+  body?: Schema | Record<Mime, Schema>
 }
 
 interface StatusMatch {
