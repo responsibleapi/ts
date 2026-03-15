@@ -2,8 +2,10 @@
   "name": "responsibleapi",
   "scripts": {
     "test": "bun test",
+    "typecheck": "bun tsc",
     "lint": "bun eslint src",
-    "lint:fix": "bun eslint src --fix"
+    "lint:fix": "bun eslint src --fix",
+    "check": "bun run --parallel typecheck lint test"
   },
   "type": "module",
   "dependencies": {

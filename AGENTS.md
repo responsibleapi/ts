@@ -12,3 +12,7 @@
 Migrating [examples](src/examples/) to the new [DSL](src/dsl/). Trying to move
 away from `middleware` DSL to `forAll` prop in both `scope` and `responsibleAPI`
 param obj.
+
+## Notes
+
+- field-by-field `package.json` rationale lives in `docs/package.jsonc`

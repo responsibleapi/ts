@@ -9,15 +9,15 @@
   ],
   "overrides": [
     {
-      "files": ["*.yml", "*.yaml"],
+      "files": ["*.jsonc"],
       "options": {
-        "proseWrap": "preserve"
+        "trailingComma": "none"
       }
     },
     {
-      "files": ["bun.lock"],
+      "files": ["*.yml", "*.yaml"],
       "options": {
-        "parser": "json5"
+        "proseWrap": "preserve"
       }
     }
   ]
