@@ -73,11 +73,6 @@ export default tseslint.config(
   },
   {
     files: ["**/*.test.ts"],
-    languageOptions: {
-      globals: {
-        ...globals.vitest,
-      },
-    },
     rules: {
       "@typescript-eslint/unbound-method": "off",
     },

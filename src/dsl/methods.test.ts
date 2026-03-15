@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test } from "bun:test"
 import { path } from "./methods.ts"
 import { httpURL, string } from "./schema.ts"
 

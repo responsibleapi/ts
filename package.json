@@ -1,6 +1,7 @@
 {
   "name": "responsibleapi",
   "scripts": {
+    "test": "bun test",
     "lint": "bun eslint src",
     "lint:fix": "bun eslint src --fix"
   },
@@ -18,7 +19,6 @@
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-packagejson": "^2.5.22",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.0",
-    "vitest": "^4.1.0"
+    "typescript-eslint": "^8.57.0"
   }
 }
