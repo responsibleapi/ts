@@ -6,7 +6,7 @@ import type { Schema } from "./schema.ts"
  */
 export type Nameable<T> = (() => T) | T
 
-function decodeNameable<T>(n: Nameable<T>): { name?: string; value: T } {
+function _decodeNameable<T>(n: Nameable<T>): { name?: string; value: T } {
   if (typeof n === "function") {
     const fn = n as () => T
     return { name: fn.name, value: fn() }
@@ -57,7 +57,7 @@ type MiddlewareResponse = Response & { mime?: Mime }
 
 type Res = Schema | Response | (() => Response)
 
-type Middleware = Readonly<{
+type _Middleware = Readonly<{
   req?: MiddlewareReq
   res?: {
     mime?: Mime
@@ -79,13 +79,11 @@ export function path(
   strings: TemplateStringsArray,
   ...params: readonly Schema[]
 ): [Path, Record<string, Schema>] {
-  if (!isPath(strings[0])) throw new Error(`${strings[0]} must start with /`)
-
-  for (let i = 0; i < params.length; i++) {
-    console.log(strings[i], params[i])
+  if (!isPath(strings[0])) {
+    throw new Error(`${strings[0]} must start with /`)
   }
-  console.log(strings[params.length])
 
+  void params
   throw new Error("TODO")
 }
 
@@ -110,12 +108,12 @@ export type Op = Readonly<{
   description?: string
 }>
 
-export function GET(op: Op): Route {
+export function GET(_op: Op): Route {
   throw new Error("TODO")
 }
 
 export function POST(op: Op): Route
 export function POST(id: string, op: Op): Route
-export function POST(idOrOp: string | Op, maybeOp?: Op): Route {
+export function POST(_idOrOp: string | Op, _maybeOp?: Op): Route {
   throw new Error("TODO")
 }

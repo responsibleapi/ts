@@ -1,4 +1,4 @@
-import { oas31 } from "openapi3-ts"
+import type { oas31 } from "openapi3-ts"
 import { typesafeLowercase } from "../lib.ts"
 import type { Mime, Op, Response, Security } from "./methods.ts"
 import type { Schema } from "./schema.ts"
@@ -20,10 +20,6 @@ interface ScopeRes {
   match?: Record<string, StatusMatch>
   add?: Record<number, Response>
 }
-
-interface RealReq {}
-
-interface RealRes {}
 
 export interface Route {
   id?: string
@@ -54,11 +50,9 @@ interface ResponsibleAPI {
   routes: Routes
 }
 
-export function responsibleAPI({
-  partialDoc,
-  forAll,
-  routes,
-}: ResponsibleAPI): oas31.OpenAPIObject {
+export function responsibleAPI(
+  _api: ResponsibleAPI,
+): oas31.OpenAPIObject {
   throw new Error("TODO")
 }
 
@@ -86,8 +80,8 @@ export function scope(
   }
 }
 
-function scopeToPaths(s: Scope): oas31.PathsObject {
-  const paths: Record<string, oas31.PathItemObject> = {}
+function _scopeToPaths(s: Scope): oas31.PathsObject {
+  const paths: Partial<Record<string, oas31.PathItemObject>> = {}
 
   for (const k in s.routes) {
     const path = k as keyof typeof s.routes
@@ -95,12 +89,11 @@ function scopeToPaths(s: Scope): oas31.PathsObject {
     if (isScope(route)) {
       // depth first search
     } else {
-      paths[k] = paths[k] || {}
-
+      const pathItem = (paths[k] ??= {})
       const lkMethod = typesafeLowercase(route.method)
-      paths[k][lkMethod] = paths[k][lkMethod] || {}
+      pathItem[lkMethod] ??= {}
     }
   }
 
-  return paths
+  return paths as oas31.PathsObject
 }

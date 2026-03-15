@@ -1,5 +1,5 @@
 import { Validator } from "@seriousme/openapi-schema-validator"
-import { oas31 } from "openapi3-ts"
+import type { oas31 } from "openapi3-ts"
 
 const VALIDATOR = new Validator()
 

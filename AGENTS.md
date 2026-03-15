@@ -1,9 +1,10 @@
 # AGENTS.md
 
-## Foundation
+## Tools
 
 - use `bun` for everything
 - never use `bunx`, if any package is missing, ask to add it to `package.json`
+- never use `node` to eval js/ts, use `bun` instead
 - don't waste time formatting files
 
 ## Current state of things

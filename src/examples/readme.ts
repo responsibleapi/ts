@@ -69,7 +69,7 @@ const baseError = () =>
  *           format: url
  *           description: The place where you can apply for the position!
  */
-const jobOpening = () =>
+const _jobOpening = () =>
   object({
     "slug?": string({
       description: "A slugified version of the job opening title.",
@@ -101,7 +101,7 @@ const jobOpening = () =>
     }),
   })
 
-const error_VERSION_NOTFOUND = () =>
+const _error_VERSION_NOTFOUND = () =>
   allOf([
     baseError,
     object({

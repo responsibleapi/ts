@@ -1,17 +1,24 @@
 {
   "name": "responsibleapi",
+  "scripts": {
+    "lint": "bun eslint src",
+    "lint:fix": "bun eslint src --fix"
+  },
   "type": "module",
   "dependencies": {
     "@seriousme/openapi-schema-validator": "^2.8.0",
     "openapi3-ts": "^4.5.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/bun": "^1.3.10",
     "eslint": "^10.0.3",
+    "globals": "^17.4.0",
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-packagejson": "^2.5.22",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.0",
     "vitest": "^4.1.0"
   }
 }

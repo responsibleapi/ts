@@ -144,7 +144,7 @@ const EditShowReq = () =>
     "website?": HttpURL,
   })
 
-const EditShowReq2 = () =>
+const _EditShowReq2 = () =>
   object({
     "?analyticsPrefix": HttpURL,
     "?author": string(),
