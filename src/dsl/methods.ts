@@ -1,3 +1,5 @@
+// TODO: Merge this file into `src/dsl/dsl.ts`.
+
 import type { Route } from "./dsl.ts"
 import type { Schema } from "./schema.ts"
 
