@@ -37,7 +37,7 @@ type ScopeRes =
     }
   | OpRes
 
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE"
+type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "HEAD"
 
 export interface Op {
   id?: string
@@ -60,7 +60,7 @@ export function isScope(s: ScopeOrOp): s is Scope {
 }
 
 type Routes = Record<`/${string}`, ScopeOrOp>
-type MethodRoutes = Record<HttpMethod, Op>
+type MethodRoutes = Partial<Record<HttpMethod, Op>>
 type ScopeRoutes = Routes | MethodRoutes
 
 interface ScopeOpts {
@@ -69,7 +69,7 @@ interface ScopeOpts {
 }
 
 interface ResponsibleAPI {
-  partialDoc: Partial<oas31.OpenAPIObject>
+  partialDoc: Partial<Omit<oas31.OpenAPIObject, "components">>
   forAll: ScopeOpts
   routes: Routes
 }

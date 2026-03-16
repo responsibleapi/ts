@@ -110,7 +110,9 @@ export const dict = (k: PropKeySchema, v: Schema): Dict => ({
   additionalProperties: v,
 })
 
-const isOptional = (key: string): key is `${string}?` => key.endsWith("?")
+type OptionalKey = `${string}?`
+
+const isOptional = (k: string): k is OptionalKey => k.endsWith("?")
 
 export const object = (
   props: Readonly<Record<string, Schema>> = {},

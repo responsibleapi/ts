@@ -29,6 +29,7 @@ const SubmitReq = () => object({ url: HttpURL })
 const UrlResp = () => object({ url: HttpURL })
 
 const Plan = () => string({ enum: ["free", "basic", "creator"] })
+const AudioVideo = () => string({ enum: ["audio", "video"] })
 
 const UserResp = () =>
   object({
@@ -80,20 +81,20 @@ const YouTubeFeedType = () => string({ enum: ["video", "playlist", "channel"] })
 
 const Show = () =>
   object({
-    "?analyticsPrefix": HttpURL,
-    "?author": string(),
-    "?copyright": string(),
-    "?explicit": boolean(),
-    "?image": HttpURL,
-    "?keywords": string(),
-    "?owner": string(),
-    "?ownerEmail": Email,
-    "?primaryCategory": ITunesCategory,
-    "?refreshedUTC": UnixMillis,
-    "?reverse": boolean(),
-    "?secondaryCategory": ITunesCategory,
-    "?type": YouTubeFeedType,
-    "?website": HttpURL,
+    "analyticsPrefix?": HttpURL,
+    "author?": string(),
+    "copyright?": string(),
+    "explicit?": boolean(),
+    "image?": HttpURL,
+    "keywords?": string(),
+    "owner?": string(),
+    "ownerEmail?": Email,
+    "primaryCategory?": ITunesCategory,
+    "refreshedUTC?": UnixMillis,
+    "reverse?": boolean(),
+    "secondaryCategory?": ITunesCategory,
+    "type?": YouTubeFeedType,
+    "website?": HttpURL,
     audioFeedURL: HttpURL,
     description: string(),
     episodes: int32({ minimum: 0 }),
@@ -119,7 +120,7 @@ const PaginationResp = () =>
 const Show2 = () =>
   object({
     show: Show,
-    items: array(ItemID),
+    items: array(JsonItem),
     "user?": UserResp,
     pagination: PaginationResp,
   })
@@ -146,25 +147,25 @@ const EditShowReq = () =>
 
 const _EditShowReq2 = () =>
   object({
-    "?analyticsPrefix": HttpURL,
-    "?author": string(),
-    "?category1": string(),
-    "?category2": string(),
-    "?copyright": string(),
-    "?description": string(),
-    "?image": HttpURL,
-    "?keywords": string(),
-    "?subcategory1": string(),
-    "?subcategory2": string(),
-    "?title": string(),
-    "?website": HttpURL,
+    "analyticsPrefix?": HttpURL,
+    "author?": string(),
+    "category1?": string(),
+    "category2?": string(),
+    "copyright?": string(),
+    "description?": string(),
+    "image?": HttpURL,
+    "keywords?": string(),
+    "subcategory1?": string(),
+    "subcategory2?": string(),
+    "title?": string(),
+    "website?": HttpURL,
     explicit: boolean(),
     language: string(),
     owner: string(),
     ownerEmail: Email,
   })
 
-const Mime = () => string({ pattern: /^\w+\/[-+.\w]+$/ })
+const Mime = () => string({ pattern: /^[a-z]+\/.+$/ })
 
 const JsonItem = () =>
   object({
@@ -174,7 +175,7 @@ const JsonItem = () =>
     pub_date_utc: UnixMillis,
     audio_url: HttpURL,
     mime: Mime,
-    "duration_seconds?": int32({ minimum: 0 }),
+    "duration_seconds?": int64(),
     "image?": HttpURL,
     "author?": string(),
   })
@@ -223,10 +224,7 @@ const DownloadsChart = () =>
     total: int64({ minimum: 0 }),
   })
 
-const UpgradeToAddMoreToListenLater = () =>
-  response({
-    description: "Adding more that 1 item to Listen Later requires a paid plan",
-  })
+const UpgradeToAddMoreToListenLater = () => response({ description: "402" })
 
 const PreSignedUploadURL = () =>
   object({
@@ -239,8 +237,7 @@ const ReverseReq = () => object({ showID: ShowID, value: boolean() })
 
 const ReverseResp = () => object({ value: boolean() })
 
-const NotYourShow = () =>
-  response({ description: "You can't edit somebody else's show" })
+const NotYourShow = () => response({ description: "403" })
 
 const authenticatedOps = scope({
   forAll: {
@@ -249,7 +246,7 @@ const authenticatedOps = scope({
     },
     res: {
       add: {
-        401: unknown(),
+        401: response({ description: "401" }),
       },
     },
   },
@@ -326,7 +323,7 @@ const authenticatedOps = scope({
         res: {
           add: {
             403: NotYourShow,
-            404: unknown(),
+            404: response({ description: "404" }),
           },
         },
       },
@@ -394,10 +391,10 @@ const authenticatedOps = scope({
         res: { 200: Show2 },
       }),
 
-      "/:itemID": scope({
+      "/:item_id": scope({
         forAll: {
           req: {
-            params: { itemID: ItemID },
+            params: { item_id: ItemID },
           },
         },
         routes: {
@@ -448,7 +445,7 @@ const jsonAPI = scope({
       match: {
         "200..299": {
           mime: "application/json",
-          headers: { "Content-Length": int32({ minimum: 1 }) },
+          headers: { "content-length": int32({ minimum: 1 }) },
         },
       },
     },
@@ -492,18 +489,21 @@ const jsonAPI = scope({
         401: {
           description: "Submitting playlists requires a login",
         },
+        403: {
+          description: "403",
+        },
         404: unknown(),
       },
     }),
 
-    "/show/:showID": scope({
+    "/show/:show_id": scope({
       forAll: {
         req: {
-          params: { showID: ShowID },
+          params: { show_id: ShowID },
         },
         res: {
           add: {
-            404: unknown(),
+            404: response({ description: "404" }),
           },
         },
       },
@@ -564,7 +564,7 @@ const jsonAPI = scope({
         201: {
           headers: {
             /** wtf is this */
-            "Content-Length?": int32({ minimum: 0, maximum: 0 }),
+            "content-length?": int32({ minimum: 0, maximum: 0 }),
           },
         },
       },
@@ -579,6 +579,7 @@ const googleAuth = scope({
     id: "googleSlash",
     res: {
       302: {
+        description: "302",
         headers: {
           location: HttpURL,
         },
@@ -595,11 +596,10 @@ const googleAuth = scope({
     },
     res: {
       302: {
+        description: "302",
         headers: {
           location: HttpURL,
-        },
-        cookies: {
-          token: string({ minLength: 1 }),
+          "set-cookie": string({ pattern: /token=[^;]+/ }),
         },
       },
     },
@@ -608,8 +608,9 @@ const googleAuth = scope({
 
 const RedirectRSS = () =>
   response({
+    description: "302",
     headers: {
-      Location: HttpURL,
+      location: HttpURL,
     },
   })
 
@@ -620,7 +621,13 @@ const NonEmptyString = () =>
 
 const ItemNotFound = () =>
   response({
-    description: "Item not found",
+    description: "404",
+  })
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const StripeCheckoutID = () =>
+  string({
+    minLength: 1,
   })
 
 export const listenboxAPI = responsibleAPI({
@@ -629,101 +636,221 @@ export const listenboxAPI = responsibleAPI({
     info: {
       title: "Listenbox",
       version: "0.1",
-      termsOfService: "https://listenbox.app/terms",
+      termsOfService: "/terms",
     },
     servers: [
-      { url: "http://localhost:8080" },
       { url: "https://api.listenbox.app" },
+      { url: "http://localhost:8080" },
     ],
   },
   forAll: {
     res: {
       add: {
         400: {
-          headers: { "Content-Length": int32({ minimum: 1 }) },
+          headers: { "content-length": int32({ minimum: 1 }) },
           body: { "application/json": ErrorStruct },
         },
       },
     },
   },
   routes: {
+    "/api/health": scope({
+      GET: {
+        id: "getHealth",
+        res: { 200: response({ description: "200" }) },
+      },
+
+      HEAD: {
+        id: "headHealth",
+        res: { 200: response({ description: "200" }) },
+      },
+    }),
+
+    "/status/info": scope({
+      HEAD: {
+        id: "infoStatus",
+        req: {
+          query: {
+            url: HttpURL,
+          },
+        },
+        res: {
+          200: response({ description: "200" }),
+          500: response({ description: "500" }),
+        },
+      },
+    }),
+
+    "/status/download": scope({
+      HEAD: {
+        id: "downloadStatus",
+        req: {
+          query: {
+            url: HttpURL,
+          },
+        },
+        res: {
+          200: response({ description: "200" }),
+          500: response({ description: "500" }),
+        },
+      },
+    }),
+
     "/japi": jsonAPI,
 
     "/oauth/google": googleAuth,
 
-    "/rss/:showID/:type.rss": GET({
-      id: "rss",
-      req: {
-        params: {
-          showID: ShowID,
-          type: string({ enum: ["audio", "video"] }),
+    "/rss/:show_id/:type.rss": scope({
+      GET: {
+        id: "getRss",
+        req: {
+          params: {
+            show_id: ShowID,
+            type: AudioVideo,
+          },
+        },
+        res: {
+          200: {
+            headers: {
+              "content-length": int32({ minimum: 1 }),
+              etag: string({ minLength: 1 }),
+              "cache-control": string({ const: "no-cache" }),
+              "cdn-cache-control": string({ const: "max-age=2147483647" }),
+              "last-modified?": string({ minLength: 1 }),
+            },
+            body: {
+              "application/rss+xml": string({ minLength: 1 }),
+            },
+          },
+          302: RedirectRSS,
+          403: response({ description: "403" }),
+          404: response({ description: "404" }),
         },
       },
-      res: {
-        200: {
-          headers: {
-            "Content-Length": int32({ minimum: 1 }),
-            ETag: string({ minLength: 1 }),
-            "Cache-Control": string({ const: "no-cache" }),
-            "CDN-Cache-Control": string({ pattern: /max-age=\d+/ }),
-            "Last-Modified?": string({ minLength: 1 }),
-          },
-          body: {
-            "application/rss+xml": string({ minLength: 1 }),
-            "application/xml": string({ minLength: 1 }),
+
+      HEAD: {
+        id: "headRss",
+        req: {
+          params: {
+            show_id: ShowID,
+            type: AudioVideo,
           },
         },
-        301: RedirectRSS,
-        302: RedirectRSS,
-        403: { description: "Only accessible through CDN" },
-        404: { description: "Show not found" },
+        res: {
+          200: {
+            headers: {
+              "content-length": int32({ minimum: 1 }),
+              etag: string({ minLength: 1 }),
+              "cache-control": string({ const: "no-cache" }),
+              "cdn-cache-control": string({ const: "max-age=2147483647" }),
+              "last-modified?": string({ minLength: 1 }),
+            },
+          },
+          302: RedirectRSS,
+          403: response({ description: "403" }),
+          404: response({ description: "404" }),
+        },
       },
     }),
 
-    "/a/:itemID.:ext": GET({
-      id: "audio",
-      req: {
-        params: {
-          itemID: ItemID,
-          ext: NonEmptyString,
+    "/a/:item_id.:ext": scope({
+      GET: {
+        id: "getAudio",
+        req: {
+          params: {
+            item_id: ItemID,
+            ext: NonEmptyString,
+          },
+          headers: {
+            "cf-connecting-ip?": string({ minLength: 1 }),
+          },
         },
-        headers: {
-          "CF-Connecting-IP?": string({ minLength: 1 }),
+        res: {
+          200: {
+            headers: {
+              "cache-control": string({ minLength: 1 }),
+              "content-length": int32({ minimum: 1 }),
+            },
+            body: {
+              "audio/*": string({ format: "binary" }),
+            },
+          },
+          404: ItemNotFound,
+          429: response({ description: "429" }),
+          503: response({ description: "503" }),
         },
       },
-      res: {
-        200: {
-          headers: {
-            "Cache-Control": string({ minLength: 1 }),
-            "Content-Length": int32({ minimum: 1 }),
+
+      HEAD: {
+        id: "headAudio",
+        req: {
+          params: {
+            item_id: ItemID,
+            ext: NonEmptyString,
           },
-          body: {
-            "audio/*": string({ format: "binary" }),
+          headers: {
+            "cf-connecting-ip?": string({ minLength: 1 }),
           },
         },
-        404: ItemNotFound,
+        res: {
+          200: {
+            headers: {
+              "cache-control": string({ minLength: 1 }),
+              "content-length": int32({ minimum: 1 }),
+            },
+          },
+          404: ItemNotFound,
+          429: response({ description: "429" }),
+          503: response({ description: "503" }),
+        },
       },
     }),
 
-    "/w/:itemID.:ext": GET({
-      id: "video",
-      req: {
-        params: {
-          itemID: ItemID,
-          ext: NonEmptyString,
-        },
-        headers: {
-          "CF-Connecting-IP?": string({ minLength: 1 }),
-        },
-      },
-      res: {
-        302: {
+    "/w/:item_id.:ext": scope({
+      GET: {
+        id: "getVideo",
+        req: {
+          params: {
+            item_id: ItemID,
+            ext: NonEmptyString,
+          },
           headers: {
-            Location: HttpURL,
-            "Cache-Control": string({ minLength: 1 }),
+            "cf-connecting-ip?": string({ minLength: 1 }),
           },
         },
-        404: ItemNotFound,
+        res: {
+          302: {
+            headers: {
+              location: HttpURL,
+              "cache-control": string({ minLength: 1 }),
+            },
+          },
+          404: ItemNotFound,
+          429: response({ description: "429" }),
+        },
+      },
+
+      HEAD: {
+        id: "headVideo",
+        req: {
+          params: {
+            item_id: ItemID,
+            ext: NonEmptyString,
+          },
+          headers: {
+            "cf-connecting-ip?": string({ minLength: 1 }),
+          },
+        },
+        res: {
+          302: {
+            headers: {
+              location: HttpURL,
+              "cache-control": string({ minLength: 1 }),
+            },
+          },
+          404: ItemNotFound,
+          429: response({ description: "429" }),
+        },
       },
     }),
 
@@ -731,7 +858,7 @@ export const listenboxAPI = responsibleAPI({
       id: "stripeWebhook",
       req: {
         headers: {
-          "Stripe-Signature": string({ minLength: 1 }),
+          "stripe-signature": string({ minLength: 1 }),
         },
         body: {
           "application/json": object(),
@@ -739,6 +866,36 @@ export const listenboxAPI = responsibleAPI({
       },
       res: {
         200: unknown(),
+      },
+    }),
+
+    "/youtube/hooks": scope({
+      GET: {
+        id: "verifyYouTubeHook",
+        req: {
+          query: {
+            "hub.challenge?": string({ minLength: 1 }),
+            "hub.lease_seconds?": int32({ minimum: 1 }),
+          },
+        },
+        res: {
+          200: response({ description: "200" }),
+        },
+      },
+
+      POST: {
+        id: "postYouTubeHook",
+        req: {
+          headers: {
+            link: string({ minLength: 1 }),
+          },
+          body: {
+            "*/*": unknown(),
+          },
+        },
+        res: {
+          200: unknown(),
+        },
       },
     }),
   },
