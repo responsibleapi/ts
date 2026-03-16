@@ -88,26 +88,17 @@ export function responsibleAPI(_api: ResponsibleAPI): oas31.OpenAPIObject {
 }
 
 interface Scope {
-  opts?: ScopeOpts
+  forAll?: ScopeOpts
   routes: Routes
 }
 
-export function scope(routes: ScopeRoutes): Scope
-export function scope(forAll: ScopeOpts, routes: ScopeRoutes): Scope
-export function scope(
-  ...args: [routes: ScopeRoutes] | [opts: ScopeOpts, routes: ScopeRoutes]
-): Scope {
-  if (args.length === 1) {
-    return {
-      routes: args[0],
-    }
+export function scope(arg: ScopeRoutes | Scope): Scope {
+  if ("forAll" in arg) {
+    return arg
   }
 
-  const [opts, routes] = args
-
   return {
-    opts,
-    routes,
+    routes: arg.routes,
   }
 }
 
