@@ -2,9 +2,10 @@
 
 ## Current state of things
 
-The compiler itself isn't implemented yet, so running tests won't be too useful.
-Rely on code, typechecking and linting for now. Once the examples are in good
-shape, we can start implementing the compiler and use examples as tests
+- DO NOT attempt to run tests.
+- Current implementation is throwing errors at import time, don't worry about
+  it.
+- Use typechecking and linting for guidance
 
 ## Tools
 
@@ -12,6 +13,11 @@ shape, we can start implementing the compiler and use examples as tests
 - never use `bunx`, if a package is missing, ask to add it to `package.json`
 - never use `node`
 - never use `prettier` or other formatting tools, just don't bother
+
+## Typescript
+
+- When reading yaml files, use
+  `import x from "./x.yaml" assert { type: "yaml" }`
 
 ## Docs
 
