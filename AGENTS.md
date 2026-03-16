@@ -16,6 +16,7 @@ shape, we can start implementing the compiler and use examples as tests
 ## Typescript
 
 - never create multiple signatures to fix type/lint errors
+- never use `Reflect`. Adjust types instead
 
 ## Docs
 

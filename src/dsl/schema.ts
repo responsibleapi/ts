@@ -1,6 +1,14 @@
 import type { Nameable } from "./methods"
 
-type StringFormat = "email" | "uri" | "uuid" | "date" | "date-time" | "binary"
+type StringFormat =
+  | "email"
+  | "uri"
+  | "uuid"
+  | "date"
+  | "date-time"
+  | "binary"
+  | "url"
+  | "blob"
 
 type SchemaOpts = Readonly<{
   default?: unknown

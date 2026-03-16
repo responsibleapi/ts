@@ -1,75 +1,46 @@
 import { responsibleAPI, scope } from "../dsl/dsl.ts"
-import { allOf, array, object, string } from "../dsl/schema.ts"
+import { POST, response } from "../dsl/methods.ts"
+import { array, boolean, object, string, unknown } from "../dsl/schema.ts"
 
-const baseError = () =>
+const apply = () =>
   object({
-    "error?": string({
-      description: "An error code unique to the error received.",
+    name: string({
+      minLength: 1,
+      description: "Your full name",
+      default: "Your Name",
     }),
-    "message?": string({
-      description: "The reason why the error occured.",
+    email: string({
+      format: "email",
+      description: "A valid email we can reach you at.",
+      default: "you@example.com",
     }),
-    "suggestion?": string({
-      description: "A helpful suggestion for how to alleviate the error.",
-    }),
-    "docs?": string({
-      format: "uri",
+    job: string({
       description:
-        "A [ReadMe Metrics](https://readme.com/metrics/) log URL where you can see more information the request that you made. If we have metrics URLs unavailable for your request, this URL will be a URL to our API Reference.",
-      example:
-        "https://docs.readme.com/logs/6883d0ee-cf79-447a-826f-a48f7d5bdf5f",
+        "The job you're looking to apply for (https://readme.com/careers).",
     }),
-    "help?": string({
+    "pronouns?": string({
+      description: "Learn more at https://pronoun.is/",
+    }),
+    "linkedin?": string({
+      format: "url",
+      description: "What have you been up to the past few years?",
+    }),
+    "github?": string({
+      format: "url",
+      description: "Or Bitbucket, Gitlab or anywhere else your code is hosted!",
+    }),
+    "coverLetter?": string({
+      format: "blob",
+      description: "What should we know about you?",
+    }),
+    "dontReallyApply?": boolean({
       description:
-        "Information on where you can receive additional assistance from our wonderful support team.",
-      example: "If you need help, email support@readme.io",
-    }),
-    "poem?": array(string(), {
-      description: "A short poem we wrote you about your error.",
-      example: [
-        "If you're seeing this error,",
-        "Things didn't quite go the way we hoped.",
-        "When we tried to process your request,",
-        "Maybe trying again it'll work—who knows!",
-      ],
+        "Want to play with the API but not actually apply? Set this to true.",
+      default: false,
     }),
   })
 
-/**
- *     jobOpening:
- *       type: object
- *       properties:
- *         slug:
- *           type: string
- *           description: A slugified version of the job opening title.
- *           example: api-engineer
- *         title:
- *           type: string
- *           description: The job opening position.
- *           example: API Engineer
- *         description:
- *           type: string
- *           description: >-
- *             The description for this open position. This content is formatted as
- *             HTML.
- *         pullquote:
- *           type: string
- *           description: A short pullquote for the open position.
- *           example: "Deeply knowledgeable of the web, HTTP, and the API space."
- *         location:
- *           type: string
- *           description: Where this position is located at.
- *           example: Remote
- *         department:
- *           type: string
- *           description: The internal organization you'll be working in.
- *           example: Engineering
- *         url:
- *           type: string
- *           format: url
- *           description: The place where you can apply for the position!
- */
-const _jobOpening = () =>
+const jobOpening = () =>
   object({
     "slug?": string({
       description: "A slugified version of the job opening title.",
@@ -96,24 +67,98 @@ const _jobOpening = () =>
       example: "Engineering",
     }),
     "url?": string({
-      format: "uri",
+      format: "url",
       description: "The place where you can apply for the position!",
     }),
   })
 
-const _error_VERSION_NOTFOUND = () =>
-  allOf([
-    baseError,
-    object({
-      "error?": string({ default: "VERSION_NOTFOUND" }),
+const apiSpecificationUpload = () =>
+  object({
+    spec: string({
+      format: "binary",
+      description: "OpenAPI/Swagger file. We accept JSON or YAML.",
     }),
-  ])
+  })
 
-export default responsibleAPI(
-  {},
-  {
-    "/apply": scope({
-      GET: {},
+export default responsibleAPI({
+  partialDoc: {
+    openapi: "3.0.2",
+    info: {
+      description:
+        "Create beautiful product and API documentation with our developer friendly platform.",
+      version: "2.0.0",
+      title: "API Endpoints",
+      contact: {
+        name: "API Support",
+        url: "https://docs.readme.com/docs/contact-support",
+        email: "support@readme.io",
+      },
+    },
+    servers: [{ url: "http://dash.readme.local:3000/api/v1" }],
+    tags: [{ name: "API Specification" }, { name: "Apply to ReadMe" }],
+  },
+  forAll: {},
+  routes: {
+    "/apply": scope(
+      {
+        req: { mime: "application/json" },
+        res: { mime: "application/json" },
+      },
+      {
+        GET: {
+          id: "getOpenRoles",
+          description: "Returns all the roles we're hiring for at ReadMe!",
+          res: {
+            add: {
+              200: response({
+                description: "All the roles that we're hiring for.",
+                body: array(jobOpening),
+              }),
+            },
+          },
+        },
+        POST: {
+          id: "applyToReadMe",
+          description:
+            "This endpoint will let you apply to a job at ReadMe programatically, without having to go through our UI!",
+          req: {
+            body: apply,
+          },
+          res: {
+            add: {
+              200: response({
+                description: "You did it!",
+              }),
+            },
+          },
+        },
+      },
+    ),
+    "/api-specification": POST({
+      id: "uploadAPISpecification",
+      description:
+        "Upload an API specification to ReadMe. Or, to use a newer solution see https://docs.readme.com/docs/automatically-sync-api-specification-with-github.",
+      req: {
+        headers: {
+          "x-readme-version?": string({
+            description:
+              "Version number of your docs project, for example, v3.0.",
+            example: "v3.0",
+          }),
+        },
+        body: {
+          "multipart/form-data": apiSpecificationUpload,
+        },
+      },
+      res: {
+        201: response({
+          description: "The API specification was successfully uploaded.",
+        }),
+        400: response({
+          description: "There was a validation error during upload.",
+          body: { "application/json": unknown() },
+        }),
+      },
     }),
   },
-)
+})
