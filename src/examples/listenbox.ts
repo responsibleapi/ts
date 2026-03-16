@@ -242,8 +242,8 @@ const ReverseResp = () => object({ value: boolean() })
 const NotYourShow = () =>
   response({ description: "You can't edit somebody else's show" })
 
-const authenticatedOps = scope(
-  {
+const authenticatedOps = scope({
+  forAll: {
     req: {
       security: AuthorizationHeader,
     },
@@ -253,7 +253,7 @@ const authenticatedOps = scope(
       },
     },
   },
-  {
+  routes: {
     "/unsubscribe": POST({
       id: "unsubscribe",
       description: "Unsubscribe the email from product updates",
@@ -318,8 +318,8 @@ const authenticatedOps = scope(
       res: { 201: UrlResp },
     }),
 
-    "/show/:show_id": scope(
-      {
+    "/show/:show_id": scope({
+      forAll: {
         req: {
           params: { show_id: ShowID },
         },
@@ -330,7 +330,7 @@ const authenticatedOps = scope(
           },
         },
       },
-      {
+      routes: {
         PUT: {
           id: "editShow",
           req: EditShowReq,
@@ -365,7 +365,7 @@ const authenticatedOps = scope(
           },
         }),
       },
-    ),
+    }),
 
     "/later": scope({
       GET: {
@@ -394,13 +394,13 @@ const authenticatedOps = scope(
         res: { 200: Show2 },
       }),
 
-      "/:itemID": scope(
-        {
+      "/:itemID": scope({
+        forAll: {
           req: {
             params: { itemID: ItemID },
           },
         },
-        {
+        routes: {
           POST: {
             id: "addLater",
             res: {
@@ -414,7 +414,7 @@ const authenticatedOps = scope(
             res: { 200: unknown() },
           },
         },
-      ),
+      }),
     }),
 
     "/s3_presign_image": GET({
@@ -439,10 +439,10 @@ const authenticatedOps = scope(
       },
     }),
   },
-)
+})
 
-const jsonAPI = scope(
-  {
+const jsonAPI = scope({
+  forAll: {
     req: { mime: "application/json" },
     res: {
       match: {
@@ -453,7 +453,7 @@ const jsonAPI = scope(
       },
     },
   },
-  {
+  routes: {
     "/login": POST({
       id: "requestOtp",
       req: LoginReq,
@@ -496,8 +496,8 @@ const jsonAPI = scope(
       },
     }),
 
-    "/show/:showID": scope(
-      {
+    "/show/:showID": scope({
+      forAll: {
         req: {
           params: { showID: ShowID },
         },
@@ -507,7 +507,7 @@ const jsonAPI = scope(
           },
         },
       },
-      {
+      routes: {
         GET: {
           deprecated: true,
           id: "getShow",
@@ -549,7 +549,7 @@ const jsonAPI = scope(
           res: { 200: ItemsResp },
         }),
       },
-    ),
+    }),
 
     "/cdn_log": POST({
       id: "logCDN",
@@ -572,7 +572,7 @@ const jsonAPI = scope(
 
     "/auth": authenticatedOps,
   },
-)
+})
 
 const googleAuth = scope({
   GET: {

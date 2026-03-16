@@ -80,7 +80,7 @@ export function responsibleAPI(_api: ResponsibleAPI): oas31.OpenAPIObject {
 
 interface Scope {
   forAll?: ScopeOpts
-  routes: Routes
+  routes: ScopeRoutes
 }
 
 export function scope(arg: ScopeRoutes | Scope): Scope {
