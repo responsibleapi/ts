@@ -66,10 +66,10 @@ export const exceptionsAPI = responsibleAPI({
     },
   },
   routes: {
-    "/app_errors/:app_id": scope({
+    "/app_errors/:appID": scope({
       forAll: {
         req: {
-          params: { app_id: AppID },
+          pathParams: { appID: AppID },
         },
       },
       routes: {
@@ -84,10 +84,10 @@ export const exceptionsAPI = responsibleAPI({
         },
       },
     }),
-    "/errors/:err_id": scope({
+    "/errors/:errID": scope({
       forAll: {
         req: {
-          params: { err_id: ErrID },
+          pathParams: { errID: ErrID },
         },
       },
       routes: {

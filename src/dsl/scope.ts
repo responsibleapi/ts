@@ -5,21 +5,17 @@ import type { Schema } from "./schema.ts"
 import type { Security } from "./security.ts"
 
 interface OpReq {
-  security?: Security
-
-  /**
-   * optional security means something OR `no authentication`
-   */
-  "security?"?: Security
-
-  params?: Record<string, Schema>
-  query?: Record<string, Schema>
-  headers?: Record<string, Schema>
-  body?: Schema | Record<Mime, Schema>
+  readonly security?: Security
+  /* optional security means `value` OR `no authentication` */
+  readonly "security?"?: Security
+  readonly pathParams?: Record<string, Schema>
+  readonly query?: Record<string, Schema>
+  readonly headers?: Record<string, Schema>
+  readonly body?: Schema | Record<Mime, Schema>
 }
 
-interface ScopeReq extends OpReq {
-  mime?: Mime
+interface ReqAugmentation extends OpReq {
+  readonly mime?: Mime
 }
 
 interface RespAugmentation {
@@ -107,7 +103,7 @@ type ValidScopeArg<T extends ScopeArg> = T extends Scope
     : never
 
 export interface ScopeOpts {
-  req?: ScopeReq
+  req?: ReqAugmentation
   res?: ScopeRes
 }
 

@@ -215,7 +215,7 @@ export default responsibleAPI({
       id: "getAPIRegistry",
       description: "Get an API definition file that's been uploaded to ReadMe.",
       req: {
-        params: { uuid: apiRegistryUUID },
+        pathParams: { uuid: apiRegistryUUID },
       },
       res: {
         200: response({
@@ -291,7 +291,7 @@ export default responsibleAPI({
     "/api-specification/:id": scope({
       forAll: {
         req: {
-          params: { id: apiSpecificationID },
+          pathParams: { id: apiSpecificationID },
         },
       },
       routes: {
@@ -419,7 +419,7 @@ export default responsibleAPI({
     "/categories/:slug": scope({
       forAll: {
         req: {
-          params: { slug: categorySlug },
+          pathParams: { slug: categorySlug },
           headers: {
             "x-readme-version?": readmeVersion,
           },
@@ -479,14 +479,15 @@ export default responsibleAPI({
       id: "getCategoryDocs",
       description: "Returns the docs and children docs within this category.",
       req: {
-        params: { slug: categorySlug },
+        pathParams: { slug: categorySlug },
         headers: {
           "x-readme-version?": readmeVersion,
         },
       },
       res: {
         200: response({
-          description: "The category exists and all of the docs have been returned.",
+          description:
+            "The category exists and all of the docs have been returned.",
         }),
         404: response({
           description: "There is no category with that slug.",
@@ -534,7 +535,7 @@ export default responsibleAPI({
     "/changelogs/:slug": scope({
       forAll: {
         req: {
-          params: { slug: changelogSlug },
+          pathParams: { slug: changelogSlug },
         },
       },
       routes: {
@@ -626,7 +627,7 @@ export default responsibleAPI({
     "/custompages/:slug": scope({
       forAll: {
         req: {
-          params: { slug: customPageSlug },
+          pathParams: { slug: customPageSlug },
         },
       },
       routes: {
@@ -684,7 +685,7 @@ export default responsibleAPI({
     "/docs/:slug": scope({
       forAll: {
         req: {
-          params: { slug: docSlug },
+          pathParams: { slug: docSlug },
           headers: {
             "x-readme-version?": readmeVersion,
           },
@@ -842,7 +843,7 @@ export default responsibleAPI({
     "/version/:versionId": scope({
       forAll: {
         req: {
-          params: { versionId: versionID },
+          pathParams: { versionId: versionID },
         },
       },
       routes: {

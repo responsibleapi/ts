@@ -280,7 +280,7 @@ const authenticatedOps = scope({
 
       "/:email/shows": GET({
         id: "showsByEmail",
-        req: { params: { email: Email } },
+        req: { pathParams: { email: Email } },
         res: {
           200: array(
             object({
@@ -319,7 +319,7 @@ const authenticatedOps = scope({
     "/show/:show_id": scope({
       forAll: {
         req: {
-          params: { show_id: ShowID },
+          pathParams: { show_id: ShowID },
         },
         res: {
           add: {
@@ -396,7 +396,7 @@ const authenticatedOps = scope({
       "/:item_id": scope({
         forAll: {
           req: {
-            params: { item_id: ItemID },
+            pathParams: { item_id: ItemID },
           },
         },
         routes: {
@@ -504,7 +504,7 @@ const jsonAPI = scope({
     "/show/:show_id": scope({
       forAll: {
         req: {
-          params: { show_id: ShowID },
+          pathParams: { show_id: ShowID },
         },
         res: {
           add: {
@@ -701,7 +701,7 @@ export const listenboxAPI = responsibleAPI({
       id: "getRss",
       headID: "headRss",
       req: {
-        params: {
+        pathParams: {
           show_id: ShowID,
           type: AudioVideo,
         },
@@ -729,7 +729,7 @@ export const listenboxAPI = responsibleAPI({
       id: "getAudio",
       headID: "headAudio",
       req: {
-        params: {
+        pathParams: {
           item_id: ItemID,
           ext: NonEmptyString,
         },
@@ -757,7 +757,7 @@ export const listenboxAPI = responsibleAPI({
       id: "getVideo",
       headID: "headVideo",
       req: {
-        params: {
+        pathParams: {
           item_id: ItemID,
           ext: NonEmptyString,
         },
