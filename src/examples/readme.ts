@@ -1,4 +1,4 @@
-import { responsibleAPI, scope } from "../dsl/dsl.ts"
+import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, POST, response } from "../dsl/methods.ts"
 import {
   array,
@@ -8,6 +8,7 @@ import {
   string,
   unknown,
 } from "../dsl/schema.ts"
+import { scope } from "../dsl/scope.ts"
 
 const apply = () =>
   object({

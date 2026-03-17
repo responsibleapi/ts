@@ -1,5 +1,6 @@
-import { responsibleAPI, scope } from "../dsl/dsl.ts"
+import { responsibleAPI } from "../dsl/dsl.ts"
 import { anyOf, array, int64, object, string, unknown } from "../dsl/schema.ts"
+import { scope } from "../dsl/scope.ts"
 
 const AppID = () =>
   string({

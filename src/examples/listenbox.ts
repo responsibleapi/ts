@@ -1,5 +1,5 @@
-import { responsibleAPI, scope } from "../dsl/dsl.ts"
-import { GET, HEAD, headerSecurity, POST, response } from "../dsl/methods.ts"
+import { responsibleAPI } from "../dsl/dsl.ts"
+import { GET, HEAD, POST, response } from "../dsl/methods.ts"
 import {
   array,
   boolean,
@@ -10,6 +10,8 @@ import {
   string,
   unknown,
 } from "../dsl/schema.ts"
+import { headerSecurity } from "../dsl/security.ts"
+import { scope } from "../dsl/scope.ts"
 
 const Email = () => string({ format: "email" })
 

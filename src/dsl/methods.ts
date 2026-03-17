@@ -1,7 +1,7 @@
 // TODO: Merge this file into `src/dsl/dsl.ts`.
 
-import type { Op } from "./dsl.ts"
 import type { Schema } from "./schema.ts"
+import type { Op } from "./scope.ts"
 
 type NonFunctionValue =
   | bigint
@@ -44,28 +44,6 @@ interface RespParams {
 export type Resp = Nameable<RespParams>
 
 export const response = (param: RespParams): RespParams => param
-
-type QuerySecurity = Readonly<{
-  type: "query"
-  name: string
-}>
-
-type HeaderSecurity = Readonly<{
-  type: "header"
-  name: string
-}>
-
-export type Security = Nameable<QuerySecurity | HeaderSecurity>
-
-export const querySecurity = (param: { name: string }): QuerySecurity => ({
-  type: "query",
-  ...param,
-})
-
-export const headerSecurity = (param: { name: string }): HeaderSecurity => ({
-  type: "header",
-  ...param,
-})
 
 export function GET(_op: Op): Op {
   throw new Error("TODO")
