@@ -79,7 +79,7 @@ interface Bool extends SchemaOpts {
 
 type Dict = Readonly<{
   type: "object"
-  propertyNames: PropKeySchema
+  propertyNames: DictKeySchema
   additionalProperties: Schema
   example?: Record<PropertyKey, unknown>
 }>
@@ -102,9 +102,10 @@ export type Schema = Nameable<
   Str | Num | Bool | Unknown | Obj | Arr | Dict | OneOf | AnyOf | AllOf
 >
 
-type PropKeySchema = (() => PropKeySchema) | Str | Num
+/* dict keys */
+type DictKeySchema = Nameable<Str | Num>
 
-export const dict = (k: PropKeySchema, v: Schema): Dict => ({
+export const dict = (k: DictKeySchema, v: Schema): Dict => ({
   type: "object",
   propertyNames: k,
   additionalProperties: v,

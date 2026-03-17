@@ -10,8 +10,8 @@ import {
   string,
   unknown,
 } from "../dsl/schema.ts"
-import { headerSecurity } from "../dsl/security.ts"
 import { scope } from "../dsl/scope.ts"
+import { headerSecurity } from "../dsl/security.ts"
 
 const Email = () => string({ format: "email" })
 

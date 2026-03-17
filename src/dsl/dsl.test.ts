@@ -22,7 +22,7 @@ describe("dslish", () => {
       forAll: {
         req: { mime: "application/json" },
         res: {
-          match: {
+          defaults: {
             "100..499": {
               mime: "application/json",
               headers: { "Content-Length": int32({ minimum: 1 }) },

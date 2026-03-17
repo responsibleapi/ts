@@ -43,7 +43,7 @@ export const httpBenchmark = responsibleAPI({
   forAll: {
     req: { mime: "application/json" },
     res: {
-      match: {
+      defaults: {
         "100..599": {
           mime: "application/json",
           headers: { "Content-Length": int32({ minimum: 1 }) },

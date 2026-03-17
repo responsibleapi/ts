@@ -22,9 +22,10 @@ interface ScopeReq extends OpReq {
   mime?: Mime
 }
 
-interface StatusMatch {
-  mime: Mime
-  headers: Record<string, Schema>
+interface RespAugmentation {
+  readonly mime?: Mime
+  readonly headers?: Record<string, Schema>
+  readonly cookies?: Record<string, Schema>
 }
 
 type MatchStatus = number | `${number}..${number}`
@@ -34,7 +35,7 @@ type OpRes = Record<number, Resp | Schema>
 type ScopeRes =
   | {
       mime?: Mime
-      match?: Record<MatchStatus, StatusMatch>
+      defaults?: Record<MatchStatus, RespAugmentation>
       add?: OpRes
     }
   | OpRes
