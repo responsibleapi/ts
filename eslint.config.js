@@ -6,6 +6,7 @@ export default defineConfig(
   {
     files: ["src/**/*.ts", "src/**/*.mts", "src/**/*.cts"],
     linterOptions: {
+      // Keep stale eslint-disable comments from quietly accumulating.
       reportUnusedDisableDirectives: "error",
     },
     languageOptions: {
@@ -31,12 +32,6 @@ export default defineConfig(
         {
           fixStyle: "separate-type-imports",
           prefer: "type-imports",
-        },
-      ],
-      "@typescript-eslint/no-confusing-void-expression": [
-        "error",
-        {
-          ignoreArrowShorthand: true,
         },
       ],
       "@typescript-eslint/no-deprecated": "error",
