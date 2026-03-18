@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "arrowParens": "avoid",
+  "proseWrap": "always",
+  "semi": false,
+  "trailingComma": "all",
+  "printWidth": 80,
+
+  // Closest built-in replacement for prettier-plugin-organize-imports.
+  // Oxfmt sorts imports and specifiers, but it does not remove unused imports.
+  "sortImports": {
+    "newlinesBetween": false,
+    "partitionByNewline": true,
+  },
+
+  // Closest built-in replacement for prettier-plugin-packagejson.
+  // Oxfmt's package.json ordering is opinionated, not byte-for-byte identical.
+  "sortPackageJson": {
+    "sortScripts": true,
+  },
+
+  "overrides": [
+    {
+      "files": ["*.yml", "*.yaml"],
+      "options": {
+        "proseWrap": "preserve",
+      },
+    },
+  ],
+}

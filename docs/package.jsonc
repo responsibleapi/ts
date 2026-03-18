@@ -2,6 +2,9 @@
   // Notes about selected package.json fields.
   // This file is documentation only, not a manifest.
   "scripts": {
+    // Formatting stays explicit instead of being hidden inside lint or typecheck.
+    "fmt": "",
+    "fmt:check": "",
     // Keep Oxlint additive while we evaluate parity with the current ESLint setup.
     "lint2": "",
     "lint2:fix": "",

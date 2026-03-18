@@ -10,7 +10,7 @@
 - use `bun` for everything
 - never use `bunx`, if a package is missing, ask to add it to `package.json`
 - never use `node`
-- never use `prettier` or other formatting tools, just don't bother
+- do not run formatting unless the task actually requires it
 
 ## Docs
 

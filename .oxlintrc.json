@@ -7,11 +7,11 @@
     "perf": "off",
     "restriction": "off",
     "style": "off",
-    "suspicious": "off"
+    "suspicious": "off",
   },
   "options": {
     "reportUnusedDisableDirectives": "error",
-    "typeAware": true
+    "typeAware": true,
   },
   "overrides": [
     {
@@ -21,8 +21,8 @@
           "error",
           {
             "fixStyle": "separate-type-imports",
-            "prefer": "type-imports"
-          }
+            "prefer": "type-imports",
+          },
         ],
         "@typescript-eslint/no-deprecated": "error",
         "@typescript-eslint/no-unsafe-type-assertion": "error",
@@ -33,12 +33,12 @@
             "caughtErrorsIgnorePattern": "^_",
             "destructuredArrayIgnorePattern": "^_",
             "ignoreRestSiblings": true,
-            "varsIgnorePattern": "^_"
-          }
+            "varsIgnorePattern": "^_",
+          },
         ],
         "eqeqeq": ["error", "always"],
-        "no-console": "error"
-      }
-    }
-  ]
+        "no-console": "error",
+      },
+    },
+  ],
 }
