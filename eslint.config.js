@@ -24,7 +24,6 @@ export default defineConfig(
       },
     },
     rules: {
-      curly: ["error", "all"],
       eqeqeq: ["error", "always"],
       "no-console": "error",
       "@typescript-eslint/consistent-type-imports": [
@@ -40,6 +39,7 @@ export default defineConfig(
           ignoreArrowShorthand: true,
         },
       ],
+      "@typescript-eslint/no-deprecated": "error",
       "@typescript-eslint/no-unsafe-type-assertion": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
@@ -51,13 +51,6 @@ export default defineConfig(
           varsIgnorePattern: "^_",
         },
       ],
-    },
-  },
-  {
-    files: ["src/examples/**/*.ts"],
-    rules: {
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
     },
   },
 )
