@@ -3,7 +3,7 @@
 import type { Schema } from "./schema.ts"
 import type { Op } from "./scope.ts"
 
-type NonFunctionValue =
+type NonFunction =
   | bigint
   | boolean
   | null
@@ -14,15 +14,15 @@ type NonFunctionValue =
   | undefined
 
 /**
- * if it's a function, then the name of the function is used as a $ref in OpenAPI, otherwise the value is inlined
+ * if it's a function, then the name of the function is used as a $ref in OpenAPI,
+ * otherwise the value is inlined
  */
-export type Nameable<T extends NonFunctionValue> = (() => T) | T
+export type Nameable<T extends NonFunction> = (() => T) | T
 
-function isNamed<T extends NonFunctionValue>(n: Nameable<T>): n is () => T {
-  return typeof n === "function"
-}
+const isNamed = <T extends NonFunction>(n: Nameable<T>): n is () => T =>
+  typeof n === "function"
 
-function _decodeNameable<T extends NonFunctionValue>(
+function _decodeNameable<T extends NonFunction>(
   n: Nameable<T>,
 ): { name?: string; value: T } {
   if (isNamed(n)) {
@@ -43,6 +43,7 @@ interface RespParams {
 
 export type Resp = Nameable<RespParams>
 
+/** this exists mostly to distinguish {@link Schema} from {@link Resp} */
 export const response = (param: RespParams): RespParams => param
 
 export function GET(_op: Op): Op {
