@@ -53,12 +53,6 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.test.ts"],
-    rules: {
-      "@typescript-eslint/unbound-method": "off",
-    },
-  },
-  {
     files: ["src/examples/**/*.ts"],
     rules: {
       "@typescript-eslint/no-unsafe-assignment": "off",
