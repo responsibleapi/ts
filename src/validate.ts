@@ -3,15 +3,22 @@ import type { oas31 } from "openapi3-ts"
 
 const VALIDATOR = new Validator()
 
+function assertValidOpenAPIDoc(
+  doc: Partial<oas31.OpenAPIObject>,
+  valid: boolean,
+  errors: unknown,
+): asserts doc is oas31.OpenAPIObject {
+  if (!valid) {
+    throw new Error(JSON.stringify(errors, null, 2))
+  }
+}
+
 export async function validate(
   doc: Partial<oas31.OpenAPIObject>,
 ): Promise<oas31.OpenAPIObject> {
   const vld = await VALIDATOR.validate(doc)
 
-  if (!vld.valid) {
-    throw new Error(JSON.stringify(vld.errors, null, 2))
-  }
+  assertValidOpenAPIDoc(doc, vld.valid, vld.errors)
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-  return doc as oas31.OpenAPIObject
+  return doc
 }

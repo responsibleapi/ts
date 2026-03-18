@@ -1,6 +1,18 @@
+function isLowercaseResult<S extends string>(
+  source: S,
+  candidate: string,
+): candidate is Lowercase<S> {
+  return candidate === source.toLowerCase()
+}
+
 export function typesafeLowercase<S extends string>(s: S): Lowercase<S> {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-  return s.toLowerCase() as Lowercase<S>
+  const lower = s.toLowerCase()
+
+  if (isLowercaseResult(s, lower)) {
+    return lower
+  }
+
+  throw new Error("Lowercasing returned an unexpected value")
 }
 
 export type RequireAtLeastTwo<T> = {

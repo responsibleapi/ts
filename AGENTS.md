@@ -1,5 +1,9 @@
 # AGENTS.md
 
+[//]: # "webstorm workaround:"
+
+[Global skills](~/.codex/skills)
+
 ## Current state of things
 
 - DO NOT attempt to run tests.

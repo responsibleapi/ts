@@ -631,12 +631,6 @@ const ItemNotFound = () =>
     description: "404",
   })
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const StripeCheckoutID = () =>
-  string({
-    minLength: 1,
-  })
-
 export const listenboxAPI = responsibleAPI({
   partialDoc: {
     openapi: "3.1.0",

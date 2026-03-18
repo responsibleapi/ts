@@ -162,11 +162,11 @@ export const string = (opts?: StringsOpts): Str => ({
   ...opts,
 })
 
-export const oneOf = (oneOf: readonly Schema[]): OneOf => ({ oneOf })
+export const oneOf = (schemas: readonly Schema[]): OneOf => ({ oneOf: schemas })
 
-export const anyOf = (anyOf: readonly Schema[]): AnyOf => ({ anyOf })
+export const anyOf = (schemas: readonly Schema[]): AnyOf => ({ anyOf: schemas })
 
-export const allOf = (allOf: readonly Schema[]): AllOf => ({ allOf })
+export const allOf = (schemas: readonly Schema[]): AllOf => ({ allOf: schemas })
 
 export const boolean = (opts?: SchemaOpts): Bool => ({
   type: "boolean",

@@ -5,9 +5,9 @@
     // Formatting stays explicit instead of being hidden inside lint or typecheck.
     "fmt": "",
     "fmt:check": "",
-    // Keep Oxlint additive while we evaluate parity with the current ESLint setup.
-    "lint2": "",
-    "lint2:fix": "",
+    // Linting runs through Oxlint directly.
+    "lint": "",
+    "lint:fix": "",
     // Why not `--no-exit-on-error`:
     // - That is better for a full-sweep debugging pass.
     // - It is worse as the default when we want the fastest signal.
