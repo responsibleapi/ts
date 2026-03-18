@@ -18,13 +18,6 @@
 
 ## TODO
 
-### DSL
-
-`readme.json` uses operation summaries, per-operation tags, reusable
-components/refs, and auth/security output that the current DSL/compiler surface
-does not emit yet. I’m still patching the parts readme.ts can already model
-directly: concrete request/response schemas and schema text mismatches.
-
 ### Compiler
 
 Single pass compiler design:

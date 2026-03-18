@@ -45,6 +45,8 @@ export interface Op {
   res: OpRes
   deprecated?: boolean
   description?: string
+  summary?: string
+  tags?: string[]
 }
 
 export interface OpWithMethod extends Op {
