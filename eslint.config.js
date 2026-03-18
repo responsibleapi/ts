@@ -6,7 +6,7 @@ export default defineConfig(
   {
     files: ["src/**/*.ts", "src/**/*.mts", "src/**/*.cts"],
     linterOptions: {
-      // Keep stale eslint-disable comments from quietly accumulating.
+      /* Keep stale eslint-disable comments from quietly accumulating. */
       reportUnusedDisableDirectives: "error",
     },
     languageOptions: {
