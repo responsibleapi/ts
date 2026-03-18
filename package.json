@@ -5,8 +5,8 @@
     "check": "bun run --parallel typecheck lint test",
     "lint": "bun eslint src",
     "lint:fix": "bun eslint src --fix",
-    "lint2": "bun oxlint -c .oxlintrc.json src",
-    "lint2:fix": "bun oxlint -c .oxlintrc.json --fix src",
+    "lint2": "bun oxlint src",
+    "lint2:fix": "bun oxlint --fix src",
     "test": "bun test",
     "typecheck": "bun tsc"
   },
