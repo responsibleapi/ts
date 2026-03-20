@@ -3,6 +3,23 @@ import type { RequireAtLeastTwo } from "../lib.ts"
 import type { Mime, Resp } from "./methods.ts"
 import type { Schema } from "./schema.ts"
 import type { Security } from "./security.ts"
+import type { Nameable } from "./nameable.ts"
+
+interface ParamRaw {
+  in: "query" | "path"
+  name?: string
+  description?: string
+  schema?: Schema
+}
+
+interface QueryParamRaw extends ParamRaw {
+  style?: "form"
+  explode?: boolean
+}
+
+type Param = Nameable<QueryParamRaw>
+
+export const queryParam = (r: QueryParamRaw): QueryParamRaw => r
 
 interface OpReq {
   readonly security?: Security
@@ -12,6 +29,7 @@ interface OpReq {
   readonly query?: Record<string, Schema>
   readonly headers?: Record<string, Schema>
   readonly body?: Schema | Record<Mime, Schema>
+  readonly params?: readonly Param[]
 }
 
 interface ReqAugmentation extends OpReq {

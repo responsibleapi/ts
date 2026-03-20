@@ -1,4 +1,4 @@
-import type { Nameable } from "./methods.ts"
+import type { Nameable } from "./nameable.ts"
 
 type QuerySecurity = Readonly<{
   type: "query"

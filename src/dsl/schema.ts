@@ -1,4 +1,4 @@
-import type { Nameable } from "./methods"
+import type { Nameable } from "./nameable.ts"
 
 type StringFormat =
   | "email"

@@ -10,6 +10,7 @@ import {
   unknown,
 } from "../dsl/schema.ts"
 import { querySecurity } from "../dsl/security.ts"
+import { queryParam } from "../dsl/scope.ts"
 
 const VideoID = () => string({ minLength: 1 })
 const ChannelID = () => string({ minLength: 1 })
@@ -88,6 +89,11 @@ const Playlists = () => object()
 const Videos = () => object()
 
 const security = () => querySecurity({ name: "key" })
+
+const _.xgafv = () => queryParam({
+  description: "V1 error format.",
+  schema: string({enum:["1","2"]})
+})
 
 export default responsibleAPI({
   partialDoc: {

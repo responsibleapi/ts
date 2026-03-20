@@ -1,36 +1,8 @@
 // TODO: Merge this file into `src/dsl/dsl.ts`.
 
+import { type Nameable } from "./nameable.ts"
 import type { Schema } from "./schema.ts"
 import type { Op } from "./scope.ts"
-
-type NonFunction =
-  | bigint
-  | boolean
-  | null
-  | number
-  | object
-  | string
-  | symbol
-  | undefined
-
-/**
- * if it's a function, then the name of the function is used as a $ref in OpenAPI,
- * otherwise the value is inlined
- */
-export type Nameable<T extends NonFunction> = (() => T) | T
-
-const isNamed = <T extends NonFunction>(n: Nameable<T>): n is () => T =>
-  typeof n === "function"
-
-function _decodeNameable<T extends NonFunction>(
-  n: Nameable<T>,
-): { name?: string; value: T } {
-  if (isNamed(n)) {
-    return { name: n.name, value: n() }
-  }
-
-  return { value: n }
-}
 
 export type Mime = `${string}/${string}`
 
