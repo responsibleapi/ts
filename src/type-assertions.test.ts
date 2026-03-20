@@ -10,7 +10,9 @@ describe("typelevel", () => {
   })
 
   test("rejects non-subtype relationships", () => {
-    type _PrimitiveToLiteral = Assert<IsEqual<OneExtendsTwo<string, "a">, false>>
+    type _PrimitiveToLiteral = Assert<
+      IsEqual<OneExtendsTwo<string, "a">, false>
+    >
     type _UnionToMember = Assert<
       IsEqual<OneExtendsTwo<string | number, string>, false>
     >
