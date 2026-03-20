@@ -90,10 +90,10 @@ const Videos = () => object()
 
 const security = () => querySecurity({ name: "key" })
 
-const _.xgafv = () => queryParam({
-  description: "V1 error format.",
-  schema: string({enum:["1","2"]})
-})
+// const _.xgafv = () => queryParam({
+//   description: "V1 error format.",
+//   schema: string({enum:["1","2"]})
+// })
 
 export default responsibleAPI({
   partialDoc: {
