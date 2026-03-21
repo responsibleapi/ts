@@ -11,7 +11,7 @@ import {
   unknown,
 } from "../dsl/schema.ts"
 import { queryParam } from "../dsl/scope.ts"
-import { oauth2Security } from "../dsl/security.ts"
+import { AND, OR, oauth2Security, requireSecurity } from "../dsl/security.ts"
 
 const VideoID = () => string({ minLength: 1 })
 const ChannelID = () => string({ minLength: 1 })
@@ -105,21 +105,51 @@ const youtubeAuthScopes = {
     "View private information of your YouTube channel relevant during the audit process with a YouTube partner",
 } as const
 
-const Oauth2 = () =>
+const Oauth2 = named(
+  "Oauth2",
   oauth2Security({
-    description: "Oauth 2.0 implicit and authorizationCode authentication",
+    description: "Oauth 2.0 implicit authentication",
     flows: {
       implicit: {
         authorizationUrl: "https://accounts.google.com/o/oauth2/auth",
         scopes: youtubeAuthScopes,
       },
+    },
+  }),
+)
+
+const Oauth2c = named(
+  "Oauth2c",
+  oauth2Security({
+    description: "Oauth 2.0 authorizationCode authentication",
+    flows: {
       authorizationCode: {
         authorizationUrl: "https://accounts.google.com/o/oauth2/auth",
         tokenUrl: "https://accounts.google.com/o/oauth2/token",
         scopes: youtubeAuthScopes,
       },
     },
-  })
+  }),
+)
+
+const youtubeScope = (scope: keyof typeof youtubeAuthScopes) =>
+  AND(requireSecurity(Oauth2, [scope]), requireSecurity(Oauth2c, [scope]))
+
+const youtubeScopes = (
+  ...scopes: readonly [
+    keyof typeof youtubeAuthScopes,
+    keyof typeof youtubeAuthScopes,
+    ...(keyof typeof youtubeAuthScopes)[],
+  ]
+) => {
+  const [first, second, ...rest] = scopes
+
+  return OR(
+    youtubeScope(first),
+    youtubeScope(second),
+    ...rest.map(youtubeScope),
+  )
+}
 
 const keyQuery = named(
   "key",
@@ -153,7 +183,6 @@ export default responsibleAPI({
   },
   forAll: {
     req: {
-      "security?": Oauth2,
       params: [keyQuery, xgafv],
     },
     res: {
@@ -164,6 +193,12 @@ export default responsibleAPI({
   routes: {
     "/videos": GET({
       req: {
+        security: youtubeScopes(
+          "https://www.googleapis.com/auth/youtube",
+          "https://www.googleapis.com/auth/youtube.force-ssl",
+          "https://www.googleapis.com/auth/youtube.readonly",
+          "https://www.googleapis.com/auth/youtubepartner",
+        ),
         query: {
           id: VideoIDs,
           maxResults: int32({ minimum: 1, default: 50 }),
@@ -174,6 +209,11 @@ export default responsibleAPI({
     }),
     "/playlistItems": GET({
       req: {
+        security: youtubeScopes(
+          "https://www.googleapis.com/auth/youtube",
+          "https://www.googleapis.com/auth/youtube.force-ssl",
+          "https://www.googleapis.com/auth/youtubepartner",
+        ),
         query: {
           playlistId: PlaylistID,
           maxResults: int32({ minimum: 1, default: 50 }),
@@ -185,6 +225,12 @@ export default responsibleAPI({
     }),
     "/playlists": GET({
       req: {
+        security: youtubeScopes(
+          "https://www.googleapis.com/auth/youtube",
+          "https://www.googleapis.com/auth/youtube.force-ssl",
+          "https://www.googleapis.com/auth/youtube.readonly",
+          "https://www.googleapis.com/auth/youtubepartner",
+        ),
         query: {
           id: PlaylistID,
           part: Parts,
@@ -194,6 +240,13 @@ export default responsibleAPI({
     }),
     "/channels": GET({
       req: {
+        security: youtubeScopes(
+          "https://www.googleapis.com/auth/youtube",
+          "https://www.googleapis.com/auth/youtube.force-ssl",
+          "https://www.googleapis.com/auth/youtube.readonly",
+          "https://www.googleapis.com/auth/youtubepartner",
+          "https://www.googleapis.com/auth/youtubepartner-channel-audit",
+        ),
         query: {
           id: ChannelID,
           part: Parts,

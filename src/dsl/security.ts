@@ -39,18 +39,73 @@ type OAuthAuthorizationCodeFlow = Readonly<{
   scopes: OAuthScopes
 }>
 
-type OAuth2Security = Readonly<{
-  type: "oauth2"
-  description?: string
-  flows: Readonly<{
-    implicit?: OAuthImplicitFlow
-    password?: OAuthPasswordFlow
-    clientCredentials?: OAuthClientCredentialsFlow
-    authorizationCode?: OAuthAuthorizationCodeFlow
-  }>
+type OAuth2Flows = Readonly<{
+  implicit?: OAuthImplicitFlow
+  password?: OAuthPasswordFlow
+  clientCredentials?: OAuthClientCredentialsFlow
+  authorizationCode?: OAuthAuthorizationCodeFlow
 }>
 
-export type Security = Nameable<QuerySecurity | HeaderSecurity | OAuth2Security>
+type OAuth2Security<TFlows extends OAuth2Flows = OAuth2Flows> = Readonly<{
+  type: "oauth2"
+  description?: string
+  flows: TFlows
+}>
+
+export type SecurityScheme = Nameable<
+  QuerySecurity | HeaderSecurity | OAuth2Security
+>
+
+type SecuritySchemeRequirement = Readonly<{
+  kind: "scheme"
+  scheme: SecurityScheme
+  scopes?: readonly string[]
+}>
+
+type SecurityOperands = readonly [Security, Security, ...Security[]]
+
+type SecurityAnd = Readonly<{
+  kind: "and"
+  items: SecurityOperands
+}>
+
+type SecurityOr = Readonly<{
+  kind: "or"
+  items: SecurityOperands
+}>
+
+export type Security =
+  | SecurityScheme
+  | SecuritySchemeRequirement
+  | SecurityAnd
+  | SecurityOr
+
+type NonOAuth2SecurityScheme = Nameable<QuerySecurity | HeaderSecurity>
+type OAuth2SecurityScheme = Nameable<OAuth2Security>
+
+/*
+ * This unwraps {@link Nameable} so scope inference works for both inline
+ * objects and named thunks.
+ */
+type DecodeSecurityScheme<T extends SecurityScheme> =
+  T extends () => infer Value ? Value : T
+
+/*
+ * OAuth2 scopes can be declared across multiple flows, so this unions the
+ * scope keys from every configured flow into one requirement-time scope set.
+ */
+export type OAuth2ScopeName<T extends OAuth2SecurityScheme> = Extract<
+  {
+    [K in keyof DecodeSecurityScheme<T>["flows"]]-?: NonNullable<
+      DecodeSecurityScheme<T>["flows"][K]
+    > extends Readonly<{
+      scopes: infer Scopes extends OAuthScopes
+    }>
+      ? keyof Scopes
+      : never
+  }[keyof DecodeSecurityScheme<T>["flows"]],
+  string
+>
 
 export const querySecurity = (param: {
   name: string
@@ -68,10 +123,43 @@ export const headerSecurity = (param: {
   ...param,
 })
 
-export const oauth2Security = (param: {
+export const oauth2Security = <const TFlows extends OAuth2Flows>(param: {
   description?: string
-  flows: OAuth2Security["flows"]
-}): OAuth2Security => ({
+  flows: TFlows
+}): OAuth2Security<TFlows> => ({
   type: "oauth2",
   ...param,
+})
+
+export function requireSecurity(
+  scheme: NonOAuth2SecurityScheme,
+): SecuritySchemeRequirement
+export function requireSecurity<T extends OAuth2SecurityScheme>(
+  scheme: T,
+  scopes?: readonly OAuth2ScopeName<T>[],
+): SecuritySchemeRequirement
+export function requireSecurity(
+  scheme: SecurityScheme,
+  scopes?: readonly string[],
+): SecuritySchemeRequirement {
+  return scopes === undefined
+    ? {
+        kind: "scheme",
+        scheme,
+      }
+    : {
+        kind: "scheme",
+        scheme,
+        scopes,
+      }
+}
+
+export const AND = (...items: SecurityOperands): SecurityAnd => ({
+  kind: "and",
+  items,
+})
+
+export const OR = (...items: SecurityOperands): SecurityOr => ({
+  kind: "or",
+  items,
 })
