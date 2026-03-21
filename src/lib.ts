@@ -1,18 +1,5 @@
-function isLowercaseResult<S extends string>(
-  source: S,
-  candidate: string,
-): candidate is Lowercase<S> {
-  return candidate === source.toLowerCase()
-}
-
 export function typesafeLowercase<S extends string>(s: S): Lowercase<S> {
-  const lower = s.toLowerCase()
-
-  if (isLowercaseResult(s, lower)) {
-    return lower
-  }
-
-  throw new Error("Lowercasing returned an unexpected value")
+  return s.toLowerCase() as Lowercase<S>
 }
 
 export type RequireAtLeastTwo<T> = {

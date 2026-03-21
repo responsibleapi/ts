@@ -101,14 +101,20 @@ export const oauth2Security = <
   ...param,
 })
 
+function formatErrorDetail(value: unknown): string {
+  return JSON.stringify(value) ?? String(value)
+}
+
+function describeUnnamedSecurityScheme(scheme: NamedSecurityScheme): string {
+  return `inline value ${formatErrorDetail(scheme())}`
+}
+
 function getSecuritySchemeName(scheme: NamedSecurityScheme): string {
   const { name } = scheme
 
   if (typeof name !== "string" || name.length === 0) {
-    // OAS 3.1 security requirement keys must match component security scheme
-    // names, so inline unnamed schemes cannot be referenced here.
     throw new Error(
-      "security requirements need a named scheme; use a named function or named()",
+      `security requirements need a named scheme; got ${describeUnnamedSecurityScheme(scheme)}; use a named function or named()`,
     )
   }
 

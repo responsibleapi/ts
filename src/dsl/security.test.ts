@@ -190,4 +190,15 @@ describe("security", () => {
 
     type _HttpIsSecurity = Assert<OneExtendsTwo<typeof BearerAuth, Security>>
   })
+
+  test("reports anonymous scheme thunk details in requirement errors", () => {
+    expect(() =>
+      securityOR(
+        () => headerSecurity({ name: "authorization" }),
+        named("ApiKey", querySecurity({ name: "key" })),
+      ),
+    ).toThrowError(
+      /security requirements need a named scheme; got inline value \{"type":"apiKey","in":"header","name":"authorization"\}; use a named function or named\(\)/,
+    )
+  })
 })
