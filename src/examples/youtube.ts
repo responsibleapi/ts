@@ -11,7 +11,7 @@ import {
   unknown,
 } from "../dsl/schema.ts"
 import { queryParam } from "../dsl/scope.ts"
-import { querySecurity } from "../dsl/security.ts"
+import { oauth2Security } from "../dsl/security.ts"
 
 const VideoID = () => string({ minLength: 1 })
 const ChannelID = () => string({ minLength: 1 })
@@ -89,7 +89,48 @@ const Playlists = () => object()
 
 const Videos = () => object()
 
-const security = () => querySecurity({ name: "key" })
+const youtubeAuthScopes = {
+  "https://www.googleapis.com/auth/youtube": "Manage your YouTube account",
+  "https://www.googleapis.com/auth/youtube.channel-memberships.creator":
+    "See a list of your current active channel members, their current level, and when they became a member",
+  "https://www.googleapis.com/auth/youtube.force-ssl":
+    "See, edit, and permanently delete your YouTube videos, ratings, comments and captions",
+  "https://www.googleapis.com/auth/youtube.readonly":
+    "View your YouTube account",
+  "https://www.googleapis.com/auth/youtube.upload":
+    "Manage your YouTube videos",
+  "https://www.googleapis.com/auth/youtubepartner":
+    "View and manage your assets and associated content on YouTube",
+  "https://www.googleapis.com/auth/youtubepartner-channel-audit":
+    "View private information of your YouTube channel relevant during the audit process with a YouTube partner",
+} as const
+
+const Oauth2 = () =>
+  oauth2Security({
+    description: "Oauth 2.0 implicit and authorizationCode authentication",
+    flows: {
+      implicit: {
+        authorizationUrl: "https://accounts.google.com/o/oauth2/auth",
+        scopes: youtubeAuthScopes,
+      },
+      authorizationCode: {
+        authorizationUrl: "https://accounts.google.com/o/oauth2/auth",
+        tokenUrl: "https://accounts.google.com/o/oauth2/token",
+        scopes: youtubeAuthScopes,
+      },
+    },
+  })
+
+const keyQuery = named(
+  "key",
+  queryParam({
+    description:
+      "API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token.",
+    in: "query",
+    name: "key",
+    schema: string(),
+  }),
+)
 
 const xgafv = named(
   "_.xgafv",
@@ -112,8 +153,8 @@ export default responsibleAPI({
   },
   forAll: {
     req: {
-      security,
-      params: [xgafv],
+      "security?": Oauth2,
+      params: [keyQuery, xgafv],
     },
     res: {
       mime: "application/json",
