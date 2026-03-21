@@ -1,8 +1,9 @@
 import { describe, expect, test } from "vitest"
-import type { Assert, IsEqual } from "../type-assertions.ts"
+import type { Assert, IsEqual, OneExtendsTwo } from "../type-assertions.ts"
 import { named } from "./nameable.ts"
 import {
   type OAuth2ScopeName,
+  type Security,
   AND,
   headerSecurity,
   oauth2Security,
@@ -190,16 +191,16 @@ describe("security", () => {
     })
   })
 
-  test("keeps bare schemes as a shorthand requirement", () => {
+  test("keeps bare schemes as security values", () => {
     const AuthorizationHeader = named(
       "Authorization",
       headerSecurity({ name: "authorization" }),
     )
 
     expect(AuthorizationHeader().type).toBe("header")
-    expect(requireSecurity(AuthorizationHeader)).toEqual({
-      kind: "scheme",
-      scheme: AuthorizationHeader,
-    })
+
+    type _HeaderIsSecurity = Assert<
+      OneExtendsTwo<typeof AuthorizationHeader, Security>
+    >
   })
 })

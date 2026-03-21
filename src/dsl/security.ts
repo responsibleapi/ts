@@ -58,8 +58,8 @@ export type SecurityScheme = Nameable<
 
 type SecuritySchemeRequirement = Readonly<{
   kind: "scheme"
-  scheme: SecurityScheme
-  scopes?: readonly string[]
+  scheme: OAuth2SecurityScheme
+  scopes: readonly string[]
 }>
 
 type SecurityOperands = readonly [Security, Security, ...Security[]]
@@ -80,7 +80,6 @@ export type Security =
   | SecurityAnd
   | SecurityOr
 
-type NonOAuth2SecurityScheme = Nameable<QuerySecurity | HeaderSecurity>
 type OAuth2SecurityScheme = Nameable<OAuth2Security>
 
 /*
@@ -131,27 +130,15 @@ export const oauth2Security = <const TFlows extends OAuth2Flows>(param: {
   ...param,
 })
 
-export function requireSecurity(
-  scheme: NonOAuth2SecurityScheme,
-): SecuritySchemeRequirement
 export function requireSecurity<T extends OAuth2SecurityScheme>(
   scheme: T,
-  scopes?: readonly OAuth2ScopeName<T>[],
-): SecuritySchemeRequirement
-export function requireSecurity(
-  scheme: SecurityScheme,
-  scopes?: readonly string[],
+  scopes: readonly OAuth2ScopeName<T>[],
 ): SecuritySchemeRequirement {
-  return scopes === undefined
-    ? {
-        kind: "scheme",
-        scheme,
-      }
-    : {
-        kind: "scheme",
-        scheme,
-        scopes,
-      }
+  return {
+    kind: "scheme",
+    scheme,
+    scopes,
+  }
 }
 
 export const AND = (...items: SecurityOperands): SecurityAnd => ({
