@@ -10,6 +10,7 @@
 - never run the whole test suite (the compiler is still TODO), run individual
   test files instead
 - Use typechecking and linting for guidance
+- currently designing the DSL
 
 ## Lang rules
 

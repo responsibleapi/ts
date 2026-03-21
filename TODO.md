@@ -4,6 +4,7 @@
   alternative requirements with per-scheme scope lists, for example in
   [youtube.json](src/examples/youtube.json#L211) and
   [youtube.json](src/examples/youtube.json#L6121).
+
 - The schema DSL hardcodes too few formats. [schema.ts](src/dsl/schema.ts#L3)
   only permits string formats `email|uri|uuid|date|date-time|binary|url|blob`,
   and [schema.ts](src/dsl/schema.ts#L33) only permits integer formats
