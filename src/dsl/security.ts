@@ -56,6 +56,13 @@ export type SecurityScheme = Nameable<
   QuerySecurity | HeaderSecurity | OAuth2Security
 >
 
+/**
+ * A security scheme declares what authentication mechanism exists.
+ *
+ * A requirement is what a specific operation asks for at usage time:
+ * it points at a declared scheme and, for OAuth2, selects the scopes that
+ * must be granted for that operation.
+ */
 type SecuritySchemeRequirement = Readonly<{
   kind: "scheme"
   scheme: OAuth2SecurityScheme
@@ -130,7 +137,7 @@ export const oauth2Security = <const TFlows extends OAuth2Flows>(param: {
   ...param,
 })
 
-export function requireSecurity<T extends OAuth2SecurityScheme>(
+export function oauth2Requirement<T extends OAuth2SecurityScheme>(
   scheme: T,
   scopes: readonly OAuth2ScopeName<T>[],
 ): SecuritySchemeRequirement {

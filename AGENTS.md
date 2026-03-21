@@ -1,9 +1,5 @@
 # AGENTS.md
 
-## DSL design
-
-- respect @dsl jsdocs, that's core DSL stuff
-
 ## Current state of things
 
 - 100% typescript codebase
@@ -11,6 +7,10 @@
   test files instead
 - Use typechecking and linting for guidance
 - currently designing the DSL
+
+## DSL design
+
+- respect @dsl jsdocs, that's core DSL stuff
 
 ## Lang rules
 

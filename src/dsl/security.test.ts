@@ -7,9 +7,9 @@ import {
   AND,
   headerSecurity,
   oauth2Security,
+  oauth2Requirement,
   OR,
   querySecurity,
-  requireSecurity,
 } from "./security.ts"
 
 describe("security", () => {
@@ -109,12 +109,12 @@ describe("security", () => {
     expect(
       OR(
         AND(
-          requireSecurity(Oauth2, ["scope:read"]),
-          requireSecurity(Oauth2c, ["scope:read"]),
+          oauth2Requirement(Oauth2, ["scope:read"]),
+          oauth2Requirement(Oauth2c, ["scope:read"]),
         ),
         AND(
-          requireSecurity(Oauth2, ["scope:write"]),
-          requireSecurity(Oauth2c, ["scope:write"]),
+          oauth2Requirement(Oauth2, ["scope:write"]),
+          oauth2Requirement(Oauth2c, ["scope:write"]),
         ),
       ),
     ).toEqual({
@@ -184,7 +184,7 @@ describe("security", () => {
       >
     >
 
-    expect(requireSecurity(Oauth2, ["scope:admin"])).toEqual({
+    expect(oauth2Requirement(Oauth2, ["scope:admin"])).toEqual({
       kind: "scheme",
       scheme: Oauth2,
       scopes: ["scope:admin"],
