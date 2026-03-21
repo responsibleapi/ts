@@ -16,9 +16,9 @@ type OAuth2SecurityScheme<
 
 type NamedOAuth2SecurityScheme<
   TFlows extends oas31.OAuthFlowsObject = oas31.OAuthFlowsObject,
-> = () => OAuth2SecuritySchemeObject<TFlows>
+> = Nameable<OAuth2SecuritySchemeObject<TFlows>>
 
-type NamedSecurityScheme = () => oas31.SecuritySchemeObject
+type NamedSecurityScheme = Nameable<oas31.SecuritySchemeObject>
 
 type SecurityOperand = NamedSecurityScheme | oas31.SecurityRequirementObject
 
@@ -38,7 +38,7 @@ export type Security =
  * objects and named thunks.
  */
 type DecodeSecurityScheme<T extends SecurityScheme> =
-  T extends () => infer Value ? Value : T
+  T extends Nameable<infer Value> ? Value : T
 
 /*
  * OAuth2 scopes can be declared across multiple flows, so this unions the
