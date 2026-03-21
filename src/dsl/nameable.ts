@@ -14,7 +14,12 @@ type NonFunction<T> = T extends (...args: any[]) => unknown ? never : T
  *
  * @dsl
  */
-type NamedThunk<T> = () => NonFunction<T>
+type NamedThunk<T> =
+  /**
+   * Collapse named thunks entirely when {@link NonFunction} rejects `T`,
+   * otherwise `Nameable<Fn>` would degrade to `() => never` instead of `never`.
+   */
+  [NonFunction<T>] extends [never] ? never : () => NonFunction<T>
 
 export type Nameable<T> = NamedThunk<T> | NonFunction<T>
 
@@ -25,7 +30,7 @@ export type Nameable<T> = NamedThunk<T> | NonFunction<T>
 export const named = <T>(
   componentName: string,
   value: NonFunction<T>,
-): NamedThunk<T> =>
+): (() => NonFunction<T>) =>
   Object.defineProperty(() => value, "name", {
     configurable: true,
     value: componentName,

@@ -37,4 +37,15 @@ describe("nameable", () => {
   test("rejects function-valued nameables", () => {
     type _Test = Assert<IsNever<Nameable<() => string>>>
   })
+
+  function someNamedFunc(): 1 {
+    return 1
+  }
+
+  test("someNamedFunc is Nameable", () => {
+    type _Test = Assert<Nameable<typeof someNamedFunc>>
+    type _Test2 = Assert<
+      IsEqual<typeof someNamedFunc, NamedArg<typeof someNamedFunc>>
+    >
+  })
 })
