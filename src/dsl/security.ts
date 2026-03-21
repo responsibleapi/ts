@@ -1,5 +1,5 @@
 import type { oas31 } from "openapi3-ts"
-import type { Nameable } from "./nameable.ts"
+import { decodeNameable, type Nameable } from "./nameable.ts"
 
 type SecurityScheme = Nameable<oas31.SecuritySchemeObject>
 
@@ -86,13 +86,17 @@ export const oauth2Security = <
 })
 
 function getSecuritySchemeName(scheme: SecurityScheme): string {
-  if (typeof scheme.name !== "string" || scheme.name.length === 0) {
+  const { name } = decodeNameable(scheme)
+
+  if (typeof name !== "string" || name.length === 0) {
+    // OAS 3.1 security requirement keys must match component security scheme
+    // names, so inline unnamed schemes cannot be referenced here.
     throw new Error(
       "security requirements need a named scheme; use a named function or named()",
     )
   }
 
-  return scheme.name
+  return name
 }
 
 function toSecurityRequirement(
