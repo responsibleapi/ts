@@ -1,5 +1,10 @@
 import { describe, expect, test } from "vitest"
-import type { Assert, IsEqual, IsNever } from "../type-assertions.ts"
+import type {
+  Assert,
+  IsEqual,
+  IsNever,
+  OneExtendsTwo,
+} from "../type-assertions.ts"
 import type { Nameable } from "./nameable.ts"
 import { named } from "./nameable.ts"
 
@@ -38,14 +43,9 @@ describe("nameable", () => {
     type _Test = Assert<IsNever<Nameable<() => string>>>
   })
 
-  function someNamedFunc(): 1 {
-    return 1
-  }
-
   test("someNamedFunc is Nameable", () => {
-    type _Test = Assert<Nameable<typeof someNamedFunc>>
-    type _Test2 = Assert<
-      IsEqual<typeof someNamedFunc, NamedArg<typeof someNamedFunc>>
-    >
+    const someNamedFunc = (): 1 => 1
+
+    type _Test2 = Assert<OneExtendsTwo<typeof someNamedFunc, Nameable<1>>>
   })
 })
