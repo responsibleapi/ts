@@ -99,11 +99,20 @@ interface AllOf {
 
 type Num = Int | Float
 
-export type Schema = Nameable<
-  Str | Num | Bool | Unknown | Obj | Arr | Dict | OneOf | AnyOf | AllOf
->
+export type RawSchema =
+  | Str
+  | Num
+  | Bool
+  | Unknown
+  | Obj
+  | Arr
+  | Dict
+  | OneOf
+  | AnyOf
+  | AllOf
 
-/* dict keys */
+export type Schema = Nameable<RawSchema>
+
 type DictKeySchema = Nameable<Str | Num>
 
 export const dict = (k: DictKeySchema, v: Schema): Dict => ({

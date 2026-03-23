@@ -1,7 +1,7 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
 import { validate } from "../validate.ts"
-import type { Schema } from "./schema.ts"
+import type { RawSchema } from "./schema.ts"
 import {
   allOf,
   anyOf,
@@ -20,9 +20,7 @@ import {
   unknown,
 } from "./schema.ts"
 
-type InlineSchema = Exclude<Schema, (...args: never[]) => unknown>
-
-const docWithSchema = (schema: InlineSchema): Partial<oas31.OpenAPIObject> => ({
+const docWithSchema = (schema: RawSchema): Partial<oas31.OpenAPIObject> => ({
   openapi: "3.1.0",
   info: {
     title: "Schema test",
@@ -36,7 +34,7 @@ const docWithSchema = (schema: InlineSchema): Partial<oas31.OpenAPIObject> => ({
   },
 })
 
-const expectValidSchema = async (schema: InlineSchema): Promise<void> => {
+const expectValidSchema = async (schema: RawSchema): Promise<void> => {
   const doc = docWithSchema(schema)
   await expect(validate(doc)).resolves.toEqual(doc)
 }

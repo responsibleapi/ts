@@ -20,7 +20,7 @@ type OAuth2SecurityScheme<
  */
 type NamedSecurityScheme<
   TScheme extends oas31.SecuritySchemeObject = oas31.SecuritySchemeObject,
-> = Extract<Nameable<TScheme>, () => TScheme>
+> = NamedThunk<TScheme>
 
 type NamedOAuth2SecurityScheme<
   TFlows extends oas31.OAuthFlowsObject = oas31.OAuthFlowsObject,
