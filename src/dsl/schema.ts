@@ -1,6 +1,7 @@
 import type { Nameable } from "./nameable.ts"
 
 type StringFormat =
+  | "byte"
   | "email"
   | "uri"
   | "uuid"
@@ -30,7 +31,7 @@ interface Str extends StringsOpts {
   type: "string"
 }
 
-type IntFormat = "int64" | "int32"
+type IntFormat = "int32" | "int64" | "uint32" | "uint64"
 
 interface NumberOpts extends SchemaOpts {
   minimum?: number
