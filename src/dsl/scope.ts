@@ -22,39 +22,53 @@ type Param = Nameable<QueryParamRaw>
 export const queryParam = (r: QueryParamRaw): QueryParamRaw => r
 
 const declaredTagBrand = Symbol("declaredTagBrand")
-const opTagsBrand = Symbol("opTagsBrand")
+
+type TagNoName = Omit<oas31.TagObject, "name">
 
 /**
- * Operation tags should come from reusable top-level tag declarations so route
- * metadata stays aligned with the document-level tag list.
+ * Top-level tags should be declared once as a keyed object so operations can
+ * reference the stable tag keys instead of repeating tag names inline.
  */
-export type DeclaredTag<TName extends string = string> = oas31.TagObject & {
-  name: TName
+type TagDeclarations = Readonly<Record<string, TagNoName>>
+
+type DeclaredTag<
+  TName extends string = string,
+  TTag extends TagNoName = TagNoName,
+> = TTag & {
+  readonly name: TName
   readonly [declaredTagBrand]: true
 }
 
-export type OpTags<
-  TTags extends readonly DeclaredTag[] = readonly DeclaredTag[],
-> = readonly TTags[number]["name"][] & {
-  readonly [opTagsBrand]: TTags
+type DeclaredTags<TTags extends TagDeclarations = TagDeclarations> = {
+  readonly [K in keyof TTags]: DeclaredTag<Extract<K, string>, TTags[K]>
 }
 
-export const tag = <const TName extends string>(
-  value: oas31.TagObject & { name: TName },
-): DeclaredTag<TName> =>
-  Object.assign(value, { [declaredTagBrand]: true as const })
+type TagRegistry = DeclaredTags
 
-export const opTags = <
-  const TTags extends readonly [DeclaredTag, ...DeclaredTag[]],
->(
-  ...tags: TTags
-): OpTags<TTags> =>
-  Object.assign(
-    tags.map(declaredTag => declaredTag.name),
-    {
-      [opTagsBrand]: tags,
-    },
-  )
+type DeclaredOpTag<TTags extends TagRegistry = TagRegistry> = TTags[keyof TTags]
+
+type OpTags<TTags extends TagRegistry = TagRegistry> =
+  readonly DeclaredOpTag<TTags>[]
+
+/**
+ * Wrap the raw tag registry so the DSL can brand each entry with its key as the
+ * OpenAPI tag name. That gives operations a closed set of reusable tag values
+ * instead of ad-hoc objects or repeated string literals.
+ *
+ * @dsl
+ */
+export const declareTags = <TTags extends TagDeclarations>(
+  tags: TTags,
+): DeclaredTags<TTags> =>
+  Object.fromEntries(
+    Object.entries(tags).map(([name, declaredTag]) => [
+      name,
+      Object.assign(
+        { name, ...declaredTag },
+        { [declaredTagBrand]: true as const },
+      ),
+    ]),
+  ) as DeclaredTags<TTags>
 
 interface OpReq {
   readonly security?: Security
@@ -89,7 +103,7 @@ type ScopeRes =
     }
   | OpRes
 
-export interface Op {
+export interface Op<TTags extends TagRegistry = TagRegistry> {
   id?: string
   headID?: string
   req?: OpReq | Schema
@@ -97,10 +111,12 @@ export interface Op {
   deprecated?: boolean
   description?: string
   summary?: string
-  tags?: OpTags
+  tags?: OpTags<TTags>
 }
 
-export interface OpWithMethod extends Op {
+export interface OpWithMethod<
+  TTags extends TagRegistry = TagRegistry,
+> extends Op<TTags> {
   method: HttpMethod
 }
 

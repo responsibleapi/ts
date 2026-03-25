@@ -10,7 +10,7 @@ import {
   string,
   unknown,
 } from "../dsl/schema.ts"
-import { opTags, queryParam, tag } from "../dsl/scope.ts"
+import { declareTags, queryParam } from "../dsl/scope.ts"
 import {
   securityAND,
   securityOR,
@@ -94,12 +94,14 @@ const Playlists = () => object()
 
 const Videos = () => object()
 
-const videosTag = tag({ name: "videos" })
-const playlistItemsTag = tag({ name: "playlistItems" })
-const playlistsTag = tag({ name: "playlists" })
-const channelsTag = tag({ name: "channels" })
+const tags = declareTags({
+  videos: {},
+  playlistItems: {},
+  playlists: {},
+  channels: {},
+} as const)
 
-const youtubeAuthScopes = {
+const oauthScopes = {
   "https://www.googleapis.com/auth/youtube": "Manage your YouTube account",
   "https://www.googleapis.com/auth/youtube.channel-memberships.creator":
     "See a list of your current active channel members, their current level, and when they became a member",
@@ -122,7 +124,7 @@ const Oauth2 = named(
     flows: {
       implicit: {
         authorizationUrl: "https://accounts.google.com/o/oauth2/auth",
-        scopes: youtubeAuthScopes,
+        scopes: oauthScopes,
       },
     },
   }),
@@ -135,12 +137,12 @@ const Oauth2c = () =>
       authorizationCode: {
         authorizationUrl: "https://accounts.google.com/o/oauth2/auth",
         tokenUrl: "https://accounts.google.com/o/oauth2/token",
-        scopes: youtubeAuthScopes,
+        scopes: oauthScopes,
       },
     },
   })
 
-const youtubeScope = (scope: keyof typeof youtubeAuthScopes) =>
+const youtubeScope = (scope: keyof typeof oauthScopes) =>
   securityAND(
     oauth2Requirement(Oauth2, [scope]),
     oauth2Requirement(Oauth2c, [scope]),
@@ -148,9 +150,9 @@ const youtubeScope = (scope: keyof typeof youtubeAuthScopes) =>
 
 const youtubeScopes = (
   ...scopes: readonly [
-    keyof typeof youtubeAuthScopes,
-    keyof typeof youtubeAuthScopes,
-    ...(keyof typeof youtubeAuthScopes)[],
+    keyof typeof oauthScopes,
+    keyof typeof oauthScopes,
+    ...(keyof typeof oauthScopes)[],
   ]
 ) => {
   const [first, second, ...rest] = scopes
@@ -191,7 +193,7 @@ export default responsibleAPI({
       version: "3",
     },
     servers: [{ url: "https://www.googleapis.com/youtube/v3" }],
-    tags: [videosTag, playlistItemsTag, playlistsTag, channelsTag],
+    tags: Object.values(tags),
   },
   forAll: {
     req: {
@@ -204,7 +206,7 @@ export default responsibleAPI({
   },
   routes: {
     "/videos": GET({
-      tags: opTags(videosTag),
+      tags: [tags.videos],
       req: {
         security: youtubeScopes(
           "https://www.googleapis.com/auth/youtube",
@@ -221,7 +223,7 @@ export default responsibleAPI({
       res: { 200: Videos },
     }),
     "/playlistItems": GET({
-      tags: opTags(playlistItemsTag),
+      tags: [tags.playlistItems],
       req: {
         security: youtubeScopes(
           "https://www.googleapis.com/auth/youtube",
@@ -238,7 +240,7 @@ export default responsibleAPI({
       res: { 200: PlaylistItems },
     }),
     "/playlists": GET({
-      tags: opTags(playlistsTag),
+      tags: [tags.playlists],
       req: {
         security: youtubeScopes(
           "https://www.googleapis.com/auth/youtube",
@@ -254,7 +256,7 @@ export default responsibleAPI({
       res: { 200: Playlists },
     }),
     "/channels": GET({
-      tags: opTags(channelsTag),
+      tags: [tags.channels],
       req: {
         security: youtubeScopes(
           "https://www.googleapis.com/auth/youtube",

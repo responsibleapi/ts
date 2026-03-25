@@ -1,11 +1,6 @@
-import { describe, expect, test } from "vitest"
-import type {
-  Assert,
-  IsEqual,
-  IsNever,
-  OneExtendsTwo,
-} from "../type-assertions.ts"
-import { opTags, scope, tag, type Op } from "./scope.ts"
+import { describe, test } from "vitest"
+import type { Assert, IsNever, OneExtendsTwo } from "../type-assertions.ts"
+import { scope } from "./scope.ts"
 
 type TestOp = {
   res: {
@@ -52,34 +47,6 @@ describe("scope", () => {
   test("rejects wrapped routes with only one method", () => {
     type _Test = Assert<
       IsNever<ScopeArg<typeof scope<WrappedSingleMethodPureScope>>["routes"]>
-    >
-  })
-
-  test("builds operation tags from declared tags", () => {
-    const videosTag = tag({ name: "videos" })
-    const channelsTag = tag({
-      name: "channels",
-      description: "Channel operations",
-    })
-
-    expect([...opTags(videosTag, channelsTag)]).toEqual(["videos", "channels"])
-  })
-
-  test("accepts only declared tags on operations", () => {
-    const videosTag = tag({ name: "videos" })
-    const channelsTag = tag({ name: "channels" })
-    const tags = opTags(videosTag, channelsTag)
-
-    type _InfersTagNames = Assert<
-      IsEqual<typeof tags[number], "channels" | "videos">
-    >
-
-    type _AcceptsDeclaredTagOutput = Assert<
-      OneExtendsTwo<typeof tags, NonNullable<Op["tags"]>>
-    >
-
-    type _RejectsRawStringArrays = Assert<
-      IsEqual<OneExtendsTwo<readonly ["videos"], NonNullable<Op["tags"]>>, false>
     >
   })
 })
