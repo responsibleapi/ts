@@ -11,8 +11,10 @@ import {
   email,
   float,
   httpURL,
+  integer,
   int32,
   int64,
+  number,
   object,
   oneOf,
   string,
@@ -145,6 +147,23 @@ describe("schema", () => {
     await expectValidSchema(schema)
   })
 
+  test("integer", async () => {
+    const schema = integer({
+      minimum: 1,
+      maximum: 10,
+      example: 4,
+    })
+
+    expect(schema).toEqual({
+      type: "integer",
+      minimum: 1,
+      maximum: 10,
+      example: 4,
+    })
+
+    await expectValidSchema(schema)
+  })
+
   test("float", async () => {
     const schema = float({
       minimum: 1.25,
@@ -155,6 +174,23 @@ describe("schema", () => {
     expect(schema).toEqual({
       type: "number",
       format: "float",
+      minimum: 1.25,
+      maximum: 9.5,
+      example: 4.75,
+    })
+
+    await expectValidSchema(schema)
+  })
+
+  test("number", async () => {
+    const schema = number({
+      minimum: 1.25,
+      maximum: 9.5,
+      example: 4.75,
+    })
+
+    expect(schema).toEqual({
+      type: "number",
       minimum: 1.25,
       maximum: 9.5,
       example: 4.75,

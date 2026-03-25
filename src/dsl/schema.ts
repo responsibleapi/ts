@@ -41,12 +41,12 @@ interface NumberOpts extends SchemaOpts {
 
 interface Int extends NumberOpts {
   type: "integer"
-  format: IntFormat
+  format?: IntFormat
 }
 
 interface Float extends NumberOpts {
   type: "number"
-  format: "float" | "double"
+  format?: "float" | "double"
 }
 
 export type Obj = Readonly<{
@@ -146,10 +146,20 @@ export const int64 = (opts?: NumberOpts): Int => ({
   format: "int64",
 })
 
+export const integer = (opts?: NumberOpts): Int => ({
+  ...opts,
+  type: "integer",
+})
+
 export const int32 = (opts?: NumberOpts): Int => ({
   ...opts,
   type: "integer",
   format: "int32",
+})
+
+export const number = (opts?: NumberOpts): Float => ({
+  ...opts,
+  type: "number",
 })
 
 export const float = (opts?: NumberOpts): Float => ({
