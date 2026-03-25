@@ -41,3 +41,13 @@ Single pass compiler design:
 Each nested level inherits and extends the context, and as you return up the
 stack, you merge the generated OpenAPI paths. No AST needed - just function
 calls and return values
+
+## Custom commands
+
+### Today's productivity
+
+Take all git commits for today and:
+
+- sum total lines added (+)
+- sum total lines removed (-)
+- print
