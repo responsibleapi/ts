@@ -10,7 +10,7 @@
 
 ## DSL design
 
-- respect @dsl jsdocs, that's core DSL stuff
+- respect @dsl JSDocs, that's core DSL stuff
 
 ## Lang rules
 
