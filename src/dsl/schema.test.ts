@@ -63,7 +63,11 @@ describe("schema", () => {
   })
 
   test("dict", async () => {
-    const schema = dict(string({ minLength: 1 }), int32({ minimum: 0 }))
+    const schema = dict(string({ minLength: 1 }), int32({ minimum: 0 }), {
+      description: "Localized values by language code",
+      deprecated: true,
+      example: { en: 1 },
+    })
 
     expect(schema).toEqual({
       type: "object",
@@ -76,6 +80,9 @@ describe("schema", () => {
         format: "int32",
         minimum: 0,
       },
+      description: "Localized values by language code",
+      deprecated: true,
+      example: { en: 1 },
     })
 
     await expectValidSchema(schema)

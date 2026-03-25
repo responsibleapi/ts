@@ -76,12 +76,16 @@ interface Bool extends SchemaOpts {
   type: "boolean"
 }
 
+interface DictOpts extends SchemaOpts {
+  example?: Record<PropertyKey, unknown>
+}
+
 type Dict = Readonly<{
   type: "object"
   propertyNames: DictKeySchema
   additionalProperties: Schema
-  example?: Record<PropertyKey, unknown>
-}>
+}> &
+  DictOpts
 
 type OneOf = Readonly<{
   oneOf: readonly Schema[]
@@ -113,7 +117,8 @@ export type Schema = Nameable<RawSchema>
 
 type DictKeySchema = Nameable<Str | Num>
 
-export const dict = (k: DictKeySchema, v: Schema): Dict => ({
+export const dict = (k: DictKeySchema, v: Schema, opts?: DictOpts): Dict => ({
+  ...opts,
   type: "object",
   propertyNames: k,
   additionalProperties: v,

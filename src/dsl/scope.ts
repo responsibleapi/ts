@@ -64,10 +64,11 @@ export const declareTags = <TTags extends TagDeclarations>(
   Object.fromEntries(
     Object.entries(tags).map(([name, declaredTag]) => [
       name,
-      Object.assign(
-        { name, ...declaredTag },
-        { [declaredTagBrand]: true as const },
-      ),
+      {
+        ...declaredTag,
+        name,
+        [declaredTagBrand]: true,
+      },
     ]),
   ) as DeclaredTags<TTags>
 
