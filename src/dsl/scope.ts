@@ -5,14 +5,15 @@ import type { Nameable } from "./nameable.ts"
 import type { Schema } from "./schema.ts"
 import type { Security } from "./security.ts"
 
-interface ParamRaw {
+interface ReusableParam {
   in: "query" | "path"
   name?: string
   description?: string
   schema?: Schema
+  required?: boolean
 }
 
-interface QueryParamRaw extends ParamRaw {
+interface QueryParamRaw extends ReusableParam {
   style?: "form"
   explode?: boolean
 }
