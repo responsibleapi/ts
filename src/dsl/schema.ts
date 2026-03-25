@@ -31,8 +31,6 @@ interface Str extends StringsOpts {
   type: "string"
 }
 
-type IntFormat = "int32" | "int64" | "uint32" | "uint64"
-
 interface NumberOpts extends SchemaOpts {
   minimum?: number
   maximum?: number
@@ -41,7 +39,7 @@ interface NumberOpts extends SchemaOpts {
 
 interface Int extends NumberOpts {
   type: "integer"
-  format?: IntFormat
+  format?: "int32" | "int64" | "uint32" | "uint64"
 }
 
 interface Float extends NumberOpts {
