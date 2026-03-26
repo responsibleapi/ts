@@ -16,7 +16,7 @@
 
 ## DSL design
 
-- respect @dsl JSDocs, that's core DSL stuff
+- never edit things tagged with `@dsl`. If you need to change them, ask first.
 
 ## CLI tools
 
