@@ -18,7 +18,9 @@
     "strict": true,
     "target": "ESNext",
     "verbatimModuleSyntax": true,
-    "incremental": true
+
+    /** `true` breaks single file typechecks */
+    "incremental": false
   },
   "include": ["src"]
 }
