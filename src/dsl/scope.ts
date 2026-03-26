@@ -100,9 +100,19 @@ type ScopeRoutes = Routes & MethodRoutes
  */
 type ScopeArg = ScopeRoutes | Scope
 
+export interface ScopeOpts {
+  req?: ReqAugmentation
+  res?: ScopeRes
+}
+
+export interface Scope {
+  forAll?: ScopeOpts
+  routes: ScopeRoutes
+}
+
 /**
- * DO NOT modify this, it's done to prevent {@link scope} usage with one {@link HttpMethod}.
- * In case of one method, use DSL from {@link file://../methods.ts}
+ * DO NOT modify this, it's done to prevent {@link scope} usage with single {@link HttpMethod}.
+ * for single methods, use DSL from {@link file://../methods.ts}
  *
  * @dsl
  */
@@ -114,8 +124,8 @@ type ValidScopeRoutes<T extends ScopeRoutes> =
     : T
 
 /**
- * DO NOT modify this, it's done to prevent {@link scope} usage with one {@link HttpMethod}.
- * In case of one method, use DSL from {@link file://../methods.ts}
+ * DO NOT modify this, it's done to prevent {@link scope} usage with single {@link HttpMethod}.
+ * for single methods, use DSL from {@link file://../methods.ts}
  *
  * @dsl
  */
@@ -125,16 +135,12 @@ type ValidScopeArg<T extends ScopeArg> = T extends Scope
     ? ValidScopeRoutes<T>
     : never
 
-export interface ScopeOpts {
-  req?: ReqAugmentation
-  res?: ScopeRes
-}
-
-export interface Scope {
-  forAll?: ScopeOpts
-  routes: ScopeRoutes
-}
-
+/**
+ * Use this when declaring multiple routes under the same subpath.
+ * For single methods, use DSL from {@link file://../methods.ts}
+ *
+ * @dsl
+ */
 export function scope<const T extends ScopeArg>(arg: ValidScopeArg<T>): Scope {
   if ("routes" in arg) {
     return arg
