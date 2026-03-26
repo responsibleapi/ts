@@ -8,7 +8,7 @@
     "lint": "bun oxlint src",
     "lint:fix": "bun oxlint --fix src",
     "test": "bun test",
-    "test2": "bun vitest run src/",
+    "test-dont-use": "bun vitest run src/",
     "typecheck": "bun tsc"
   },
   "dependencies": {

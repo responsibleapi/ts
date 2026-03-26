@@ -70,4 +70,19 @@ describe("scope", () => {
       >
     >
   })
+
+  test("rejects inline tag objects on operations", () => {
+    const tags = declareTags({
+      videos: {},
+    } as const)
+
+    type _Test = Assert<
+      IsNever<
+        Extract<
+          { readonly name: "videos" },
+          NonNullable<Op<typeof tags>["tags"]>[number]
+        >
+      >
+    >
+  })
 })

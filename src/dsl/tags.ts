@@ -1,6 +1,6 @@
 import type { oas31 } from "openapi3-ts"
 
-const declaredTagBrand = Symbol("declaredTagBrand")
+declare const declaredTagBrand: unique symbol
 
 type TagNoName = Omit<oas31.TagObject, "name">
 
@@ -45,7 +45,6 @@ export const declareTags = <TTags extends TagDeclarations>(
       {
         ...declaredTag,
         name,
-        [declaredTagBrand]: true,
       },
     ]),
   ) as DeclaredTags<TTags>
