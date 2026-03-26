@@ -5945,6 +5945,9 @@ export default responsibleAPI({
         upload_protocol,
       ],
     },
+    res: {
+      mime: "application/json",
+    },
   },
   routes: {
     "/youtube/v3/abuseReports": POST({
@@ -5966,9 +5969,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": AbuseReport,
-          },
+          body: AbuseReport,
         }),
       },
       tags: [tags.abuseReports],
@@ -6008,9 +6009,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": ActivityListResponse,
-          },
+          body: ActivityListResponse,
         }),
       },
       tags: [tags.activities],
@@ -6076,9 +6075,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": CaptionListResponse,
-            } as const,
+            body: CaptionListResponse,
           }),
         },
       } as const,
@@ -6116,9 +6113,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": Caption,
-            } as const,
+            body: Caption,
           }),
         },
       } as const,
@@ -6156,9 +6151,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": Caption,
-            } as const,
+            body: Caption,
           }),
         },
       } as const,
@@ -6235,9 +6228,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": ChannelBannerResource,
-          } as const,
+          body: ChannelBannerResource,
         }),
       },
       tags: [tags.channelBanners],
@@ -6308,9 +6299,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": ChannelSectionListResponse,
-            } as const,
+            body: ChannelSectionListResponse,
           }),
         },
       } as const,
@@ -6342,9 +6331,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": ChannelSection,
-            } as const,
+            body: ChannelSection,
           }),
         },
       } as const,
@@ -6372,9 +6359,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": ChannelSection,
-            } as const,
+            body: ChannelSection,
           }),
         },
       } as const,
@@ -6445,9 +6430,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": ChannelListResponse,
-            } as const,
+            body: ChannelListResponse,
           }),
         },
       } as const,
@@ -6475,9 +6458,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": Channel,
-            } as const,
+            body: Channel,
           }),
         },
       } as const,
@@ -6546,9 +6527,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": CommentThreadListResponse,
-            } as const,
+            body: CommentThreadListResponse,
           }),
         },
       } as const,
@@ -6570,9 +6549,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": CommentThread,
-            } as const,
+            body: CommentThread,
           }),
         },
       } as const,
@@ -6591,9 +6568,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": CommentThread,
-            } as const,
+            body: CommentThread,
           }),
         },
         tags: [tags.youtube],
@@ -6660,9 +6635,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": CommentListResponse,
-            } as const,
+            body: CommentListResponse,
           }),
         },
       } as const,
@@ -6684,9 +6657,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": Comment,
-            } as const,
+            body: Comment,
           }),
         },
       } as const,
@@ -6708,9 +6679,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": Comment,
-            } as const,
+            body: Comment,
           }),
         },
       } as const,
@@ -6788,9 +6757,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": I18nLanguageListResponse,
-          } as const,
+          body: I18nLanguageListResponse,
         }),
       },
       tags: [tags.i18nLanguages],
@@ -6816,9 +6783,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": I18nRegionListResponse,
-          } as const,
+          body: I18nRegionListResponse,
         }),
       },
       tags: [tags.i18nRegions],
@@ -6918,9 +6883,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": LiveBroadcastListResponse,
-            } as const,
+            body: LiveBroadcastListResponse,
           }),
         },
       } as const,
@@ -6951,9 +6914,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": LiveBroadcast,
-            } as const,
+            body: LiveBroadcast,
           }),
         },
       } as const,
@@ -6985,9 +6946,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": LiveBroadcast,
-            } as const,
+            body: LiveBroadcast,
           }),
         },
       } as const,
@@ -7024,9 +6983,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": LiveBroadcast,
-          } as const,
+          body: LiveBroadcast,
         }),
       },
       tags: [tags.liveBroadcasts],
@@ -7063,9 +7020,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": Cuepoint,
-          } as const,
+          body: Cuepoint,
         }),
       },
       tags: [tags.liveBroadcasts],
@@ -7104,9 +7059,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": LiveBroadcast,
-          } as const,
+          body: LiveBroadcast,
         }),
       },
       tags: [tags.liveBroadcasts],
@@ -7152,9 +7105,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": LiveChatBan,
-            } as const,
+            body: LiveChatBan,
           }),
         },
       } as const,
@@ -7224,9 +7175,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": LiveChatMessageListResponse,
-            } as const,
+            body: LiveChatMessageListResponse,
           }),
         },
       } as const,
@@ -7249,9 +7198,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": LiveChatMessage,
-            } as const,
+            body: LiveChatMessage,
           }),
         },
       } as const,
@@ -7311,9 +7258,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": LiveChatModeratorListResponse,
-            } as const,
+            body: LiveChatModeratorListResponse,
           }),
         },
       } as const,
@@ -7336,9 +7281,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": LiveChatModerator,
-            } as const,
+            body: LiveChatModerator,
           }),
         },
       } as const,
@@ -7416,9 +7359,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": LiveStreamListResponse,
-            } as const,
+            body: LiveStreamListResponse,
           }),
         },
       } as const,
@@ -7449,9 +7390,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": LiveStream,
-            } as const,
+            body: LiveStream,
           }),
         },
       } as const,
@@ -7482,9 +7421,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": LiveStream,
-            } as const,
+            body: LiveStream,
           }),
         },
       } as const,
@@ -7530,9 +7467,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": MemberListResponse,
-          } as const,
+          body: MemberListResponse,
         }),
       },
       tags: [tags.members],
@@ -7555,9 +7490,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": MembershipsLevelListResponse,
-          } as const,
+          body: MembershipsLevelListResponse,
         }),
       },
       tags: [tags.membershipsLevels],
@@ -7632,9 +7565,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": PlaylistItemListResponse,
-            } as const,
+            body: PlaylistItemListResponse,
           }),
         },
       } as const,
@@ -7662,9 +7593,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": PlaylistItem,
-            } as const,
+            body: PlaylistItem,
           }),
         },
       } as const,
@@ -7692,9 +7621,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": PlaylistItem,
-            } as const,
+            body: PlaylistItem,
           }),
         },
       } as const,
@@ -7779,9 +7706,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": PlaylistListResponse,
-            } as const,
+            body: PlaylistListResponse,
           }),
         },
       } as const,
@@ -7813,9 +7738,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": Playlist,
-            } as const,
+            body: Playlist,
           }),
         },
       } as const,
@@ -7843,9 +7766,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": Playlist,
-            } as const,
+            body: Playlist,
           }),
         },
       } as const,
@@ -8002,9 +7923,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": SearchListResponse,
-          } as const,
+          body: SearchListResponse,
         }),
       },
       tags: [tags.search],
@@ -8099,9 +8018,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": SubscriptionListResponse,
-            } as const,
+            body: SubscriptionListResponse,
           }),
         },
       } as const,
@@ -8125,9 +8042,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": Subscription,
-            } as const,
+            body: Subscription,
           }),
         },
       } as const,
@@ -8165,9 +8080,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": SuperChatEventListResponse,
-          } as const,
+          body: SuperChatEventListResponse,
         }),
       },
       tags: [tags.superChatEvents],
@@ -8188,9 +8101,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": TestItem,
-          } as const,
+          body: TestItem,
         }),
       },
       tags: [tags.tests],
@@ -8253,9 +8164,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": ThirdPartyLinkListResponse,
-            } as const,
+            body: ThirdPartyLinkListResponse,
           }),
         },
       } as const,
@@ -8278,9 +8187,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": ThirdPartyLink,
-            } as const,
+            body: ThirdPartyLink,
           }),
         },
       } as const,
@@ -8303,9 +8210,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": ThirdPartyLink,
-            } as const,
+            body: ThirdPartyLink,
           }),
         },
       } as const,
@@ -8335,9 +8240,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": ThumbnailSetResponse,
-          } as const,
+          body: ThumbnailSetResponse,
         }),
       },
       tags: [tags.thumbnails],
@@ -8362,9 +8265,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": VideoAbuseReportReasonListResponse,
-          } as const,
+          body: VideoAbuseReportReasonListResponse,
         }),
       },
       tags: [tags.videoAbuseReportReasons],
@@ -8395,9 +8296,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": VideoCategoryListResponse,
-          } as const,
+          body: VideoCategoryListResponse,
         }),
       },
       tags: [tags.videoCategories],
@@ -8497,9 +8396,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": VideoListResponse,
-            } as const,
+            body: VideoListResponse,
           }),
         },
       } as const,
@@ -8648,9 +8545,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": Video,
-            } as const,
+            body: Video,
           }),
         },
       } as const,
@@ -8678,9 +8573,7 @@ export default responsibleAPI({
         res: {
           "200": response({
             description: "Successful response",
-            body: {
-              "application/json": Video,
-            } as const,
+            body: Video,
           }),
         },
       } as const,
@@ -8706,9 +8599,7 @@ export default responsibleAPI({
       res: {
         "200": response({
           description: "Successful response",
-          body: {
-            "application/json": VideoGetRatingResponse,
-          } as const,
+          body: VideoGetRatingResponse,
         }),
       },
       tags: [tags.videos],
