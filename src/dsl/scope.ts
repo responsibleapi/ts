@@ -73,41 +73,53 @@ export interface OpWithMethod<
   method: HttpMethod
 }
 
-type ScopeOrOp = Op | Scope
+type ScopeOrOp<TTags extends TagRegistry = TagRegistry> =
+  | Op<TTags>
+  | Scope<TTags>
 
 /* for root level, only paths */
-export type Routes = Record<`/${string}`, ScopeOrOp>
+export type Routes<TTags extends TagRegistry = TagRegistry> = Record<
+  `/${string}`,
+  ScopeOrOp<TTags>
+>
 
 /* Supports scopes that declare HTTP handlers alongside nested path routes. */
-type MethodRoutes = Partial<Record<HttpMethod, Op>>
+type MethodRoutes<TTags extends TagRegistry = TagRegistry> = Partial<
+  Record<HttpMethod, Op<TTags>>
+>
 
 /*
  * The stricter "at least two methods" rule only makes sense for pure
  * method-only scopes. Once a scope also has nested `"/child"` routes, we allow
  * partial method sets so parent scopes can mix handlers with subpaths.
  */
-type PureMethodRoutes = RequireAtLeastTwo<Record<HttpMethod, Op>>
+type PureMethodRoutes<TTags extends TagRegistry = TagRegistry> =
+  RequireAtLeastTwo<Record<HttpMethod, Op<TTags>>>
 
 /*
  * Real `routes` objects can contain both HTTP methods and nested path keys at
  * the same time, so this is a combined shape instead of a simple union.
  */
-type ScopeRoutes = Routes & MethodRoutes
+type ScopeRoutes<TTags extends TagRegistry = TagRegistry> = Routes<TTags> &
+  MethodRoutes<TTags>
 
 /*
  * `scope()` accepts either the bare routes object or the full `{ routes,
  * forAll? }` wrapper.
  */
-type ScopeArg = ScopeRoutes | Scope
+type ScopeArg<TTags extends TagRegistry = TagRegistry> =
+  | ScopeRoutes<TTags>
+  | Scope<TTags>
 
-export interface ScopeOpts {
+export interface ScopeOpts<TTags extends TagRegistry = TagRegistry> {
   req?: ReqAugmentation
   res?: ScopeRes
+  tags?: OpTags<TTags>
 }
 
-export interface Scope {
-  forAll?: ScopeOpts
-  routes: ScopeRoutes
+export interface Scope<TTags extends TagRegistry = TagRegistry> {
+  forAll?: ScopeOpts<TTags>
+  routes: ScopeRoutes<TTags>
 }
 
 /**
@@ -151,7 +163,9 @@ export function scope<const T extends ScopeArg>(arg: ValidScopeArg<T>): Scope {
   }
 }
 
-export function isScope(_s: ScopeOrOp): _s is Scope {
+export function isScope<TTags extends TagRegistry>(
+  _s: ScopeOrOp<TTags>,
+): _s is Scope<TTags> {
   throw new Error(
     "we have not figured out how ScopeOrOp is even constructed to start distinguishing them",
   )

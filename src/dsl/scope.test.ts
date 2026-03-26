@@ -5,7 +5,7 @@ import type {
   IsNever,
   OneExtendsTwo,
 } from "../type-assertions.ts"
-import type { Op } from "./scope.ts"
+import type { Op, ScopeOpts } from "./scope.ts"
 import { scope } from "./scope.ts"
 import { declareTags } from "./tags.ts"
 
@@ -81,6 +81,35 @@ describe("scope", () => {
         Extract<
           { readonly name: "videos" },
           NonNullable<Op<typeof tags>["tags"]>[number]
+        >
+      >
+    >
+  })
+
+  test("accepts declared tags in scope defaults", () => {
+    const tags = declareTags({
+      videos: {},
+      channels: {},
+    } as const)
+
+    type _Test = Assert<
+      IsEqual<
+        NonNullable<ScopeOpts<typeof tags>["tags"]>,
+        readonly (typeof tags.videos | typeof tags.channels)[]
+      >
+    >
+  })
+
+  test("rejects inline tag objects in scope defaults", () => {
+    const tags = declareTags({
+      videos: {},
+    } as const)
+
+    type _Test = Assert<
+      IsNever<
+        Extract<
+          { readonly name: "videos" },
+          NonNullable<ScopeOpts<typeof tags>["tags"]>[number]
         >
       >
     >

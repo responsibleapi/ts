@@ -18,13 +18,15 @@
 
 - respect @dsl JSDocs, that's core DSL stuff
 
-## Tools
+## CLI tools
 
 - use `bun` for everything
 - never use `bunx`, if a package is missing, ask to add it to `package.json`
 - never use `node`
 - never run formatting unless explicitly asked to
 - [never use `vitest`](docs/package.jsonc), `bun test` instead
+- never use `wc`, use `scc` instead. Can use it for both folders and files.
+  `scc` counts lines + approximates code complexity.
 
 ## Packages
 
