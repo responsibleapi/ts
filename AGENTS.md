@@ -23,8 +23,8 @@
 - use `bun` for everything
 - never use `bunx`, if a package is missing, ask to add it to `package.json`
 - never use `node`
-- never run formatting unless the task actually requires it
-- never [use `vitest`](docs/package.jsonc)
+- never run formatting unless explicitly asked to
+- [never use `vitest`](docs/package.jsonc), `bun test` instead
 
 ## Packages
 
