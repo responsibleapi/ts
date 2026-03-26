@@ -16,7 +16,8 @@
 
 ## DSL design
 
-- never edit things tagged with `@dsl`. If you need to change them, ask first.
+- never edit declarations tagged with `@dsl`. If you need to change them, ask
+  first
 
 ## CLI tools
 
@@ -25,10 +26,10 @@
 - never use `node`
 - never run formatting unless explicitly asked to
 - [never use `vitest`](docs/package.jsonc), `bun test` instead
-- never use `wc`, use `scc` instead. Can use it for both folders and files.
-  `scc` counts lines + approximates code complexity.
+- never use `wc`, use `scc` instead (both on files and folders)
+- never use `rg` to search for code, use `ast-grep` instead
 
-## Packages
+## Package rules
 
 ### `openapi3-ts`
 
