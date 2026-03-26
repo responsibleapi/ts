@@ -5450,6 +5450,7 @@ const upload_protocol = named(
 )
 
 const successfulResponse = resp({ description: "Successful response" })
+
 export default responsibleAPI({
   partialDoc: {
     openapi: "3.0.0",
@@ -5757,9 +5758,7 @@ export default responsibleAPI({
         ),
       },
       res: {
-        200: resp({
-          description: "Successful response",
-        }),
+        200: successfulResponse,
       },
       tags: [tags.captions],
     }),
@@ -5822,9 +5821,7 @@ export default responsibleAPI({
           ),
         },
         res: {
-          200: resp({
-            description: "Successful response",
-          }),
+          200: successfulResponse,
         },
       },
       GET: {
@@ -6157,9 +6154,7 @@ export default responsibleAPI({
           ),
         },
         res: {
-          200: resp({
-            description: "Successful response",
-          }),
+          200: successfulResponse,
         },
       },
       GET: {
@@ -6267,9 +6262,7 @@ export default responsibleAPI({
         ),
       },
       res: {
-        200: resp({
-          description: "Successful response",
-        }),
+        200: successfulResponse,
       },
       tags: [tags.comments],
     }),
@@ -6297,9 +6290,7 @@ export default responsibleAPI({
         ),
       },
       res: {
-        200: resp({
-          description: "Successful response",
-        }),
+        200: successfulResponse,
       },
       tags: [tags.comments],
     }),
@@ -6382,9 +6373,7 @@ export default responsibleAPI({
           ),
         },
         res: {
-          200: resp({
-            description: "Successful response",
-          }),
+          200: successfulResponse,
         },
       },
       GET: {
@@ -6648,9 +6637,7 @@ export default responsibleAPI({
           ),
         },
         res: {
-          200: resp({
-            description: "Successful response",
-          }),
+          200: successfulResponse,
         },
       },
       POST: {
@@ -6694,9 +6681,7 @@ export default responsibleAPI({
           ),
         },
         res: {
-          200: resp({
-            description: "Successful response",
-          }),
+          200: successfulResponse,
         },
       },
       GET: {
@@ -6787,9 +6772,7 @@ export default responsibleAPI({
           ),
         },
         res: {
-          200: resp({
-            description: "Successful response",
-          }),
+          200: successfulResponse,
         },
       },
       GET: {
@@ -6878,9 +6861,7 @@ export default responsibleAPI({
           ),
         },
         res: {
-          200: resp({
-            description: "Successful response",
-          }),
+          200: successfulResponse,
         },
       },
       GET: {
@@ -7084,9 +7065,7 @@ export default responsibleAPI({
           ),
         },
         res: {
-          200: resp({
-            description: "Successful response",
-          }),
+          200: successfulResponse,
         },
       },
       GET: {
@@ -7215,9 +7194,7 @@ export default responsibleAPI({
           ),
         },
         res: {
-          200: resp({
-            description: "Successful response",
-          }),
+          200: successfulResponse,
         },
       },
       GET: {
@@ -7513,9 +7490,7 @@ export default responsibleAPI({
           ),
         },
         res: {
-          200: resp({
-            description: "Successful response",
-          }),
+          200: successfulResponse,
         },
       },
       GET: {
@@ -7700,9 +7675,7 @@ export default responsibleAPI({
           },
         },
         res: {
-          200: resp({
-            description: "Successful response",
-          }),
+          200: successfulResponse,
         },
       },
       GET: {
@@ -7890,9 +7863,7 @@ export default responsibleAPI({
           ),
         },
         res: {
-          200: resp({
-            description: "Successful response",
-          }),
+          200: successfulResponse,
         },
       },
       GET: {
@@ -8211,9 +8182,7 @@ export default responsibleAPI({
         body: VideoAbuseReport,
       },
       res: {
-        200: resp({
-          description: "Successful response",
-        }),
+        200: successfulResponse,
       },
       tags: [tags.videos],
     }),
