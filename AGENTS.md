@@ -3,16 +3,15 @@
 ## Chat rules
 
 - never use absolute paths for clickable file links in this repo, refer to files
-  and directories using repo-relative paths only. Root of this repo is `./`
+  and directories using repo-relative paths only
 
 ## Current state of things
 
 - 100% TypeScript codebase
-- never run the whole test suite (the compiler is still TODO), run individual
-  test files instead
-- Use typechecking and linting for guidance
 - DSL is almost finalized
 - have not started implementing the compiler
+- never run the whole test suite, run individual test files instead
+- use typechecking and linting for verification
 
 ## DSL design
 
