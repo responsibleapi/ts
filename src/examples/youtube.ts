@@ -34,7 +34,7 @@ const oauthScopes = {
     "View and manage your assets and associated content on YouTube",
   "https://www.googleapis.com/auth/youtubepartner-channel-audit":
     "View private information of your YouTube channel relevant during the audit process with a YouTube partner",
-} as const
+}
 const Oauth2 = named(
   "Oauth2",
   oauth2Security({
@@ -5774,7 +5774,7 @@ const tags = declareTags({
   videos: {},
   watermarks: {},
   youtube: {},
-} as const)
+})
 
 const __xgafv = named(
   "_.xgafv",
@@ -6078,7 +6078,7 @@ export default responsibleAPI({
             body: CaptionListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new resource into this collection.",
         id: "youtube.captions.insert",
@@ -6108,7 +6108,7 @@ export default responsibleAPI({
           body: {
             "application/octet-stream": Caption,
             "text/xml": Caption,
-          } as const,
+          },
         },
         res: {
           "200": response({
@@ -6116,7 +6116,7 @@ export default responsibleAPI({
             body: Caption,
           }),
         },
-      } as const,
+      },
       PUT: {
         description: "Updates an existing resource.",
         id: "youtube.captions.update",
@@ -6146,7 +6146,7 @@ export default responsibleAPI({
           body: {
             "application/octet-stream": Caption,
             "text/xml": Caption,
-          } as const,
+          },
         },
         res: {
           "200": response({
@@ -6154,7 +6154,7 @@ export default responsibleAPI({
             body: Caption,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/captions/{id}": GET({
       description: "Downloads a caption track.",
@@ -6195,7 +6195,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.captions],
-    } as const),
+    }),
     "/youtube/v3/channelBanners/insert": POST({
       description: "Inserts a new resource into this collection.",
       id: "youtube.channelBanners.insert",
@@ -6223,7 +6223,7 @@ export default responsibleAPI({
           "application/octet-stream": ChannelBannerResource,
           "image/jpeg": ChannelBannerResource,
           "image/png": ChannelBannerResource,
-        } as const,
+        },
       },
       res: {
         "200": response({
@@ -6232,7 +6232,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.channelBanners],
-    } as const),
+    }),
     "/youtube/v3/channelSections": scope({
       forAll: {
         tags: [tags.channelSections],
@@ -6259,7 +6259,7 @@ export default responsibleAPI({
             description: "Successful response",
           }),
         },
-      } as const,
+      },
       GET: {
         description: "Retrieves a list of resources, possibly filtered.",
         id: "youtube.channelSections.list",
@@ -6302,7 +6302,7 @@ export default responsibleAPI({
             body: ChannelSectionListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new resource into this collection.",
         id: "youtube.channelSections.insert",
@@ -6334,7 +6334,7 @@ export default responsibleAPI({
             body: ChannelSection,
           }),
         },
-      } as const,
+      },
       PUT: {
         description: "Updates an existing resource.",
         id: "youtube.channelSections.update",
@@ -6362,7 +6362,7 @@ export default responsibleAPI({
             body: ChannelSection,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/channels": scope({
       forAll: {
@@ -6433,7 +6433,7 @@ export default responsibleAPI({
             body: ChannelListResponse,
           }),
         },
-      } as const,
+      },
       PUT: {
         description: "Updates an existing resource.",
         id: "youtube.channels.update",
@@ -6461,7 +6461,7 @@ export default responsibleAPI({
             body: Channel,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/commentThreads": scope({
       forAll: {
@@ -6530,7 +6530,7 @@ export default responsibleAPI({
             body: CommentThreadListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new resource into this collection.",
         id: "youtube.commentThreads.insert",
@@ -6552,7 +6552,7 @@ export default responsibleAPI({
             body: CommentThread,
           }),
         },
-      } as const,
+      },
       PUT: {
         description: "Updates an existing resource.",
         id: "youtube.youtube.v3.updateCommentThreads",
@@ -6572,7 +6572,7 @@ export default responsibleAPI({
           }),
         },
         tags: [tags.youtube],
-      } as const,
+      },
     }),
     "/youtube/v3/comments": scope({
       forAll: {
@@ -6594,7 +6594,7 @@ export default responsibleAPI({
             description: "Successful response",
           }),
         },
-      } as const,
+      },
       GET: {
         description: "Retrieves a list of resources, possibly filtered.",
         id: "youtube.comments.list",
@@ -6638,7 +6638,7 @@ export default responsibleAPI({
             body: CommentListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new resource into this collection.",
         id: "youtube.comments.insert",
@@ -6660,7 +6660,7 @@ export default responsibleAPI({
             body: Comment,
           }),
         },
-      } as const,
+      },
       PUT: {
         description: "Updates an existing resource.",
         id: "youtube.comments.update",
@@ -6682,7 +6682,7 @@ export default responsibleAPI({
             body: Comment,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/comments/markAsSpam": POST({
       description:
@@ -6705,7 +6705,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.comments],
-    } as const),
+    }),
     "/youtube/v3/comments/setModerationStatus": POST({
       description: "Sets the moderation status of one or more comments.",
       id: "youtube.comments.setModerationStatus",
@@ -6735,7 +6735,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.comments],
-    } as const),
+    }),
     "/youtube/v3/i18nLanguages": GET({
       description: "Retrieves a list of resources, possibly filtered.",
       id: "youtube.i18nLanguages.list",
@@ -6761,7 +6761,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.i18nLanguages],
-    } as const),
+    }),
     "/youtube/v3/i18nRegions": GET({
       description: "Retrieves a list of resources, possibly filtered.",
       id: "youtube.i18nRegions.list",
@@ -6787,7 +6787,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.i18nRegions],
-    } as const),
+    }),
     "/youtube/v3/liveBroadcasts": scope({
       forAll: {
         tags: [tags.liveBroadcasts],
@@ -6819,7 +6819,7 @@ export default responsibleAPI({
             description: "Successful response",
           }),
         },
-      } as const,
+      },
       GET: {
         description:
           "Retrieve the list of broadcasts associated with the given channel.",
@@ -6886,7 +6886,7 @@ export default responsibleAPI({
             body: LiveBroadcastListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new stream for the authenticated user.",
         id: "youtube.liveBroadcasts.insert",
@@ -6917,7 +6917,7 @@ export default responsibleAPI({
             body: LiveBroadcast,
           }),
         },
-      } as const,
+      },
       PUT: {
         description:
           "Updates an existing broadcast for the authenticated user.",
@@ -6949,7 +6949,7 @@ export default responsibleAPI({
             body: LiveBroadcast,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/liveBroadcasts/bind": POST({
       description: "Bind a broadcast to a stream.",
@@ -6987,7 +6987,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.liveBroadcasts],
-    } as const),
+    }),
     "/youtube/v3/liveBroadcasts/cuepoint": POST({
       description: "Insert cuepoints in a broadcast",
       id: "youtube.liveBroadcasts.insertCuepoint",
@@ -7024,7 +7024,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.liveBroadcasts],
-    } as const),
+    }),
     "/youtube/v3/liveBroadcasts/transition": POST({
       description: "Transition a broadcast to a given status.",
       id: "youtube.liveBroadcasts.transition",
@@ -7063,7 +7063,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.liveBroadcasts],
-    } as const),
+    }),
     "/youtube/v3/liveChat/bans": scope({
       forAll: {
         tags: [tags.liveChatBans],
@@ -7085,7 +7085,7 @@ export default responsibleAPI({
             description: "Successful response",
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new resource into this collection.",
         id: "youtube.liveChatBans.insert",
@@ -7108,7 +7108,7 @@ export default responsibleAPI({
             body: LiveChatBan,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/liveChat/messages": scope({
       forAll: {
@@ -7131,7 +7131,7 @@ export default responsibleAPI({
             description: "Successful response",
           }),
         },
-      } as const,
+      },
       GET: {
         description: "Retrieves a list of resources, possibly filtered.",
         id: "youtube.liveChatMessages.list",
@@ -7178,7 +7178,7 @@ export default responsibleAPI({
             body: LiveChatMessageListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new resource into this collection.",
         id: "youtube.liveChatMessages.insert",
@@ -7201,7 +7201,7 @@ export default responsibleAPI({
             body: LiveChatMessage,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/liveChat/moderators": scope({
       forAll: {
@@ -7261,7 +7261,7 @@ export default responsibleAPI({
             body: LiveChatModeratorListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new resource into this collection.",
         id: "youtube.liveChatModerators.insert",
@@ -7284,7 +7284,7 @@ export default responsibleAPI({
             body: LiveChatModerator,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/liveStreams": scope({
       forAll: {
@@ -7315,7 +7315,7 @@ export default responsibleAPI({
             description: "Successful response",
           }),
         },
-      } as const,
+      },
       GET: {
         description:
           "Retrieve the list of streams associated with the given channel. --",
@@ -7362,7 +7362,7 @@ export default responsibleAPI({
             body: LiveStreamListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new stream for the authenticated user.",
         id: "youtube.liveStreams.insert",
@@ -7393,7 +7393,7 @@ export default responsibleAPI({
             body: LiveStream,
           }),
         },
-      } as const,
+      },
       PUT: {
         description: "Updates an existing stream for the authenticated user.",
         id: "youtube.liveStreams.update",
@@ -7424,7 +7424,7 @@ export default responsibleAPI({
             body: LiveStream,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/members": GET({
       description:
@@ -7471,7 +7471,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.members],
-    } as const),
+    }),
     "/youtube/v3/membershipsLevels": GET({
       description:
         "Retrieves a list of all pricing levels offered by a creator to the fans.",
@@ -7494,7 +7494,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.membershipsLevels],
-    } as const),
+    }),
     "/youtube/v3/playlistItems": scope({
       forAll: {
         tags: [tags.playlistItems],
@@ -7521,7 +7521,7 @@ export default responsibleAPI({
             description: "Successful response",
           }),
         },
-      } as const,
+      },
       GET: {
         description: "Retrieves a list of resources, possibly filtered.",
         id: "youtube.playlistItems.list",
@@ -7568,7 +7568,7 @@ export default responsibleAPI({
             body: PlaylistItemListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new resource into this collection.",
         id: "youtube.playlistItems.insert",
@@ -7596,7 +7596,7 @@ export default responsibleAPI({
             body: PlaylistItem,
           }),
         },
-      } as const,
+      },
       PUT: {
         description: "Updates an existing resource.",
         id: "youtube.playlistItems.update",
@@ -7624,7 +7624,7 @@ export default responsibleAPI({
             body: PlaylistItem,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/playlists": scope({
       forAll: {
@@ -7652,7 +7652,7 @@ export default responsibleAPI({
             description: "Successful response",
           }),
         },
-      } as const,
+      },
       GET: {
         description: "Retrieves a list of resources, possibly filtered.",
         id: "youtube.playlists.list",
@@ -7709,7 +7709,7 @@ export default responsibleAPI({
             body: PlaylistListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new resource into this collection.",
         id: "youtube.playlists.insert",
@@ -7741,7 +7741,7 @@ export default responsibleAPI({
             body: Playlist,
           }),
         },
-      } as const,
+      },
       PUT: {
         description: "Updates an existing resource.",
         id: "youtube.playlists.update",
@@ -7769,7 +7769,7 @@ export default responsibleAPI({
             body: Playlist,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/search": GET({
       description: "Retrieves a list of search resources",
@@ -7927,7 +7927,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.search],
-    } as const),
+    }),
     "/youtube/v3/subscriptions": scope({
       forAll: {
         tags: [tags.subscriptions],
@@ -7950,7 +7950,7 @@ export default responsibleAPI({
             description: "Successful response",
           }),
         },
-      } as const,
+      },
       GET: {
         description: "Retrieves a list of resources, possibly filtered.",
         id: "youtube.subscriptions.list",
@@ -8021,7 +8021,7 @@ export default responsibleAPI({
             body: SubscriptionListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new resource into this collection.",
         id: "youtube.subscriptions.insert",
@@ -8045,7 +8045,7 @@ export default responsibleAPI({
             body: Subscription,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/superChatEvents": GET({
       description: "Retrieves a list of resources, possibly filtered.",
@@ -8084,7 +8084,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.superChatEvents],
-    } as const),
+    }),
     "/youtube/v3/tests": POST({
       description: "POST method.",
       id: "youtube.tests.insert",
@@ -8105,7 +8105,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.tests],
-    } as const),
+    }),
     "/youtube/v3/thirdPartyLinks": scope({
       forAll: {
         tags: [tags.thirdPartyLinks],
@@ -8137,7 +8137,7 @@ export default responsibleAPI({
             description: "Successful response",
           }),
         },
-      } as const,
+      },
       GET: {
         description: "Retrieves a list of resources, possibly filtered.",
         id: "youtube.thirdPartyLinks.list",
@@ -8167,7 +8167,7 @@ export default responsibleAPI({
             body: ThirdPartyLinkListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new resource into this collection.",
         id: "youtube.thirdPartyLinks.insert",
@@ -8190,7 +8190,7 @@ export default responsibleAPI({
             body: ThirdPartyLink,
           }),
         },
-      } as const,
+      },
       PUT: {
         description: "Updates an existing resource.",
         id: "youtube.thirdPartyLinks.update",
@@ -8213,7 +8213,7 @@ export default responsibleAPI({
             body: ThirdPartyLink,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/thumbnails/set": POST({
       description:
@@ -8244,7 +8244,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.thumbnails],
-    } as const),
+    }),
     "/youtube/v3/videoAbuseReportReasons": GET({
       description: "Retrieves a list of resources, possibly filtered.",
       id: "youtube.videoAbuseReportReasons.list",
@@ -8269,7 +8269,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.videoAbuseReportReasons],
-    } as const),
+    }),
     "/youtube/v3/videoCategories": GET({
       description: "Retrieves a list of resources, possibly filtered.",
       id: "youtube.videoCategories.list",
@@ -8300,7 +8300,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.videoCategories],
-    } as const),
+    }),
     "/youtube/v3/videos": scope({
       forAll: {
         tags: [tags.videos],
@@ -8327,7 +8327,7 @@ export default responsibleAPI({
             description: "Successful response",
           }),
         },
-      } as const,
+      },
       GET: {
         description: "Retrieves a list of resources, possibly filtered.",
         id: "youtube.videos.list",
@@ -8399,7 +8399,7 @@ export default responsibleAPI({
             body: VideoListResponse,
           }),
         },
-      } as const,
+      },
       POST: {
         description: "Inserts a new resource into this collection.",
         id: "youtube.videos.insert",
@@ -8540,7 +8540,7 @@ export default responsibleAPI({
             "video/x-msvideo": Video,
             "video/x-sgi-movie": Video,
             "video/x-smv": Video,
-          } as const,
+          },
         },
         res: {
           "200": response({
@@ -8548,7 +8548,7 @@ export default responsibleAPI({
             body: Video,
           }),
         },
-      } as const,
+      },
       PUT: {
         description: "Updates an existing resource.",
         id: "youtube.videos.update",
@@ -8576,7 +8576,7 @@ export default responsibleAPI({
             body: Video,
           }),
         },
-      } as const,
+      },
     }),
     "/youtube/v3/videos/getRating": GET({
       description:
@@ -8603,7 +8603,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.videos],
-    } as const),
+    }),
     "/youtube/v3/videos/rate": POST({
       description:
         "Adds a like or dislike rating to a video or removes a rating from a video.",
@@ -8627,7 +8627,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.videos],
-    } as const),
+    }),
     "/youtube/v3/videos/reportAbuse": POST({
       description: "Report abuse for a video.",
       id: "youtube.videos.reportAbuse",
@@ -8651,7 +8651,7 @@ export default responsibleAPI({
         }),
       },
       tags: [tags.videos],
-    } as const),
+    }),
     "/youtube/v3/watermarks/set": POST({
       description:
         "Allows upload of watermark image and setting it for a channel.",
