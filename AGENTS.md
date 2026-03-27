@@ -46,14 +46,6 @@
 - full DSL documentation is spreadout in `@dsl` tagged JSDocs, you can concat
   them to get the full story
 
-## Language rules
-
-### TypeScript
-
-- when a helper takes a typed object parameter, add new override fields to that
-  input object and handle them inside the helper instead of spreading the
-  helper's return value just to patch one property afterward
-
 ## Package rules
 
 ### `openapi3-ts`
