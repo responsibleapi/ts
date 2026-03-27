@@ -1,31 +1,10 @@
 import type { oas31 } from "openapi3-ts"
 import type { RequireAtLeastTwo } from "../lib.ts"
 import type { HttpMethod, Mime, Resp } from "./methods.ts"
-import type { Nameable, NamedThunk } from "./nameable.ts"
+import type { Param } from "./params.ts"
 import type { Schema } from "./schema.ts"
 import type { Security } from "./security.ts"
 import type { OpTags, TagRegistry } from "./tags.ts"
-
-interface ReusableParam {
-  in: "query" | "path"
-  name?: string
-  description?: string
-  schema?: Schema
-  required?: boolean
-}
-
-export interface QueryParamRaw extends ReusableParam {
-  style?: "form"
-  explode?: boolean
-}
-
-/**
- *
- * @dsl
- */
-type Param = Nameable<QueryParamRaw>
-
-export const queryParam = (r: QueryParamRaw): QueryParamRaw => r
 
 interface OpReq {
   readonly security?: Security

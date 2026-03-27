@@ -5,10 +5,8 @@ import type {
   IsNever,
   OneExtendsTwo,
 } from "../type-assertions.ts"
-import { named } from "./nameable.ts"
-import type { Schema } from "./schema.ts"
 import type { Op, ScopeOpts } from "./scope.ts"
-import { queryParam, scope } from "./scope.ts"
+import { scope } from "./scope.ts"
 import { declareTags } from "./tags.ts"
 
 type TestOp = {
@@ -35,8 +33,6 @@ type WrappedSingleMethodPureScope = {
 }
 
 type ScopeArg<T extends (...args: never[]) => unknown> = Parameters<T>[0]
-type ReqObject = Exclude<NonNullable<Op["req"]>, Schema>
-type Param = NonNullable<ReqObject["params"]>[number]
 
 describe("scope", () => {
   test("accepts a pure scope with at least two methods", () => {
@@ -117,22 +113,5 @@ describe("scope", () => {
         >
       >
     >
-  })
-
-  test("accepts raw query params in params arrays", () => {
-    type _Test = Assert<OneExtendsTwo<ReturnType<typeof queryParam>, Param>>
-  })
-
-  test("accepts named params in params arrays", () => {
-    const xgafv = named(
-      "_.xgafv",
-      queryParam({
-        in: "query",
-        name: "_.xgafv",
-        schema: { type: "string" } as const,
-      }),
-    )
-
-    type _Test = Assert<OneExtendsTwo<typeof xgafv, Param>>
   })
 })

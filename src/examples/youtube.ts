@@ -1,6 +1,7 @@
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, POST, resp } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"
+import { queryParam, type QueryParamRaw } from "../dsl/params.ts"
 import {
   array,
   boolean,
@@ -12,7 +13,7 @@ import {
   string,
   uint32,
 } from "../dsl/schema.ts"
-import { queryParam, scope, type QueryParamRaw } from "../dsl/scope.ts"
+import { scope } from "../dsl/scope.ts"
 import {
   securityAND,
   securityOR,
