@@ -22,18 +22,11 @@
 - never use `wc`, use `scc` instead (both on files and folders)
 - both `rg` and `ast-grep` are available for use
 
-### Git
+### `git`
 
 - never run `git commit` without running `git add` first
 
-## DSL design
-
-- never edit declarations tagged with `@dsl`. If you need to change them, ask
-  first
-- full DSL documentation is spreadout in `@dsl` tagged JSDocs, you can concat
-  them to get the full story
-
-## Large mechanical refactors
+### `ast-grep`
 
 - Use `scc <path>` first when a refactor targets a large file or a large folder
   and you need a quick size estimate.
@@ -45,6 +38,13 @@
   mechanically.
 - Use `ast-grep` for the bulk transformation and then do a small follow-up
   cleanup pass for naming, formatting, or edge cases.
+
+## DSL design
+
+- never edit declarations tagged with `@dsl`. If you need to change them, ask
+  first
+- full DSL documentation is spreadout in `@dsl` tagged JSDocs, you can concat
+  them to get the full story
 
 ## Language rules
 
@@ -77,7 +77,7 @@ calls and return values
 
 ## Custom commands
 
-### Print %day%'s productivity
+### %day%'s productivity
 
 ```sh
 git log --all --since='%day% 00:00:00' --until='%day% 23:59:59' --numstat --format=tformat: | awk 'NF==3 { if ($1 ~ /^[0-9]+$/) add += $1; if ($2 ~ /^[0-9]+$/) del += $2 } END { printf("+%d\n-%d\n", add, del) }'
