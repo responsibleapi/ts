@@ -2,7 +2,9 @@
   "name": "responsibleapi",
   "type": "module",
   "scripts": {
-    "check": "bun run --parallel typecheck lint test",
+    "check": "bun run check:fast",
+    "check:fast": "bun run --parallel typecheck lint test",
+    "check:full": "bun run --parallel --no-exit-on-error typecheck lint test",
     "fmt": "bun oxfmt",
     "fmt:check": "bun oxfmt --check",
     "lint": "bun oxlint src",
