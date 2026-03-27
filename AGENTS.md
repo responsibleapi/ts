@@ -24,8 +24,7 @@
 
 ### Git
 
-- when committing, always stage the intended files before running `git commit`;
-  never run `git commit` before `git add` for the same change set
+- never run `git commit` without running `git add` first
 
 ## DSL design
 
@@ -84,6 +83,7 @@ calls and return values
 git log --all --since='%day% 00:00:00' --until='%day% 23:59:59' --numstat --format=tformat: | awk 'NF==3 { if ($1 ~ /^[0-9]+$/) add += $1; if ($2 ~ /^[0-9]+$/) del += $2 } END { printf("+%d\n-%d\n", add, del) }'
 ```
 
-### commit
+### Commit
 
-`git commit` current session with extremely concise yet precise msg.
+- `git add` files from current session
+- `git commit` current session with extremely concise yet precise msg
