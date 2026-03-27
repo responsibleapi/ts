@@ -16,26 +16,6 @@
 These are the clearest cases where route regrouping would unlock real `forAll`
 reuse:
 
-- `captions`
-  - Current shape: `/youtube/v3/captions` plus `/youtube/v3/captions/{id}`
-  - Shared today: `tags.captions`,
-    `youtubeScopes(youtube.force-ssl, youtubepartner)`, `onBehalfOf?`,
-    `onBehalfOfContentOwner?`
-  - If `/{id}` becomes a child route under the existing captions scope, all of
-    that can move into `forAll`.
-- `comments`
-  - Current shape: `/youtube/v3/comments` plus `/markAsSpam` plus
-    `/setModerationStatus`
-  - All 6 comment operations use `youtubeScope(youtube.force-ssl)`.
-  - The two action routes also repeat `tags.comments` and bodyless `200` success
-    responses.
-- `liveBroadcasts`
-  - Current shape: `/youtube/v3/liveBroadcasts` plus `/bind` plus `/cuepoint`
-    plus `/transition`
-  - Shared today: `tags.liveBroadcasts`, `onBehalfOfContentOwner?`,
-    `onBehalfOfContentOwnerChannel?`
-  - Most of the family also repeats the same `part` wording and the same success
-    response shape.
 - `videos`
   - Current shape: `/youtube/v3/videos` plus `/getRating` plus `/rate` plus
     `/reportAbuse`
