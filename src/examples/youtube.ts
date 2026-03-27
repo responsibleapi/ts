@@ -62,20 +62,17 @@ const Oauth2c = () =>
     },
   })
 
-const oauthScope = (scopeName: keyof typeof ytOAuthScopes) =>
-  securityAND(
-    oauth2Requirement(Oauth2, [scopeName]),
-    oauth2Requirement(Oauth2c, [scopeName]),
-  )
+type YtOauthScope = keyof typeof ytOAuthScopes
 
+const oauthScope = (k: YtOauthScope) =>
+  securityAND(oauth2Requirement(Oauth2, [k]), oauth2Requirement(Oauth2c, [k]))
+
+/** ORs everything */
 const oauthScopes = (
-  ...scopes: readonly [
-    keyof typeof ytOAuthScopes,
-    keyof typeof ytOAuthScopes,
-    ...(keyof typeof ytOAuthScopes)[],
-  ]
+  ...scopes: readonly [YtOauthScope, YtOauthScope, ...YtOauthScope[]]
 ) => {
   const [first, second, ...rest] = scopes
+
   return securityOR(
     oauthScope(first),
     oauthScope(second),
