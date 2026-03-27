@@ -5485,6 +5485,19 @@ const videoPartnerSecurity = () =>
     "https://www.googleapis.com/auth/youtubepartner",
   )
 
+const videoUploadPartnerSecurity = () =>
+  oauthScopes(
+    "https://www.googleapis.com/auth/youtube",
+    "https://www.googleapis.com/auth/youtube.force-ssl",
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtubepartner",
+  )
+
+const watermarkQuery = () => ({
+  channelId: string(),
+  ...videoContentOwnerQuery(),
+})
+
 const liveBroadcastListPart = () =>
   array(string(), {
     description:
@@ -8073,56 +8086,39 @@ export default responsibleAPI({
         },
       }),
     }),
-    "/youtube/v3/watermarks/set": POST({
-      description:
-        "Allows upload of watermark image and setting it for a channel.",
-      id: "youtube.watermarks.set",
-      req: {
-        query: {
-          channelId: string(),
-          "onBehalfOfContentOwner?": string({
-            description:
-              "*Note:* This parameter is intended exclusively for YouTube content partners. The *onBehalfOfContentOwner* parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
-          }),
-        },
-        security: oauthScopes(
-          "https://www.googleapis.com/auth/youtube",
-          "https://www.googleapis.com/auth/youtube.force-ssl",
-          "https://www.googleapis.com/auth/youtube.upload",
-          "https://www.googleapis.com/auth/youtubepartner",
-        ),
-        body: {
-          "application/octet-stream": InvideoBranding,
-          "image/jpeg": InvideoBranding,
-          "image/png": InvideoBranding,
+    "/youtube/v3/watermarks": scope({
+      forAll: {
+        tags: [tags.watermarks],
+        req: {
+          query: watermarkQuery(),
+          security: videoPartnerSecurity(),
         },
       },
-      res: {
-        200: successfulResponse,
+      routes: {
+        "/set": POST({
+          description:
+            "Allows upload of watermark image and setting it for a channel.",
+          id: "youtube.watermarks.set",
+          req: {
+            security: videoUploadPartnerSecurity(),
+            body: {
+              "application/octet-stream": InvideoBranding,
+              "image/jpeg": InvideoBranding,
+              "image/png": InvideoBranding,
+            },
+          },
+          res: {
+            200: successfulResponse,
+          },
+        }),
+        "/unset": POST({
+          description: "Allows removal of channel watermark.",
+          id: "youtube.watermarks.unset",
+          res: {
+            200: successfulResponse,
+          },
+        }),
       },
-      tags: [tags.watermarks],
-    }),
-    "/youtube/v3/watermarks/unset": POST({
-      description: "Allows removal of channel watermark.",
-      id: "youtube.watermarks.unset",
-      req: {
-        query: {
-          channelId: string(),
-          "onBehalfOfContentOwner?": string({
-            description:
-              "*Note:* This parameter is intended exclusively for YouTube content partners. The *onBehalfOfContentOwner* parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
-          }),
-        },
-        security: oauthScopes(
-          "https://www.googleapis.com/auth/youtube",
-          "https://www.googleapis.com/auth/youtube.force-ssl",
-          "https://www.googleapis.com/auth/youtubepartner",
-        ),
-      },
-      res: {
-        200: successfulResponse,
-      },
-      tags: [tags.watermarks],
     }),
   },
 })
