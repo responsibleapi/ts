@@ -5339,7 +5339,6 @@ const __xgafv = named(
   "_.xgafv",
   queryParam({
     description: "V1 error format.",
-    in: "query",
     name: "$.xgafv",
     schema: string({
       enum: ["1", "2"],
@@ -5351,7 +5350,6 @@ const access_token = named(
   "access_token",
   queryParam({
     description: "OAuth access token.",
-    in: "query",
     name: "access_token",
     schema: string(),
   }),
@@ -5361,7 +5359,6 @@ const alt = named(
   "alt",
   queryParam({
     description: "Data format for response.",
-    in: "query",
     name: "alt",
     schema: string({
       enum: ["json", "media", "proto"],
@@ -5373,7 +5370,6 @@ const callback = named(
   "callback",
   queryParam({
     description: "JSONP",
-    in: "query",
     name: "callback",
     schema: string(),
   }),
@@ -5384,7 +5380,6 @@ const fields = named(
   queryParam({
     description:
       "Selector specifying which fields to include in a partial response.",
-    in: "query",
     name: "fields",
     schema: string(),
   }),
@@ -5395,7 +5390,6 @@ const key = named(
   queryParam({
     description:
       "API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token.",
-    in: "query",
     name: "key",
     schema: string(),
   }),
@@ -5405,7 +5399,6 @@ const oauth_token = named(
   "oauth_token",
   queryParam({
     description: "OAuth 2.0 token for the current user.",
-    in: "query",
     name: "oauth_token",
     schema: string(),
   }),
@@ -5415,7 +5408,6 @@ const prettyPrint = named(
   "prettyPrint",
   queryParam({
     description: "Returns response with indentations and line breaks.",
-    in: "query",
     name: "prettyPrint",
     schema: boolean(),
   }),
@@ -5426,7 +5418,6 @@ const quotaUser = named(
   queryParam({
     description:
       "Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters.",
-    in: "query",
     name: "quotaUser",
     schema: string(),
   }),
@@ -5437,7 +5428,6 @@ const uploadType = named(
   queryParam({
     description:
       'Legacy upload protocol for media (e.g. "media", "multipart").',
-    in: "query",
     name: "uploadType",
     schema: string(),
   }),
@@ -5447,7 +5437,6 @@ const upload_protocol = named(
   "upload_protocol",
   queryParam({
     description: 'Upload protocol for media (e.g. "raw", "multipart").',
-    in: "query",
     name: "upload_protocol",
     schema: string(),
   }),
@@ -5469,11 +5458,11 @@ const liveBroadcastContentOwnerQuery = () => ({
   }),
 })
 
-const videoContentOwnerQuery = () => ({
-  "onBehalfOfContentOwner?": string({
-    description:
-      "*Note:* This parameter is intended exclusively for YouTube content partners. The *onBehalfOfContentOwner* parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
-  }),
+const onBehalfOfContentOwner = queryParam({
+  description:
+    "*Note:* This parameter is intended exclusively for YouTube content partners. The *onBehalfOfContentOwner* parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
+  name: "onBehalfOfContentOwner",
+  schema: string(),
 })
 
 const videoPartnerSecurity = () =>
@@ -5493,7 +5482,6 @@ const videoUploadPartnerSecurity = () =>
 
 const watermarkQuery = () => ({
   channelId: string(),
-  ...videoContentOwnerQuery(),
 })
 
 const liveBroadcastResponse = () =>
@@ -5522,7 +5510,6 @@ const partQuery = ({
   required?: boolean
 }): QueryParamRaw =>
   queryParam({
-    in: "query",
     name: "part",
     required,
     schema: !description ? array(string()) : array(string(), { description }),
@@ -7852,9 +7839,9 @@ export default responsibleAPI({
         description: "Deletes a resource.",
         id: "youtube.videos.delete",
         req: {
+          params: [onBehalfOfContentOwner],
           query: {
             id: string(),
-            ...videoContentOwnerQuery(),
           },
           security: videoPartnerSecurity(),
         },
@@ -7868,6 +7855,7 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more video resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a video resource, the snippet property contains the channelId, title, description, tags, and categoryId properties. As such, if you set *part=snippet*, the API response will contain all of those properties.",
             }),
+            onBehalfOfContentOwner,
           ],
           query: {
             "chart?": string({
@@ -7902,7 +7890,6 @@ export default responsibleAPI({
               description:
                 "Return videos liked/disliked by the authenticated user. Does not support RateType.RATED_TYPE_NONE.",
             }),
-            ...videoContentOwnerQuery(),
             "pageToken?": string({
               description:
                 "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved. *Note:* This parameter is supported for use in conjunction with the myRating and chart parameters, but it is not supported for use in conjunction with the id parameter.",
@@ -7939,6 +7926,7 @@ export default responsibleAPI({
               description:
                 "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. Note that not all parts contain properties that can be set when inserting or updating a video. For example, the statistics object encapsulates statistics that YouTube calculates for a video and does not contain values that you can set or modify. If the parameter value specifies a part that does not contain mutable values, that part will still be included in the API response.",
             }),
+            onBehalfOfContentOwner,
           ],
           query: {
             "autoLevels?": boolean({
@@ -7948,7 +7936,6 @@ export default responsibleAPI({
               description:
                 "Notify the channel subscribers about the new video. As default, the notification is enabled.",
             }),
-            ...videoContentOwnerQuery(),
             "onBehalfOfContentOwnerChannel?": string({
               description:
                 "This parameter can only be used in a properly authorized request. *Note:* This parameter is intended exclusively for YouTube content partners. The *onBehalfOfContentOwnerChannel* parameter specifies the YouTube channel ID of the channel to which a video is being added. This parameter is required when a request specifies a value for the onBehalfOfContentOwner parameter, and it can only be used in conjunction with that parameter. In addition, the request must be authorized using a CMS account that is linked to the content owner that the onBehalfOfContentOwner parameter specifies. Finally, the channel that the onBehalfOfContentOwnerChannel parameter value specifies must be linked to the content owner that the onBehalfOfContentOwner parameter specifies. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and perform actions on behalf of the channel specified in the parameter value, without having to provide authentication credentials for each separate channel.",
@@ -8087,10 +8074,8 @@ export default responsibleAPI({
               description:
                 "The *part* parameter serves two purposes in this operation. It identifies the properties that the write operation will set as well as the properties that the API response will include. Note that this method will override the existing values for all of the mutable properties that are contained in any parts that the parameter value specifies. For example, a video's privacy setting is contained in the status part. As such, if your request is updating a private video, and the request's part parameter value includes the status part, the video's privacy setting will be updated to whatever value the request body specifies. If the request body does not specify a value, the existing privacy setting will be removed and the video will revert to the default privacy setting. In addition, not all parts contain properties that can be set when inserting or updating a video. For example, the statistics object encapsulates statistics that YouTube calculates for a video and does not contain values that you can set or modify. If the parameter value specifies a part that does not contain mutable values, that part will still be included in the API response.",
             }),
+            onBehalfOfContentOwner,
           ],
-          query: {
-            ...videoContentOwnerQuery(),
-          },
           security: videoPartnerSecurity(),
           body: Video,
         },
@@ -8106,9 +8091,9 @@ export default responsibleAPI({
           "Retrieves the ratings that the authorized user gave to a list of specified videos.",
         id: "youtube.videos.getRating",
         req: {
+          params: [onBehalfOfContentOwner],
           query: {
             id: array(string()),
-            ...videoContentOwnerQuery(),
           },
           security: videoPartnerSecurity(),
         },
@@ -8137,7 +8122,7 @@ export default responsibleAPI({
         description: "Report abuse for a video.",
         id: "youtube.videos.reportAbuse",
         req: {
-          query: videoContentOwnerQuery(),
+          params: [onBehalfOfContentOwner],
           security: videoPartnerSecurity(),
           body: VideoAbuseReport,
         },
@@ -8147,6 +8132,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.watermarks],
         req: {
+          params: [onBehalfOfContentOwner],
           query: watermarkQuery(),
           security: videoPartnerSecurity(),
         },
