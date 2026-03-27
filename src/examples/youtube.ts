@@ -6102,6 +6102,11 @@ export default responsibleAPI({
     "/youtube/v3/comments": scope({
       forAll: {
         tags: [tags.comments],
+        req: {
+          security: oauthScope(
+            "https://www.googleapis.com/auth/youtube.force-ssl",
+          ),
+        },
       },
       DELETE: {
         description: "Deletes a resource.",
@@ -6110,9 +6115,6 @@ export default responsibleAPI({
           query: {
             id: string(),
           },
-          security: oauthScope(
-            "https://www.googleapis.com/auth/youtube.force-ssl",
-          ),
         },
         res: {
           200: successfulResponse,
@@ -6151,9 +6153,6 @@ export default responsibleAPI({
                 "The requested text format for the returned comments.",
             }),
           },
-          security: oauthScope(
-            "https://www.googleapis.com/auth/youtube.force-ssl",
-          ),
         },
         res: {
           200: resp({
@@ -6172,9 +6171,6 @@ export default responsibleAPI({
                 "The *part* parameter identifies the properties that the API response will include. Set the parameter value to snippet. The snippet part has a quota cost of 2 units.",
             }),
           },
-          security: oauthScope(
-            "https://www.googleapis.com/auth/youtube.force-ssl",
-          ),
           body: Comment,
         },
         res: {
@@ -6194,9 +6190,6 @@ export default responsibleAPI({
                 "The *part* parameter identifies the properties that the API response will include. You must at least include the snippet part in the parameter value since that part contains all of the properties that the API request can update.",
             }),
           },
-          security: oauthScope(
-            "https://www.googleapis.com/auth/youtube.force-ssl",
-          ),
           body: Comment,
         },
         res: {
@@ -6206,54 +6199,46 @@ export default responsibleAPI({
           }),
         },
       },
-    }),
-    "/youtube/v3/comments/markAsSpam": POST({
-      description:
-        "Expresses the caller's opinion that one or more comments should be flagged as spam.",
-      id: "youtube.comments.markAsSpam",
-      req: {
-        query: {
-          id: array(string(), {
-            description:
-              "Flags the comments with the given IDs as spam in the caller's opinion.",
-          }),
+      "/markAsSpam": POST({
+        description:
+          "Expresses the caller's opinion that one or more comments should be flagged as spam.",
+        id: "youtube.comments.markAsSpam",
+        req: {
+          query: {
+            id: array(string(), {
+              description:
+                "Flags the comments with the given IDs as spam in the caller's opinion.",
+            }),
+          },
         },
-        security: oauthScope(
-          "https://www.googleapis.com/auth/youtube.force-ssl",
-        ),
-      },
-      res: {
-        200: successfulResponse,
-      },
-      tags: [tags.comments],
-    }),
-    "/youtube/v3/comments/setModerationStatus": POST({
-      description: "Sets the moderation status of one or more comments.",
-      id: "youtube.comments.setModerationStatus",
-      req: {
-        query: {
-          id: array(string(), {
-            description:
-              "Modifies the moderation status of the comments with the given IDs",
-          }),
-          moderationStatus: string({
-            enum: ["published", "heldForReview", "likelySpam", "rejected"],
-            description:
-              "Specifies the requested moderation status. Note, comments can be in statuses, which are not available through this call. For example, this call does not allow to mark a comment as 'likely spam'. Valid values: MODERATION_STATUS_PUBLISHED, MODERATION_STATUS_HELD_FOR_REVIEW, MODERATION_STATUS_REJECTED.",
-          }),
-          "banAuthor?": boolean({
-            description:
-              "If set to true the author of the comment gets added to the ban list. This means all future comments of the author will autmomatically be rejected. Only valid in combination with STATUS_REJECTED.",
-          }),
+        res: {
+          200: successfulResponse,
         },
-        security: oauthScope(
-          "https://www.googleapis.com/auth/youtube.force-ssl",
-        ),
-      },
-      res: {
-        200: successfulResponse,
-      },
-      tags: [tags.comments],
+      }),
+      "/setModerationStatus": POST({
+        description: "Sets the moderation status of one or more comments.",
+        id: "youtube.comments.setModerationStatus",
+        req: {
+          query: {
+            id: array(string(), {
+              description:
+                "Modifies the moderation status of the comments with the given IDs",
+            }),
+            moderationStatus: string({
+              enum: ["published", "heldForReview", "likelySpam", "rejected"],
+              description:
+                "Specifies the requested moderation status. Note, comments can be in statuses, which are not available through this call. For example, this call does not allow to mark a comment as 'likely spam'. Valid values: MODERATION_STATUS_PUBLISHED, MODERATION_STATUS_HELD_FOR_REVIEW, MODERATION_STATUS_REJECTED.",
+            }),
+            "banAuthor?": boolean({
+              description:
+                "If set to true the author of the comment gets added to the ban list. This means all future comments of the author will autmomatically be rejected. Only valid in combination with STATUS_REJECTED.",
+            }),
+          },
+        },
+        res: {
+          200: successfulResponse,
+        },
+      }),
     }),
     "/youtube/v3/i18nLanguages": GET({
       description: "Retrieves a list of resources, possibly filtered.",
