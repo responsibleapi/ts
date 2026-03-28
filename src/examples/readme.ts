@@ -1,5 +1,6 @@
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, POST } from "../dsl/methods.ts"
+import { resp } from "../dsl/operation.ts"
 import {
   allOf,
   array,
@@ -10,7 +11,6 @@ import {
   string,
 } from "../dsl/schema.ts"
 import { scope } from "../dsl/scope.ts"
-import { resp } from "../dsl/operation.ts"
 
 const apply = () =>
   object({
@@ -444,14 +444,16 @@ export default responsibleAPI({
           }),
           ...authResponses,
           404: resp({
-            description: "There is no project version matching x-readme-version.",
+            description:
+              "There is no project version matching x-readme-version.",
             body: { "application/json": errorWithCode("VERSION_NOTFOUND") },
           }),
         },
       },
       POST: {
         id: "uploadAPISpecification",
-        description: "Upload an API specification to ReadMe. Or, to use a newer solution see https://docs.readme.com/docs/automatically-sync-api-specification-with-github.",
+        description:
+          "Upload an API specification to ReadMe. Or, to use a newer solution see https://docs.readme.com/docs/automatically-sync-api-specification-with-github.",
         req: {
           body: {
             "multipart/form-data": apiSpecificationUpload,
@@ -478,7 +480,7 @@ export default responsibleAPI({
             body: { "application/json": errorWithCode("SPEC_TIMEOUT") },
           }),
         },
-      }
+      },
     }),
     "/api-specification/:id": scope({
       forAll: {
@@ -539,7 +541,7 @@ export default responsibleAPI({
             body: { "application/json": errorWithCode("SPEC_NOTFOUND") },
           }),
         },
-      }
+      },
     }),
     "/apply": scope({
       forAll: {
@@ -558,7 +560,8 @@ export default responsibleAPI({
       },
       POST: {
         id: "applyToReadMe",
-        description: "This endpoint will let you apply to a job at ReadMe programatically, without having to go through our UI!",
+        description:
+          "This endpoint will let you apply to a job at ReadMe programatically, without having to go through our UI!",
         req: {
           body: apply,
         },
@@ -567,7 +570,7 @@ export default responsibleAPI({
             description: "You did it!",
           }),
         },
-      }
+      },
     }),
     "/categories": scope({
       forAll: {
@@ -609,7 +612,7 @@ export default responsibleAPI({
             body: { "application/json": errorWithCode("CATEGORY_INVALID") },
           }),
         },
-      }
+      },
     }),
     "/categories/:slug": scope({
       forAll: {
@@ -655,7 +658,8 @@ export default responsibleAPI({
       },
       DELETE: {
         id: "deleteCategory",
-        description: "Delete the category with this slug.\n>⚠️Heads Up!\n> This will also delete all of the docs within this category.",
+        description:
+          "Delete the category with this slug.\n>⚠️Heads Up!\n> This will also delete all of the docs within this category.",
         res: {
           204: resp({
             description: "The category was deleted.",
@@ -665,7 +669,7 @@ export default responsibleAPI({
             body: { "application/json": errorWithCode("CATEGORY_NOTFOUND") },
           }),
         },
-      }
+      },
     }),
     "/categories/:slug/docs": GET({
       id: "getCategoryDocs",
@@ -720,7 +724,7 @@ export default responsibleAPI({
           }),
           ...authResponses,
         },
-      }
+      },
     }),
     "/changelogs/:slug": scope({
       forAll: {
@@ -772,7 +776,7 @@ export default responsibleAPI({
           }),
           ...authResponses,
         },
-      }
+      },
     }),
     "/custompages": scope({
       GET: {
@@ -808,7 +812,7 @@ export default responsibleAPI({
           }),
           ...authResponses,
         },
-      }
+      },
     }),
     "/custompages/:slug": scope({
       forAll: {
@@ -870,7 +874,7 @@ export default responsibleAPI({
             },
           }),
         },
-      }
+      },
     }),
     "/docs/:slug": scope({
       forAll: {
@@ -929,7 +933,7 @@ export default responsibleAPI({
             body: { "application/json": errorWithCode("DOC_NOTFOUND") },
           }),
         },
-      }
+      },
     }),
     "/docs": POST({
       id: "createDoc",
@@ -995,7 +999,8 @@ export default responsibleAPI({
     "/version": scope({
       GET: {
         id: "getVersions",
-        description: "Retrieve a list of versions associated with a project API key.",
+        description:
+          "Retrieve a list of versions associated with a project API key.",
         res: {
           200: resp({
             description: "A list of versions.",
@@ -1031,7 +1036,7 @@ export default responsibleAPI({
             },
           }),
         },
-      }
+      },
     }),
     "/version/:versionId": scope({
       forAll: {
@@ -1095,7 +1100,7 @@ export default responsibleAPI({
             body: { "application/json": errorWithCode("VERSION_NOTFOUND") },
           }),
         },
-      }
+      },
     }),
   },
 })
