@@ -168,23 +168,20 @@ describe("security", () => {
   })
 
   test("keeps named schemes as security values", () => {
-    const AuthorizationHeader = named(
-      "Authorization",
-      headerSecurity({ name: "authorization" }),
-    )
+    const Authorization = () => headerSecurity({ name: "authorization" })
 
-    expect(AuthorizationHeader().type).toBe("apiKey")
+    expect(Authorization().type).toBe("apiKey")
 
     type _HeaderIsSecurity = Assert<
-      OneExtendsTwo<typeof AuthorizationHeader, Security>
+      OneExtendsTwo<typeof Authorization, Security>
     >
   })
 
   test("accepts raw oas security schemes as security values", () => {
-    const BearerAuth = named("BearerAuth", {
+    const BearerAuth = (): oas31.SecuritySchemeObject => ({
       type: "http",
       scheme: "bearer",
-    } satisfies oas31.SecuritySchemeObject)
+    })
 
     expect(BearerAuth().type).toBe("http")
 

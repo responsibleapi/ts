@@ -101,15 +101,10 @@ export const oauth2Security = <
   ...param,
 })
 
-function toSecurityRequirement(
+const toSecurityRequirement = (
   security: SecurityOperand,
-): oas31.SecurityRequirementObject {
-  if (typeof security === "function") {
-    return { [security.name]: [] }
-  }
-
-  return security
-}
+): oas31.SecurityRequirementObject =>
+  typeof security === "function" ? { [security.name]: [] } : security
 
 export const oauth2Requirement = <T extends NamedOAuth2SecurityScheme>(
   scheme: T,
