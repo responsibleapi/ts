@@ -16,10 +16,10 @@ import {
 } from "../dsl/schema.ts"
 import { scope } from "../dsl/scope.ts"
 import {
-  securityAND,
-  securityOR,
   oauth2Requirement,
   oauth2Security,
+  securityAND,
+  securityOR,
 } from "../dsl/security.ts"
 import { declareTags } from "../dsl/tags.ts"
 
@@ -5537,30 +5537,14 @@ const partQuery = ({
   queryParam({
     name: "part",
     required,
-    schema: !description ? array(string()) : array(string(), { description }),
+    schema: description ? array(string(), { description }) : array(string()),
   })
 
-const hlParam = (description?: string): QueryParamRaw =>
+const hlParam = ({ description }: { description?: string }): QueryParamRaw =>
   queryParam({
     name: "hl",
     schema: description ? string({ description }) : string(),
   })
-
-const plainHl = hlParam()
-
-const contentLanguageHl = hlParam("Return content in specified language")
-
-const hostLanguageHl = hlParam(
-  'Stands for "host language". Specifies the localization language of the metadata to be filled into snippet.localized. The field is filled with the default metadata if there is no localization in the specified language. The parameter value must be a language code included in the list returned by the i18nLanguages.list method (e.g. en_US, es_MX).',
-)
-
-const systemMessagesHl = hlParam(
-  "Specifies the localization language in which the system messages should be returned.",
-)
-
-const renderedFundingHl = hlParam(
-  "Return rendered funding amounts in specified language.",
-)
 
 const maxResultsParam = ({
   description = "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
@@ -5932,7 +5916,7 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more channelSection resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, and contentDetails. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channelSection resource, the snippet property contains other properties, such as a display title for the channelSection. If you set *part=snippet*, the API response will also contain all of those nested properties.",
             }),
-            contentLanguageHl,
+            hlParam({ description: "Return content in specified language" }),
           ],
           query: {
             "channelId?": string({
@@ -6029,7 +6013,10 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more channel resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channel resource, the contentDetails property contains other properties, such as the uploads properties. As such, if you set *part=contentDetails*, the API response will also contain all of those nested properties.",
             }),
-            hostLanguageHl,
+            hlParam({
+              description:
+                'Stands for "host language". Specifies the localization language of the metadata to be filled into snippet.localized. The field is filled with the default metadata if there is no localization in the specified language. The parameter value must be a language code included in the list returned by the i18nLanguages.list method (e.g. en_US, es_MX).',
+            }),
             listMaxResults,
             pageToken,
           ],
@@ -6350,7 +6337,7 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies the i18nLanguage resource properties that the API response will include. Set the parameter value to snippet.",
           }),
-          plainHl,
+          hlParam({}),
         ],
         security: oauthScopes(
           "https://www.googleapis.com/auth/youtube",
@@ -6376,7 +6363,7 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies the i18nRegion resource properties that the API response will include. Set the parameter value to snippet.",
           }),
-          plainHl,
+          hlParam({}),
         ],
         security: oauthScopes(
           "https://www.googleapis.com/auth/youtube",
@@ -6672,7 +6659,10 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies the liveChatComment resource parts that the API response will include. Supported values are id and snippet.",
             }),
-            systemMessagesHl,
+            hlParam({
+              description:
+                "Specifies the localization language in which the system messages should be returned.",
+            }),
             maxResultsParam({
               maximum: 2000,
               minimum: 200,
@@ -7154,7 +7144,7 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more playlist resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a playlist resource, the snippet property contains properties like author, title, description, tags, and timeCreated. As such, if you set *part=snippet*, the API response will contain all of those properties.",
             }),
-            contentLanguageHl,
+            hlParam({ description: "Return content in specified language" }),
             listMaxResults,
             onBehalfOfContentOwnerChannel,
             pageToken,
@@ -7509,7 +7499,10 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies the superChatEvent resource parts that the API response will include. This parameter is currently not supported.",
           }),
-          renderedFundingHl,
+          hlParam({
+            description:
+              "Return rendered funding amounts in specified language.",
+          }),
           requiredListMaxResults,
           pageToken,
         ],
@@ -7699,7 +7692,7 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies the videoCategory resource parts that the API response will include. Supported values are id and snippet.",
           }),
-          plainHl,
+          hlParam({}),
         ],
         security: oauthScopes(
           "https://www.googleapis.com/auth/youtube",
@@ -7724,7 +7717,7 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies the videoCategory resource properties that the API response will include. Set the parameter value to snippet.",
           }),
-          plainHl,
+          hlParam({}),
         ],
         query: {
           "id?": array(string(), {
@@ -7777,7 +7770,10 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more video resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a video resource, the snippet property contains the channelId, title, description, tags, and categoryId properties. As such, if you set *part=snippet*, the API response will contain all of those properties.",
             }),
-            hostLanguageHl,
+            hlParam({
+              description:
+                'Stands for "host language". Specifies the localization language of the metadata to be filled into snippet.localized. The field is filled with the default metadata if there is no localization in the specified language. The parameter value must be a language code included in the list returned by the i18nLanguages.list method (e.g. en_US, es_MX).',
+            }),
             maxResultsParam({
               description:
                 "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set. *Note:* This parameter is supported for use in conjunction with the myRating and chart parameters, but it is not supported for use in conjunction with the id parameter.",
