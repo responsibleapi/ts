@@ -42,10 +42,6 @@ There is also existing room in `forAll.res`:
 
 Inside the route block, the biggest repeats are:
 
-- `part`: 51 uses
-- `onBehalfOfContentOwner?`: 42 uses
-- `onBehalfOfContentOwnerChannel?`: 17 uses
-- `pageToken?`: 15 uses
 - `maxResults?`: 15 uses
 - `hl?`: 10 uses
 

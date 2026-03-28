@@ -5467,6 +5467,27 @@ const liveBroadcastContentOwnerParams = [
   onBehalfOfContentOwnerChannel,
 ] as const
 
+const pageToken = queryParam({
+  description:
+    "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
+  name: "pageToken",
+  schema: string(),
+})
+
+const liveChatMessagesPageToken = queryParam({
+  description:
+    "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken property identify other pages that could be retrieved.",
+  name: "pageToken",
+  schema: string(),
+})
+
+const videosListPageToken = queryParam({
+  description:
+    "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved. *Note:* This parameter is supported for use in conjunction with the myRating and chart parameters, but it is not supported for use in conjunction with the id parameter.",
+  name: "pageToken",
+  schema: string(),
+})
+
 const videoPartnerSecurity = () =>
   oauthScopes(
     "https://www.googleapis.com/auth/youtube",
@@ -5518,6 +5539,57 @@ const partQuery = ({
     required,
     schema: !description ? array(string()) : array(string(), { description }),
   })
+
+const hlParam = (description?: string): QueryParamRaw =>
+  queryParam({
+    name: "hl",
+    schema: description ? string({ description }) : string(),
+  })
+
+const plainHl = hlParam()
+
+const contentLanguageHl = hlParam("Return content in specified language")
+
+const hostLanguageHl = hlParam(
+  'Stands for "host language". Specifies the localization language of the metadata to be filled into snippet.localized. The field is filled with the default metadata if there is no localization in the specified language. The parameter value must be a language code included in the list returned by the i18nLanguages.list method (e.g. en_US, es_MX).',
+)
+
+const systemMessagesHl = hlParam(
+  "Specifies the localization language in which the system messages should be returned.",
+)
+
+const renderedFundingHl = hlParam(
+  "Return rendered funding amounts in specified language.",
+)
+
+const maxResultsParam = ({
+  description = "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
+  maximum,
+  minimum,
+}: {
+  description?: string
+  maximum: number
+  minimum: number
+}): QueryParamRaw =>
+  queryParam({
+    name: "maxResults",
+    schema: integer({ description, maximum, minimum }),
+  })
+
+const listMaxResults = maxResultsParam({
+  maximum: 50,
+  minimum: 0,
+})
+
+const requiredListMaxResults = maxResultsParam({
+  maximum: 50,
+  minimum: 1,
+})
+
+const commentMaxResults = maxResultsParam({
+  maximum: 100,
+  minimum: 1,
+})
 
 export default responsibleAPI({
   partialDoc: {
@@ -5619,21 +5691,13 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies a comma-separated list of one or more activity resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in an activity resource, the snippet property contains other properties that identify the type of activity, a display title for the activity, and so forth. If you set *part=snippet*, the API response will also contain all of those nested properties.",
           }),
+          listMaxResults,
+          pageToken,
         ],
         query: {
           "channelId?": string(),
           "home?": boolean(),
-          "maxResults?": integer({
-            maximum: 50,
-            minimum: 0,
-            description:
-              "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-          }),
           "mine?": boolean(),
-          "pageToken?": string({
-            description:
-              "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
-          }),
           "publishedAfter?": string(),
           "publishedBefore?": string(),
           "regionCode?": string(),
@@ -5868,14 +5932,12 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more channelSection resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, and contentDetails. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channelSection resource, the snippet property contains other properties, such as a display title for the channelSection. If you set *part=snippet*, the API response will also contain all of those nested properties.",
             }),
+            contentLanguageHl,
           ],
           query: {
             "channelId?": string({
               description:
                 "Return the ChannelSections owned by the specified channel ID.",
-            }),
-            "hl?": string({
-              description: "Return content in specified language",
             }),
             "id?": array(string(), {
               description:
@@ -5967,6 +6029,9 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more channel resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channel resource, the contentDetails property contains other properties, such as the uploads properties. As such, if you set *part=contentDetails*, the API response will also contain all of those nested properties.",
             }),
+            hostLanguageHl,
+            listMaxResults,
+            pageToken,
           ],
           query: {
             "categoryId?": string({
@@ -5977,22 +6042,12 @@ export default responsibleAPI({
               description:
                 "Return the channel associated with a YouTube username.",
             }),
-            "hl?": string({
-              description:
-                'Stands for "host language". Specifies the localization language of the metadata to be filled into snippet.localized. The field is filled with the default metadata if there is no localization in the specified language. The parameter value must be a language code included in the list returned by the i18nLanguages.list method (e.g. en_US, es_MX).',
-            }),
             "id?": array(string(), {
               description: "Return the channels with the specified IDs.",
             }),
             "managedByMe?": boolean({
               description:
                 "Return the channels managed by the authenticated user.",
-            }),
-            "maxResults?": integer({
-              maximum: 50,
-              minimum: 0,
-              description:
-                "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
             }),
             "mine?": boolean({
               description:
@@ -6005,10 +6060,6 @@ export default responsibleAPI({
             "onBehalfOfContentOwner?": string({
               description:
                 "*Note:* This parameter is intended exclusively for YouTube content partners. The *onBehalfOfContentOwner* parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
-            }),
-            "pageToken?": string({
-              description:
-                "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
             }),
           },
           security: oauthScopes(
@@ -6078,6 +6129,8 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more commentThread resource properties that the API response will include.",
             }),
+            commentMaxResults,
+            pageToken,
           ],
           query: {
             "allThreadsRelatedToChannelId?": string({
@@ -6092,12 +6145,6 @@ export default responsibleAPI({
               description:
                 "Returns the comment threads with the given IDs for Stubby or Apiary.",
             }),
-            "maxResults?": integer({
-              maximum: 100,
-              minimum: 1,
-              description:
-                "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-            }),
             "moderationStatus?": string({
               enum: ["published", "heldForReview", "likelySpam", "rejected"],
               description:
@@ -6105,10 +6152,6 @@ export default responsibleAPI({
             }),
             "order?": string({
               enum: ["orderUnspecified", "time", "relevance"],
-            }),
-            "pageToken?": string({
-              description:
-                "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
             }),
             "searchTerms?": string({
               description:
@@ -6199,21 +6242,13 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more comment resource properties that the API response will include.",
             }),
+            commentMaxResults,
+            pageToken,
           ],
           query: {
             "id?": array(string(), {
               description:
                 "Returns the comments with the given IDs for One Platform.",
-            }),
-            "maxResults?": integer({
-              maximum: 100,
-              minimum: 1,
-              description:
-                "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-            }),
-            "pageToken?": string({
-              description:
-                "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
             }),
             "parentId?": string({
               description:
@@ -6315,10 +6350,8 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies the i18nLanguage resource properties that the API response will include. Set the parameter value to snippet.",
           }),
+          plainHl,
         ],
-        query: {
-          "hl?": string(),
-        },
         security: oauthScopes(
           "https://www.googleapis.com/auth/youtube",
           "https://www.googleapis.com/auth/youtube.force-ssl",
@@ -6343,10 +6376,8 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies the i18nRegion resource properties that the API response will include. Set the parameter value to snippet.",
           }),
+          plainHl,
         ],
-        query: {
-          "hl?": string(),
-        },
         security: oauthScopes(
           "https://www.googleapis.com/auth/youtube",
           "https://www.googleapis.com/auth/youtube.force-ssl",
@@ -6402,6 +6433,8 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more liveBroadcast resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, contentDetails, status and statistics.",
             }),
+            listMaxResults,
+            pageToken,
           ],
           query: {
             "broadcastStatus?": string({
@@ -6428,17 +6461,7 @@ export default responsibleAPI({
               description:
                 "Return broadcasts with the given ids from Stubby or Apiary.",
             }),
-            "maxResults?": integer({
-              maximum: 50,
-              minimum: 0,
-              description:
-                "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-            }),
             "mine?": boolean(),
-            "pageToken?": string({
-              description:
-                "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
-            }),
           },
           security: oauthScopes(
             "https://www.googleapis.com/auth/youtube",
@@ -6649,25 +6672,17 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies the liveChatComment resource parts that the API response will include. Supported values are id and snippet.",
             }),
+            systemMessagesHl,
+            maxResultsParam({
+              maximum: 2000,
+              minimum: 200,
+            }),
+            liveChatMessagesPageToken,
           ],
           query: {
             liveChatId: string({
               description:
                 "The id of the live chat for which comments should be returned.",
-            }),
-            "hl?": string({
-              description:
-                "Specifies the localization language in which the system messages should be returned.",
-            }),
-            "maxResults?": integer({
-              maximum: 2000,
-              minimum: 200,
-              description:
-                "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-            }),
-            "pageToken?": string({
-              description:
-                "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken property identify other pages that could be retrieved.",
             }),
             "profileImageSize?": integer({
               maximum: 720,
@@ -6742,21 +6757,13 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies the liveChatModerator resource parts that the API response will include. Supported values are id and snippet.",
             }),
+            listMaxResults,
+            pageToken,
           ],
           query: {
             liveChatId: string({
               description:
                 "The id of the live chat for which moderators should be returned.",
-            }),
-            "maxResults?": integer({
-              maximum: 50,
-              minimum: 0,
-              description:
-                "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-            }),
-            "pageToken?": string({
-              description:
-                "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
             }),
           },
           security: oauthScopes(
@@ -6839,27 +6846,19 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more liveStream resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, cdn, and status.",
             }),
+            listMaxResults,
             onBehalfOfContentOwnerChannel,
+            pageToken,
           ],
           query: {
             "id?": array(string(), {
               description:
                 "Return LiveStreams with the given ids from Stubby or Apiary.",
             }),
-            "maxResults?": integer({
-              maximum: 50,
-              minimum: 0,
-              description:
-                "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-            }),
             "mine?": boolean(),
             "onBehalfOfContentOwner?": string({
               description:
                 "*Note:* This parameter is intended exclusively for YouTube content partners. The *onBehalfOfContentOwner* parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
-            }),
-            "pageToken?": string({
-              description:
-                "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
             }),
           },
           security: oauthScopes(
@@ -6934,6 +6933,11 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies the member resource parts that the API response will include. Set the parameter value to snippet.",
           }),
+          maxResultsParam({
+            maximum: 1000,
+            minimum: 0,
+          }),
+          pageToken,
         ],
         query: {
           "filterByMemberChannelId?": string({
@@ -6944,20 +6948,10 @@ export default responsibleAPI({
             description:
               "Filter members in the results set to the ones that have access to a level.",
           }),
-          "maxResults?": integer({
-            maximum: 1000,
-            minimum: 0,
-            description:
-              "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-          }),
           "mode?": string({
             enum: ["listMembersModeUnknown", "updates", "all_current"],
             description:
               "Parameter that specifies which channel members to return.",
-          }),
-          "pageToken?": string({
-            description:
-              "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
           }),
         },
         security: oauthScope(
@@ -7037,22 +7031,14 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more playlistItem resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a playlistItem resource, the snippet property contains numerous fields, including the title, description, position, and resourceId properties. As such, if you set *part=snippet*, the API response will contain all of those properties.",
             }),
+            listMaxResults,
+            pageToken,
           ],
           query: {
             "id?": array(string()),
-            "maxResults?": integer({
-              maximum: 50,
-              minimum: 0,
-              description:
-                "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-            }),
             "onBehalfOfContentOwner?": string({
               description:
                 "*Note:* This parameter is intended exclusively for YouTube content partners. The *onBehalfOfContentOwner* parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
-            }),
-            "pageToken?": string({
-              description:
-                "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
             }),
             "playlistId?": string({
               description:
@@ -7168,25 +7154,19 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more playlist resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a playlist resource, the snippet property contains properties like author, title, description, tags, and timeCreated. As such, if you set *part=snippet*, the API response will contain all of those properties.",
             }),
+            contentLanguageHl,
+            listMaxResults,
             onBehalfOfContentOwnerChannel,
+            pageToken,
           ],
           query: {
             "channelId?": string({
               description:
                 "Return the playlists owned by the specified channel ID.",
             }),
-            "hl?": string({
-              description: "Return content in specified language",
-            }),
             "id?": array(string(), {
               description:
                 "Return the playlists with the given IDs for Stubby or Apiary.",
-            }),
-            "maxResults?": integer({
-              maximum: 50,
-              minimum: 0,
-              description:
-                "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
             }),
             "mine?": boolean({
               description:
@@ -7195,10 +7175,6 @@ export default responsibleAPI({
             "onBehalfOfContentOwner?": string({
               description:
                 "*Note:* This parameter is intended exclusively for YouTube content partners. The *onBehalfOfContentOwner* parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
-            }),
-            "pageToken?": string({
-              description:
-                "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
             }),
           },
           security: oauthScopes(
@@ -7274,6 +7250,8 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies a comma-separated list of one or more search resource properties that the API response will include. Set the parameter value to snippet.",
           }),
+          listMaxResults,
+          pageToken,
         ],
         query: {
           "channelId?": string({
@@ -7305,12 +7283,6 @@ export default responsibleAPI({
             description:
               "Filter on distance from the location (specified above).",
           }),
-          "maxResults?": integer({
-            maximum: 50,
-            minimum: 0,
-            description:
-              "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-          }),
           "onBehalfOfContentOwner?": string({
             description:
               "*Note:* This parameter is intended exclusively for YouTube content partners. The *onBehalfOfContentOwner* parameter indicates that the request's authorization credentials identify a YouTube CMS user who is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The CMS account that the user authenticates with must be linked to the specified YouTube content owner.",
@@ -7326,10 +7298,6 @@ export default responsibleAPI({
               "videoCount",
             ],
             description: "Sort order of the results.",
-          }),
-          "pageToken?": string({
-            description:
-              "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
           }),
           "publishedAfter?": string({
             description: "Filter on resources published after this date.",
@@ -7454,7 +7422,9 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more subscription resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a subscription resource, the snippet property contains other properties, such as a display title for the subscription. If you set *part=snippet*, the API response will also contain all of those nested properties.",
             }),
+            listMaxResults,
             onBehalfOfContentOwnerChannel,
+            pageToken,
           ],
           query: {
             "channelId?": string({
@@ -7468,12 +7438,6 @@ export default responsibleAPI({
             "id?": array(string(), {
               description:
                 "Return the subscriptions with the given IDs for Stubby or Apiary.",
-            }),
-            "maxResults?": integer({
-              maximum: 50,
-              minimum: 0,
-              description:
-                "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
             }),
             "mine?": boolean({
               description:
@@ -7495,10 +7459,6 @@ export default responsibleAPI({
                 "alphabetical",
               ],
               description: "The order of the returned subscriptions",
-            }),
-            "pageToken?": string({
-              description:
-                "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
             }),
           },
           security: oauthScopes(
@@ -7549,23 +7509,10 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies the superChatEvent resource parts that the API response will include. This parameter is currently not supported.",
           }),
+          renderedFundingHl,
+          requiredListMaxResults,
+          pageToken,
         ],
-        query: {
-          "hl?": string({
-            description:
-              "Return rendered funding amounts in specified language.",
-          }),
-          "maxResults?": integer({
-            maximum: 50,
-            minimum: 1,
-            description:
-              "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-          }),
-          "pageToken?": string({
-            description:
-              "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
-          }),
-        },
         security: oauthScopes(
           "https://www.googleapis.com/auth/youtube",
           "https://www.googleapis.com/auth/youtube.force-ssl",
@@ -7752,10 +7699,8 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies the videoCategory resource parts that the API response will include. Supported values are id and snippet.",
           }),
+          plainHl,
         ],
-        query: {
-          "hl?": string(),
-        },
         security: oauthScopes(
           "https://www.googleapis.com/auth/youtube",
           "https://www.googleapis.com/auth/youtube.force-ssl",
@@ -7779,9 +7724,9 @@ export default responsibleAPI({
             description:
               "The *part* parameter specifies the videoCategory resource properties that the API response will include. Set the parameter value to snippet.",
           }),
+          plainHl,
         ],
         query: {
-          "hl?": string(),
           "id?": array(string(), {
             description:
               "Returns the video categories with the given IDs for Stubby or Apiary.",
@@ -7832,16 +7777,20 @@ export default responsibleAPI({
               description:
                 "The *part* parameter specifies a comma-separated list of one or more video resource properties that the API response will include. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a video resource, the snippet property contains the channelId, title, description, tags, and categoryId properties. As such, if you set *part=snippet*, the API response will contain all of those properties.",
             }),
+            hostLanguageHl,
+            maxResultsParam({
+              description:
+                "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set. *Note:* This parameter is supported for use in conjunction with the myRating and chart parameters, but it is not supported for use in conjunction with the id parameter.",
+              maximum: 50,
+              minimum: 1,
+            }),
             onBehalfOfContentOwner,
+            videosListPageToken,
           ],
           query: {
             "chart?": string({
               enum: ["chartUnspecified", "mostPopular"],
               description: "Return the videos that are in the specified chart.",
-            }),
-            "hl?": string({
-              description:
-                'Stands for "host language". Specifies the localization language of the metadata to be filled into snippet.localized. The field is filled with the default metadata if there is no localization in the specified language. The parameter value must be a language code included in the list returned by the i18nLanguages.list method (e.g. en_US, es_MX).',
             }),
             "id?": array(string(), {
               description: "Return videos with the given ids.",
@@ -7850,12 +7799,6 @@ export default responsibleAPI({
             "maxHeight?": integer({
               maximum: 8192,
               minimum: 72,
-            }),
-            "maxResults?": integer({
-              maximum: 50,
-              minimum: 1,
-              description:
-                "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set. *Note:* This parameter is supported for use in conjunction with the myRating and chart parameters, but it is not supported for use in conjunction with the id parameter.",
             }),
             "maxWidth?": integer({
               maximum: 8192,
@@ -7866,10 +7809,6 @@ export default responsibleAPI({
               enum: ["none", "like", "dislike"],
               description:
                 "Return videos liked/disliked by the authenticated user. Does not support RateType.RATED_TYPE_NONE.",
-            }),
-            "pageToken?": string({
-              description:
-                "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved. *Note:* This parameter is supported for use in conjunction with the myRating and chart parameters, but it is not supported for use in conjunction with the id parameter.",
             }),
             "regionCode?": string({
               description:
