@@ -49,6 +49,10 @@ describe("scope", () => {
     type _Test = Assert<IsNever<ScopeInput<{ forAll: ScopeOpts; GET: TestOp }>>>
   })
 
+  test("rejects forAll.res.match in scope defaults", () => {
+    // TODO write a type assertion
+  })
+
   test("accepts a scope with a single method and a single path", () => {
     type MixedScope = {
       GET: TestOp

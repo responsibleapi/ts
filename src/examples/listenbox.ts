@@ -14,18 +14,16 @@ import {
 import { scope } from "../dsl/scope.ts"
 import { headerSecurity } from "../dsl/security.ts"
 
-const Email = () => string({ format: "email" })
+const Email = string({ format: "email" })
 
 const ShowID = () => string({ minLength: 11, maxLength: 12 })
 const FeedID = () => string({ minLength: 11, maxLength: 11 })
 const ItemID = () => string({ minLength: 11, maxLength: 11 })
 
-const HttpURL = () =>
-  string({
-    format: "uri",
-    pattern: /^https?:\/\/\S+$/,
-    example: "https://example.com/path",
-  })
+const HttpURL = string({
+  format: "uri",
+  pattern: /^https?:\/\/\S+$/,
+})
 
 const SubmitReq = () => object({ url: HttpURL })
 
@@ -42,11 +40,9 @@ const UserResp = () =>
     updates: boolean(),
   })
 
-const UnixMillis = () =>
-  int64({
-    description: "UNIX epoch milliseconds",
-    example: 1739982555384,
-  })
+const UnixMillis = int64({
+  description: "UNIX epoch milliseconds",
+})
 
 const RecentResp = () =>
   object({
@@ -151,7 +147,7 @@ const EditShowReq = () =>
     "website?": HttpURL,
   })
 
-const Mime = () => string({ pattern: /^[a-z]+\/.+$/ })
+const Mime = string({ pattern: /^[a-z]+\/.+$/ })
 
 const JsonItem = () =>
   object({
@@ -207,7 +203,7 @@ const DownloadsChart = () =>
     total: int64({ minimum: 0 }),
   })
 
-const UpgradeToAddMoreToListenLater = () => resp({ description: "402" })
+const UpgradeToAddMoreToListenLater = resp({ description: "402" })
 
 const PreSignedUploadURL = () =>
   object({
@@ -220,7 +216,7 @@ const ReverseReq = () => object({ showID: ShowID, value: boolean() })
 
 const ReverseResp = () => object({ value: boolean() })
 
-const NotYourShow = () => resp({ description: "403" })
+const NotYourShow = resp({ description: "403" })
 
 const authenticatedOps = scope({
   forAll: {
@@ -401,7 +397,7 @@ const jsonAPI = scope({
   forAll: {
     req: { mime: "application/json" },
     res: {
-      match: {
+      defaults: {
         "200..299": {
           mime: "application/json",
           headers: { "content-length": int32({ minimum: 1 }) },
@@ -558,23 +554,21 @@ const googleAuth = scope({
   }),
 })
 
-const RedirectRSS = () =>
-  resp({
-    description: "302",
-    headers: {
-      location: HttpURL,
-    },
-  })
+const RedirectRSS = resp({
+  description: "302",
+  headers: {
+    location: HttpURL,
+  },
+})
 
 const NonEmptyString = () =>
   string({
     minLength: 1,
   })
 
-const ItemNotFound = () =>
-  resp({
-    description: "404",
-  })
+const ItemNotFound = resp({
+  description: "404",
+})
 
 export default responsibleAPI({
   partialDoc: {
