@@ -17,10 +17,10 @@ export interface OpReq {
   readonly body?: Schema | Record<Mime, Schema>
 
   /**
-   * helps reuse params. We could reuse them in {@link query} etc.
-   * using object spreading, but I don't like
-   * hidden `name` and `required` in {@link NameWithOptionality} during reuse.
-   * TBD.
+   * The dedicated reuse mechanism for OpenAPI parameters.
+   * Keep one-off params inline in {@link pathParams}, {@link query}, or
+   * {@link headers}. When a param is shared across operations or scopes,
+   * declare it here instead of reusing parameter maps via object spreading.
    *
    * @dsl
    */
