@@ -1,5 +1,6 @@
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { POST } from "../dsl/methods.ts"
+import { resp } from "../dsl/operation.ts"
 import {
   array,
   dict,
@@ -50,24 +51,34 @@ export const httpBenchmarkAPI = responsibleAPI({
         },
       },
       add: {
-        400: {
+        400: resp({
           description: "Bad Request",
           body: dict(
             string({ minLength: 1 }),
             array(string({ minLength: 1 }), { minItems: 1 }),
           ),
-        },
+        }),
       },
     },
   },
   routes: {
     "/posts": POST("newPost", {
       req: NewPost,
-      res: { 201: Post },
+      res: {
+        201: resp({
+          description: "201",
+          body: Post,
+        }),
+      },
     }),
     "/echo": POST("echo", {
       req: NewPost,
-      res: { 200: Post },
+      res: {
+        200: resp({
+          description: "200",
+          body: Post,
+        }),
+      },
     }),
   },
 })
