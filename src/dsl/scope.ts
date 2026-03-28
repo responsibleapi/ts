@@ -26,7 +26,7 @@ type ScopeOrOp<TTags extends TagRegistry = TagRegistry> =
 
 type HttpPath = `/${string}`
 
-/** for root level, only {@link HttpPath} */
+/** for root level; only {@link HttpPath} keys */
 export type PathRoutes<TTags extends TagRegistry = TagRegistry> = Record<
   HttpPath,
   ScopeOrOp<TTags>
@@ -36,14 +36,6 @@ export type PathRoutes<TTags extends TagRegistry = TagRegistry> = Record<
 type MethodRoutes<TTags extends TagRegistry = TagRegistry> = Partial<
   Record<HttpMethod, Op<TTags>>
 >
-
-/*
- * The stricter "at least two methods" rule only makes sense for pure
- * method-only scopes. Once a scope also has nested `"/child"` routes, we allow
- * partial method sets so parent scopes can mix handlers with subpaths.
- */
-type PureMethodRoutes<TTags extends TagRegistry = TagRegistry> =
-  RequireAtLeastTwo<Record<HttpMethod, Op<TTags>>>
 
 /*
  * Real `routes` objects can contain both HTTP methods and nested path keys at
@@ -59,10 +51,6 @@ type ScopeRoutes<TTags extends TagRegistry = TagRegistry> = PathRoutes<TTags> &
 type ScopeArg<TTags extends TagRegistry = TagRegistry> = {
   forAll?: ScopeOpts<TTags>
 } & ScopeRoutes<TTags>
-
-type ScopeArgRoutes<T extends ScopeArg> = {
-  [K in Extract<keyof T, HttpMethod | HttpPath>]: Exclude<T[K], undefined>
-}
 
 export interface ScopeOpts<TTags extends TagRegistry = TagRegistry> {
   req?: ReqAugmentation
@@ -85,26 +73,22 @@ export interface Scope<TTags extends TagRegistry = TagRegistry> {
 
 /**
  * it's done to prevent {@link scope} usage with single {@link HttpMethod}.
- * for single methods, use DSL from {@link file://../methods.ts}
- *
- * @dsl
- */
-type ValidScopeRoutes<T extends ScopeRoutes> =
-  Extract<keyof T, HttpPath> extends never
-    ? T extends PureMethodRoutes
-      ? T
-      : never
-    : T
-
-/**
- * it's done to prevent {@link scope} usage with single {@link HttpMethod}.
  * `forAll` is ignored here so defaults do not affect the route-shape validation.
  * for single methods, use DSL from {@link file://../methods.ts}
+ *
+ * If a scope has at least one nested path, it is valid as-is. Otherwise, we
+ * validate just the method subset and require at least two HTTP methods.
  *
  * @dsl
  */
 type ValidScopeArg<T extends ScopeArg> =
-  ValidScopeRoutes<ScopeArgRoutes<T>> extends never ? never : T
+  Extract<keyof T, HttpPath> extends never
+    ? Pick<T, Extract<keyof T, HttpMethod>> extends RequireAtLeastTwo<
+        Record<HttpMethod, Op>
+      >
+      ? T
+      : never
+    : T
 
 /**
  * Use this when declaring multiple routes under the same subpath.
