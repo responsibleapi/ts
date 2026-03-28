@@ -15,14 +15,6 @@ deeper in the tree.
    already exist, put the base bundle in `forAll.req.security` and let list/read
    methods add `youtube.readonly`.
 
-3. Fold `liveBroadcasts` child actions into the existing `/liveBroadcasts`
-   scope. `"/youtube/v3/liveBroadcasts"` is already a scope
-   (`src/examples/youtube.ts:6383`), but `bind`, `cuepoint`, and `transition`
-   are still sibling top-level routes (`src/examples/youtube.ts:6499`,
-   `src/examples/youtube.ts:6528`, `src/examples/youtube.ts:6558`). Move them to
-   nested `"/bind"`, `"/cuepoint"`, and `"/transition"` routes so they inherit
-   `tags`, `liveBroadcastContentOwnerParams`, and the shared response helpers.
-
 ## Optional `dsl.ts` change
 
 5. Keep `src/dsl/dsl.ts` as-is unless you want a root API shape that matches

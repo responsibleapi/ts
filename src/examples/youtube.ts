@@ -5462,11 +5462,6 @@ const onBehalfOfContentOwnerChannel = queryParam({
   schema: string(),
 })
 
-const liveBroadcastContentOwnerParams = [
-  onBehalfOfContentOwner,
-  onBehalfOfContentOwnerChannel,
-] as const
-
 const pageToken = queryParam({
   description:
     "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
@@ -6336,7 +6331,7 @@ export default responsibleAPI({
       forAll: {
         tags: liveBroadcastTags,
         req: {
-          params: liveBroadcastContentOwnerParams,
+          params: [onBehalfOfContentOwner, onBehalfOfContentOwnerChannel],
         },
         res: {
           add: {
@@ -6447,96 +6442,84 @@ export default responsibleAPI({
           body: LiveBroadcast,
         },
       },
-    }),
-    "/youtube/v3/liveBroadcasts/bind": POST({
-      description: "Bind a broadcast to a stream.",
-      id: "youtube.liveBroadcasts.bind",
-      req: {
-        params: [
-          partQuery({
-            description:
-              "The *part* parameter specifies a comma-separated list of one or more liveBroadcast resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, contentDetails, and status.",
-          }),
-          ...liveBroadcastContentOwnerParams,
-        ],
-        query: {
-          id: string({
-            description: "Broadcast to bind to the stream",
-          }),
-          "streamId?": string({
-            description: "Stream to bind, if not set unbind the current one.",
-          }),
+      "/bind": POST({
+        description: "Bind a broadcast to a stream.",
+        id: "youtube.liveBroadcasts.bind",
+        req: {
+          params: [
+            partQuery({
+              description:
+                "The *part* parameter specifies a comma-separated list of one or more liveBroadcast resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, contentDetails, and status.",
+            }),
+          ],
+          query: {
+            id: string({
+              description: "Broadcast to bind to the stream",
+            }),
+            "streamId?": string({
+              description: "Stream to bind, if not set unbind the current one.",
+            }),
+          },
+          security: oauthScopes(
+            "https://www.googleapis.com/auth/youtube",
+            "https://www.googleapis.com/auth/youtube.force-ssl",
+          ),
         },
-        security: oauthScopes(
-          "https://www.googleapis.com/auth/youtube",
-          "https://www.googleapis.com/auth/youtube.force-ssl",
-        ),
-      },
-      res: {
-        200: liveBroadcastResponse(),
-      },
-      tags: liveBroadcastTags,
-    }),
-    "/youtube/v3/liveBroadcasts/cuepoint": POST({
-      description: "Insert cuepoints in a broadcast",
-      id: "youtube.liveBroadcasts.insertCuepoint",
-      req: {
-        params: [
-          partQuery({
-            description:
-              "The *part* parameter specifies a comma-separated list of one or more liveBroadcast resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, contentDetails, and status.",
-            required: false,
-          }),
-          ...liveBroadcastContentOwnerParams,
-        ],
-        query: {
-          "id?": string({
-            description:
-              "Broadcast to insert ads to, or equivalently `external_video_id` for internal use.",
-          }),
+      }),
+      "/cuepoint": POST({
+        description: "Insert cuepoints in a broadcast",
+        id: "youtube.liveBroadcasts.insertCuepoint",
+        req: {
+          params: [
+            partQuery({
+              description:
+                "The *part* parameter specifies a comma-separated list of one or more liveBroadcast resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, contentDetails, and status.",
+              required: false,
+            }),
+          ],
+          query: {
+            "id?": string({
+              description:
+                "Broadcast to insert ads to, or equivalently `external_video_id` for internal use.",
+            }),
+          },
+          security: oauthScopes(
+            "https://www.googleapis.com/auth/youtube",
+            "https://www.googleapis.com/auth/youtube.force-ssl",
+            "https://www.googleapis.com/auth/youtubepartner",
+          ),
+          body: Cuepoint,
         },
-        security: oauthScopes(
-          "https://www.googleapis.com/auth/youtube",
-          "https://www.googleapis.com/auth/youtube.force-ssl",
-          "https://www.googleapis.com/auth/youtubepartner",
-        ),
-        body: Cuepoint,
-      },
-      res: {
-        200: cuepointResponse(),
-      },
-      tags: liveBroadcastTags,
-    }),
-    "/youtube/v3/liveBroadcasts/transition": POST({
-      description: "Transition a broadcast to a given status.",
-      id: "youtube.liveBroadcasts.transition",
-      req: {
-        params: [
-          partQuery({
-            description:
-              "The *part* parameter specifies a comma-separated list of one or more liveBroadcast resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, contentDetails, and status.",
-          }),
-          ...liveBroadcastContentOwnerParams,
-        ],
-        query: {
-          broadcastStatus: string({
-            enum: ["statusUnspecified", "testing", "live", "complete"],
-            description:
-              "The status to which the broadcast is going to transition.",
-          }),
-          id: string({
-            description: "Broadcast to transition.",
-          }),
+        res: {
+          200: cuepointResponse(),
         },
-        security: oauthScopes(
-          "https://www.googleapis.com/auth/youtube",
-          "https://www.googleapis.com/auth/youtube.force-ssl",
-        ),
-      },
-      res: {
-        200: liveBroadcastResponse(),
-      },
-      tags: liveBroadcastTags,
+      }),
+      "/transition": POST({
+        description: "Transition a broadcast to a given status.",
+        id: "youtube.liveBroadcasts.transition",
+        req: {
+          params: [
+            partQuery({
+              description:
+                "The *part* parameter specifies a comma-separated list of one or more liveBroadcast resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, contentDetails, and status.",
+            }),
+          ],
+          query: {
+            broadcastStatus: string({
+              enum: ["statusUnspecified", "testing", "live", "complete"],
+              description:
+                "The status to which the broadcast is going to transition.",
+            }),
+            id: string({
+              description: "Broadcast to transition.",
+            }),
+          },
+          security: oauthScopes(
+            "https://www.googleapis.com/auth/youtube",
+            "https://www.googleapis.com/auth/youtube.force-ssl",
+          ),
+        },
+      }),
     }),
     "/youtube/v3/liveChat/bans": scope({
       forAll: {
@@ -6749,7 +6732,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.liveStreams],
         req: {
-          params: liveBroadcastContentOwnerParams,
+          params: [onBehalfOfContentOwner, onBehalfOfContentOwnerChannel],
           security: oauthScopes(
             "https://www.googleapis.com/auth/youtube",
             "https://www.googleapis.com/auth/youtube.force-ssl",
