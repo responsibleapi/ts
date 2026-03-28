@@ -66,6 +66,14 @@ export interface ScopeOpts<TTags extends TagRegistry = TagRegistry> {
   tags?: OpTags<TTags>
 }
 
+/**
+ * this is a temp placeholder return type while the compiler is still TODO
+ *
+ * it's basically a merged context stack, since this is a tree.
+ * The only place where this single pass compiler MIGHT have an "AST"
+ *
+ * @compiler
+ */
 export interface Scope<TTags extends TagRegistry = TagRegistry> {
   forAll?: ScopeOpts<TTags>
   routes: ScopeRoutes<TTags>

@@ -17,8 +17,10 @@
   "settings": {
     "jsdoc": {
       "tagNamePreference": {
-        /* core DSL stuff */
-        "dsl": "dsl"
+        /** core DSL stuff */
+        "dsl": "dsl",
+        /** core compiler stuff */
+        "compiler": "compiler"
       }
     }
   },
