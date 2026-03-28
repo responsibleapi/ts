@@ -1,5 +1,5 @@
 import type { oas31 } from "openapi3-ts"
-import type { RequireAtLeastTwo } from "../lib.ts"
+import type { AtLeastOne, AtLeastTwo } from "../lib.ts"
 import type { HttpMethod } from "./methods.ts"
 import type {
   MatchStatus,
@@ -13,11 +13,11 @@ import type { OpTags, TagRegistry } from "./tags.ts"
 export type Mime = `${string}/${string}`
 
 type ScopeRes =
-  | {
+  | AtLeastOne<{
       mime?: Mime
       defaults?: Record<MatchStatus, RespAugmentation>
       add?: OpRes
-    }
+    }>
   | OpRes
 
 type ScopeOrOp<TTags extends TagRegistry = TagRegistry> =
@@ -74,7 +74,7 @@ export interface Scope<TTags extends TagRegistry = TagRegistry> {
  */
 type ValidScopeArg<T extends ScopeInput> =
   Extract<keyof T, HttpPath> extends never
-    ? Pick<T, Extract<keyof T, HttpMethod>> extends RequireAtLeastTwo<
+    ? Pick<T, Extract<keyof T, HttpMethod>> extends AtLeastTwo<
         Record<HttpMethod, Op>
       >
       ? T

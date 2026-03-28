@@ -1,8 +1,13 @@
-export function typesafeLowercase<S extends string>(s: S): Lowercase<S> {
-  return s.toLowerCase() as Lowercase<S>
-}
+export const typesafeLowercase = <S extends string>(s: S): Lowercase<S> =>
+  s.toLowerCase() as Lowercase<S>
 
-export type RequireAtLeastTwo<T> = {
+/** requires at least 1 key in an object */
+export type AtLeastOne<T> = {
+  [K in keyof T]: Required<Pick<T, K>> & Partial<Omit<T, K>>
+}[keyof T]
+
+/** requires at least 2 keys in an object */
+export type AtLeastTwo<T> = {
   [K1 in keyof T]: {
     [K2 in Exclude<keyof T, K1>]: Required<Pick<T, K1 | K2>> &
       Partial<Omit<T, K1 | K2>>
