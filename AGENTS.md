@@ -25,7 +25,7 @@
 - never call `bunx`, if a package is missing, ask to add it to `package.json`
 - never run code formatting unless explicitly asked
 - [never call `vitest`](docs/package.jsonc), `bun test` instead
-- both `rg` and `ast-grep` are available for calling
+- `rg`, `ast-grep`, `jq` are available for calling
 - never call `wc`, call `scc` instead (both on files and folders)
 - never pass multiple paths to `scc`. A single dir or a single file only.
 
@@ -33,7 +33,7 @@
 
 - never run `git commit` without running `git add` first
 
-### `ast-grep`
+### Refactoring with `ast-grep`
 
 - Use `scc <path>` first when a large-file or large-folder refactor needs a
   quick size estimate.
