@@ -34,25 +34,21 @@
 
 ### `ast-grep`
 
-- Use `scc <path>` first when a refactor targets a large file or a large folder
-  and you need a quick size estimate.
-- Treat `ast-grep` as the default tool for large repetitive syntax-preserving
-  refactors, especially when the same shape appears many times in one file.
-- Prefer `ast-grep run` without `-U` first to preview the rewrite and inspect
-  the diff before applying it.
-- Use plain `--rewrite` only when replacing the matched node text is enough.
-  If the edit must also delete or move surrounding commas, brackets, or other
-  separators, switch to a YAML rule with `fix`.
-- When a rewrite needs to remove a list/object item and its trailing comma, use
-  `fix` as `FixConfig` with `expandStart` and/or `expandEnd` instead of trying
-  to force it through a string-only rewrite.
+- Use `scc <path>` first when a large-file or large-folder refactor needs a
+  quick size estimate.
+- Prefer `ast-grep` for large repetitive syntax-preserving refactors instead of
+  writing an ad hoc TypeScript codemod.
+- Start with `ast-grep run` without `-U` to preview the rewrite and inspect the
+  diff. Rerun with `-U` only after the preview looks correct.
+- Use plain `--rewrite` only when replacing matched node text is enough. If the
+  edit must also move or remove commas, brackets, or other separators, switch
+  to a YAML rule with `fix`.
+- When removing a list/object item plus its trailing comma, use `fix` with
+  `expandStart` and/or `expandEnd`.
 - When one match needs coordinated rewrites across multiple child nodes, prefer
-  `rewriters` plus `transform.rewrite` instead of a single large `--rewrite`
-  template.
-- After the preview looks correct, rerun the same command with `-U` to apply it
-  mechanically.
-- Use `ast-grep` for the bulk transformation and then do a small follow-up
-  cleanup pass for naming, formatting, or edge cases.
+  `rewriters` with `transform.rewrite`.
+- Use `ast-grep` for the bulk rewrite, then do a small cleanup pass for naming
+  or edge cases.
 
 ## DSL design
 
