@@ -607,6 +607,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Categories],
         req: {
+          mime: "application/json",
           security: basicAuth,
           headers: {
             "x-readme-version?": readmeVersion,
@@ -632,7 +633,7 @@ export default responsibleAPI({
         summary: "Create category",
         description: "Create a new category inside of this project.",
         req: {
-          body: { "application/json": createCategory() },
+          body: createCategory(),
         },
         res: {
           201: resp({
@@ -649,6 +650,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Categories],
         req: {
+          mime: "application/json",
           security: basicAuth,
           pathParams: { slug: categorySlug },
           headers: {
@@ -675,7 +677,7 @@ export default responsibleAPI({
         summary: "Update category",
         description: "Change the properties of a category.",
         req: {
-          body: { "application/json": category() },
+          body: category(),
         },
         res: {
           200: resp({
@@ -734,6 +736,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Changelog],
         req: {
+          mime: "application/json",
           security: basicAuth,
         },
       },
@@ -756,7 +759,7 @@ export default responsibleAPI({
         summary: "Create changelog",
         description: "Create a new changelog entry.",
         req: {
-          body: { "application/json": changelog() },
+          body: changelog(),
         },
         res: {
           201: resp({
@@ -772,6 +775,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Changelog],
         req: {
+          mime: "application/json",
           security: basicAuth,
           pathParams: { slug: changelogSlug },
         },
@@ -794,7 +798,7 @@ export default responsibleAPI({
         summary: "Update changelog",
         description: "Update a changelog with this slug.",
         req: {
-          body: { "application/json": changelog() },
+          body: changelog(),
         },
         res: {
           200: resp({
@@ -826,6 +830,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags["Custom Pages"]],
         req: {
+          mime: "application/json",
           security: basicAuth,
         },
         res: {
@@ -851,7 +856,7 @@ export default responsibleAPI({
         summary: "Create custom page",
         description: "Create a new custom page inside of this project.",
         req: {
-          body: { "application/json": customPage() },
+          body: customPage(),
         },
         res: {
           201: resp({
@@ -868,6 +873,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags["Custom Pages"]],
         req: {
+          mime: "application/json",
           security: basicAuth,
           pathParams: { slug: customPageSlug },
         },
@@ -896,7 +902,7 @@ export default responsibleAPI({
         summary: "Update custom page",
         description: "Update a custom page with this slug.",
         req: {
-          body: { "application/json": customPage() },
+          body: customPage(),
         },
         res: {
           200: resp({
@@ -935,6 +941,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Docs],
         req: {
+          mime: "application/json",
           security: basicAuth,
           pathParams: { slug: docSlug },
           headers: {
@@ -964,7 +971,7 @@ export default responsibleAPI({
         summary: "Update doc",
         description: "Update a doc with this slug.",
         req: {
-          body: { "application/json": doc() },
+          body: doc(),
         },
         res: {
           200: resp({
@@ -1076,6 +1083,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Version],
         req: {
+          mime: "application/json",
           security: basicAuth,
         },
         res: {
@@ -1098,7 +1106,7 @@ export default responsibleAPI({
         summary: "Create version",
         description: "Create a new version.",
         req: {
-          body: { "application/json": version() },
+          body: version(),
         },
         res: {
           200: resp({
@@ -1127,6 +1135,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Version],
         req: {
+          mime: "application/json",
           security: basicAuth,
           pathParams: { versionId: versionID },
         },
@@ -1153,7 +1162,7 @@ export default responsibleAPI({
         summary: "Update version",
         description: "Update an existing version.",
         req: {
-          body: { "application/json": version() },
+          body: version(),
         },
         res: {
           200: resp({
