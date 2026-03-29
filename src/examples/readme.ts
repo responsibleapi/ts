@@ -1,4 +1,3 @@
-import type { oas31 } from "openapi3-ts"
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, POST } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"
@@ -14,6 +13,7 @@ import {
   string,
 } from "../dsl/schema.ts"
 import { scope } from "../dsl/scope.ts"
+import { httpSecurity } from "../dsl/security.ts"
 import { declareTags } from "../dsl/tags.ts"
 
 const apply = () =>
@@ -189,10 +189,7 @@ const tags = declareTags({
   Version: {},
 } as const)
 
-const apiKey = named<oas31.SecuritySchemeObject>("apiKey", {
-  type: "http",
-  scheme: "basic",
-})
+const basicAuth = named("apiKey", httpSecurity({ scheme: "basic" }))
 
 const baseError = () =>
   object({
@@ -445,7 +442,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags["API Specification"]],
         req: {
-          security: apiKey,
+          security: basicAuth,
           headers: {
             "x-readme-version?": readmeVersion,
           },
@@ -513,7 +510,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags["API Specification"]],
         req: {
-          security: apiKey,
+          security: basicAuth,
           pathParams: { id: apiSpecificationID },
         },
         res: {
@@ -610,7 +607,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Categories],
         req: {
-          security: apiKey,
+          security: basicAuth,
           headers: {
             "x-readme-version?": readmeVersion,
           },
@@ -652,7 +649,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Categories],
         req: {
-          security: apiKey,
+          security: basicAuth,
           pathParams: { slug: categorySlug },
           headers: {
             "x-readme-version?": readmeVersion,
@@ -716,7 +713,7 @@ export default responsibleAPI({
       description: "Returns the docs and children docs within this category.",
       tags: [tags.Categories],
       req: {
-        security: apiKey,
+        security: basicAuth,
         pathParams: { slug: categorySlug },
         headers: {
           "x-readme-version?": readmeVersion,
@@ -737,7 +734,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Changelog],
         req: {
-          security: apiKey,
+          security: basicAuth,
         },
       },
       GET: {
@@ -775,7 +772,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Changelog],
         req: {
-          security: apiKey,
+          security: basicAuth,
           pathParams: { slug: changelogSlug },
         },
       },
@@ -829,7 +826,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags["Custom Pages"]],
         req: {
-          security: apiKey,
+          security: basicAuth,
         },
         res: {
           add: authResponses,
@@ -871,7 +868,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags["Custom Pages"]],
         req: {
-          security: apiKey,
+          security: basicAuth,
           pathParams: { slug: customPageSlug },
         },
         res: {
@@ -938,7 +935,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Docs],
         req: {
-          security: apiKey,
+          security: basicAuth,
           pathParams: { slug: docSlug },
           headers: {
             "x-readme-version?": readmeVersion,
@@ -1004,7 +1001,7 @@ export default responsibleAPI({
       description: "Create a new doc inside of this project.",
       tags: [tags.Docs],
       req: {
-        security: apiKey,
+        security: basicAuth,
         headers: {
           "x-readme-version?": readmeVersion,
         },
@@ -1027,7 +1024,7 @@ export default responsibleAPI({
       description: "Returns all docs that match the search.",
       tags: [tags.Docs],
       req: {
-        security: apiKey,
+        security: basicAuth,
         headers: {
           "x-readme-version?": readmeVersion,
         },
@@ -1050,7 +1047,7 @@ export default responsibleAPI({
       description: "Returns with all of the error page types for this project.",
       tags: [tags.Errors],
       req: {
-        security: apiKey,
+        security: basicAuth,
       },
       res: {
         200: resp({
@@ -1065,7 +1062,7 @@ export default responsibleAPI({
       description: "Returns project data for the API key.",
       tags: [tags.Projects],
       req: {
-        security: apiKey,
+        security: basicAuth,
       },
       res: {
         200: resp({
@@ -1079,7 +1076,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Version],
         req: {
-          security: apiKey,
+          security: basicAuth,
         },
         res: {
           add: authResponses,
@@ -1130,7 +1127,7 @@ export default responsibleAPI({
       forAll: {
         tags: [tags.Version],
         req: {
-          security: apiKey,
+          security: basicAuth,
           pathParams: { versionId: versionID },
         },
         res: {

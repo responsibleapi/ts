@@ -14,6 +14,14 @@ type OAuth2SecurityScheme<
   TFlows extends oas31.OAuthFlowsObject = oas31.OAuthFlowsObject,
 > = Nameable<OAuth2SecuritySchemeObject<TFlows>>
 
+type HttpSecuritySchemeObject<TScheme extends string = string> = Omit<
+  oas31.SecuritySchemeObject,
+  "type" | "scheme"
+> & {
+  type: "http"
+  scheme: TScheme
+}
+
 /**
  * Security requirements reference component names, so composition helpers need
  * the named thunk branch of {@link Nameable} rather than inline scheme values.
@@ -91,6 +99,15 @@ export const headerSecurity = (param: {
   ...param,
 })
 
+export const httpSecurity = <const TScheme extends string>(param: {
+  scheme: TScheme
+  description?: string
+  bearerFormat?: string
+}): HttpSecuritySchemeObject<TScheme> => ({
+  type: "http",
+  ...param,
+})
+
 export const oauth2Security = <
   const TFlows extends oas31.OAuthFlowsObject,
 >(param: {
@@ -103,8 +120,21 @@ export const oauth2Security = <
 
 const toSecurityRequirement = (
   security: SecurityOperand,
-): oas31.SecurityRequirementObject =>
-  typeof security === "function" ? { [security.name]: [] } : security
+): oas31.SecurityRequirementObject => {
+  if (typeof security !== "function") {
+    return security
+  }
+
+  if (security.name) {
+    return { [security.name]: [] }
+  }
+
+  throw new Error(
+    `security requirements need a named scheme; got inline value ${JSON.stringify(
+      security(),
+    )}; use a named function or named()`,
+  )
+}
 
 export const oauth2Requirement = <T extends NamedOAuth2SecurityScheme>(
   scheme: T,

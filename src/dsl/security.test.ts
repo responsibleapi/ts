@@ -5,10 +5,11 @@ import { named } from "./nameable.ts"
 import {
   type OAuth2ScopeName,
   type Security,
-  securityAND,
   headerSecurity,
+  httpSecurity,
   oauth2Security,
   oauth2Requirement,
+  securityAND,
   securityOR,
   querySecurity,
 } from "./security.ts"
@@ -31,6 +32,19 @@ describe("security", () => {
       type: "apiKey",
       in: "header",
       name: "authorization",
+    })
+  })
+
+  test("builds http security schemes", () => {
+    expect(
+      httpSecurity({
+        scheme: "basic",
+        description: "Basic auth",
+      }),
+    ).toEqual({
+      type: "http",
+      scheme: "basic",
+      description: "Basic auth",
     })
   })
 
@@ -177,11 +191,11 @@ describe("security", () => {
     >
   })
 
-  test("accepts raw oas security schemes as security values", () => {
-    const BearerAuth = (): oas31.SecuritySchemeObject => ({
-      type: "http",
-      scheme: "bearer",
-    })
+  test("accepts http security schemes as security values", () => {
+    const BearerAuth = (): oas31.SecuritySchemeObject =>
+      httpSecurity({
+        scheme: "bearer",
+      })
 
     expect(BearerAuth().type).toBe("http")
 
