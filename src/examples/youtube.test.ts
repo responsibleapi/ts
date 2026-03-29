@@ -8,7 +8,7 @@ describe("youtube example", () => {
     expect(await validate(json as oas31.OpenAPIObject)).toEqual(json)
   })
 
-  test.skip("youtube.json validates as OpenAPI", async () => {
+  test("youtube.json validates as OpenAPI", async () => {
     /** compiler isn't implemented, this import throws */
     const { default: api } = await import("./youtube.ts")
 
