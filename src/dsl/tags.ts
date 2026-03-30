@@ -55,7 +55,6 @@ const declareTag = <TName extends string, TTag extends TagNoName>(
 export const declareTags = <TTags extends TagDeclarations>(
   tags: TTags,
 ): DeclaredTags<TTags> =>
-  /* eslint-disable-next-line typescript-eslint/no-unsafe-type-assertion */
   Object.fromEntries(
     Object.entries(tags).map(([name, declaredTag]) => [
       name,

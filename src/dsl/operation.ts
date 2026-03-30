@@ -52,7 +52,15 @@ export type MatchStatus = number | `${number}..${number}`
 
 export interface RespParams {
   body?: Schema | Record<Mime, Schema>
+
+  /**
+   * even though `oas31.ResponseObject.description` is required,
+   * we don't require it. The compiler will add the status number there
+   *
+   * @compiler
+   */
   description?: string
+
   headers?: Record<NameWithOptionality, Schema>
   cookies?: Record<NameWithOptionality, Schema>
 }
