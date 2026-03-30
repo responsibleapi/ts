@@ -22,5 +22,5 @@
     /** `true` breaks single file typechecks */
     "incremental": false
   },
-  "include": ["src"]
+  "include": ["src", "scripts"]
 }

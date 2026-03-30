@@ -1,21 +1,21 @@
 import { Validator } from "@seriousme/openapi-schema-validator"
-import type { OpenAPIObject } from "openapi3-ts/oas31"
+import type { oas31 } from "openapi3-ts"
 
 const VALIDATOR = new Validator()
 
 function assertValid(
-  doc: Partial<OpenAPIObject>,
+  doc: Partial<oas31.OpenAPIObject>,
   v: Awaited<ReturnType<typeof VALIDATOR.validate>>,
-): asserts doc is OpenAPIObject {
+): asserts doc is oas31.OpenAPIObject {
   if (!v.valid) {
     throw new Error(JSON.stringify(v.errors, null, 2))
   }
 }
 
-/** returns {@link OpenAPIObject} to be passed to expect() */
+/** returns {@link oas31.OpenAPIObject} to be passed to expect() */
 export async function validate(
-  doc: Partial<OpenAPIObject>,
-): Promise<OpenAPIObject> {
+  doc: Partial<oas31.OpenAPIObject> | Record<string, unknown>,
+): Promise<oas31.OpenAPIObject> {
   const vld = await VALIDATOR.validate(doc)
 
   assertValid(doc, vld)

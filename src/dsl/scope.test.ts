@@ -6,7 +6,7 @@ import type {
   OneExtendsTwo,
 } from "../type-assertions.ts"
 import type { ScopeOpts, ScopeRes } from "./scope.ts"
-import { scope } from "./scope.ts"
+import type { scope } from "./scope.ts"
 import { declareTags } from "./tags.ts"
 
 type TestOp = {

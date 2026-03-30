@@ -1,4 +1,4 @@
-import type { NameWithOptionality } from "./dsl.ts"
+import type { NameWithOptionality, OptionalKey } from "./dsl.ts"
 import type { HttpMethod } from "./methods.ts"
 import type { Nameable } from "./nameable.ts"
 import type { Param } from "./params.ts"
@@ -7,20 +7,22 @@ import type { Mime } from "./scope.ts"
 import type { Security } from "./security.ts"
 import type { OpTags, TagRegistry } from "./tags.ts"
 
+/**
+ * Path params are always required to build the path,
+ * so names with the "?" suffix are rejected by forcing those keys to `never`
+ *
+ * @dsl
+ */
+interface PathParams extends Record<string, Schema> {
+  readonly [name: OptionalKey]: never
+}
+
 export interface OpReq {
   readonly security?: Security
   /* optional security means `value` OR `no authentication` */
   readonly "security?"?: Security
 
-  /**
-   * Path params are always required in the URL, so names with the optional `?`
-   * suffix are rejected by forcing those keys to `never`.
-   *
-   * @dsl
-   */
-  readonly pathParams?: Record<string, Schema> & {
-    readonly [TName in `${string}?`]?: never
-  }
+  readonly pathParams?: PathParams
   readonly query?: Record<NameWithOptionality, Schema>
   readonly headers?: Record<NameWithOptionality, Schema>
   readonly body?: Schema | Record<Mime, Schema>
@@ -42,8 +44,8 @@ export interface ReqAugmentation extends OpReq {
 
 export interface RespAugmentation {
   readonly mime?: Mime
-  readonly headers?: Record<string, Schema>
-  readonly cookies?: Record<string, Schema>
+  readonly headers?: Record<NameWithOptionality, Schema>
+  readonly cookies?: Record<NameWithOptionality, Schema>
 }
 
 export type MatchStatus = number | `${number}..${number}`
@@ -51,8 +53,8 @@ export type MatchStatus = number | `${number}..${number}`
 export interface RespParams {
   body?: Schema | Record<Mime, Schema>
   description?: string
-  headers?: Record<string, Schema>
-  cookies?: Record<string, Schema>
+  headers?: Record<NameWithOptionality, Schema>
+  cookies?: Record<NameWithOptionality, Schema>
 }
 
 export type Resp = Nameable<RespParams>
@@ -61,7 +63,14 @@ export type OpRes = Record<number, Resp | Schema>
 
 export interface Op<TTags extends TagRegistry = TagRegistry> {
   id?: string
+
+  /**
+   * id for synthetic HEAD. Only valid for GET ops
+   *
+   * @dsl
+   */
   headID?: string
+
   req?: OpReq | Schema
   res?: OpRes
   deprecated?: boolean
