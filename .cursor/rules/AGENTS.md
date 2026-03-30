@@ -6,10 +6,10 @@
 - DSL is ready
 - have not started implementing the compiler
 - never run the whole test suite, run individual test files instead
-- use typechecking and linting for verification
 
-## Code quality
+## TypeScript
 
+- ALWAYS run `typecheck` and `lint` after making changes
 - never add `oxlint-disable-next-line` unless explicitly asked
 
 ## Imports from packages
