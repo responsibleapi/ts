@@ -1,46 +1,43 @@
 /**
- * {@link Nameable} allows lazy thunks, but {@link named} should only wrap
- * concrete values. Callable inputs are therefore rejected by collapsing them
- * to `never`.
- */
-type NonFunction<T> = T extends (...args: any[]) => unknown ? never : T
-
-/**
- * In DSL positions that accept {@link Nameable}, the thunk itself is the
- * reusable component reference.
- *
- * Its {@link Function.name} becomes the OpenAPI component key, so pass the
- * thunk directly, for example `req.body: apply`, not `req.body: apply()`.
- * Calling the thunk materializes the underlying value and therefore forces an
- * inline schema instead of a `$ref`.
+ * Scalars are inlined as is in OpenAPI doc
  *
  * @dsl
  */
-export type NamedThunk<T> = [NonFunction<T>] extends [never]
-  ? never
-  : () => NonFunction<T>
+type Scalar<T> = T extends (...args: unknown[]) => unknown ? never : T
 
-export type Nameable<T> = NamedThunk<T> | NonFunction<T>
+/**
+ * In DSL positions that accept {@link Nameable}, passing a {@link NamedThunk}
+ * emits an OpenAPI `{ "$ref":  "#/components/<T>/<name>" }`, where `<name>`
+ * comes from {@link Function.name}.
+ *
+ * Never call the thunk, always pass the reference
+ *
+ * @dsl
+ */
+export type NamedThunk<T> = [Scalar<T>] extends [never]
+  ? never
+  : () => Scalar<T>
+
+export type Nameable<T> = NamedThunk<T> | Scalar<T>
 
 /**
  * Creates a named thunk for component reuse in DSL positions that accept
  * {@link Nameable}. Pass the returned thunk itself when you want a `$ref`.
  */
-export const named = <T>(name: string, value: NonFunction<T>): NamedThunk<T> =>
-  Object.defineProperty(() => value, "name", {
-    configurable: true,
-    value: name,
-  }) as NamedThunk<T>
+export const named = <T>(name: string, value: Scalar<T>): NamedThunk<T> => {
+  const thunk: NamedThunk<T> = () => value
+
+  Object.defineProperty(thunk, "name", { configurable: true, value: name })
+
+  return thunk
+}
 
 const isNamed = <T>(n: Nameable<T>): n is NamedThunk<T> =>
   typeof n === "function"
 
-const _isNonFunction = <T>(n: Nameable<T>): n is NonFunction<T> =>
-  typeof n !== "function"
-
 export function decodeNameable<T>(n: Nameable<T>): {
   name?: string
-  value: NonFunction<T>
+  value: Scalar<T>
 } {
   if (isNamed(n)) {
     return { name: n.name, value: n() }

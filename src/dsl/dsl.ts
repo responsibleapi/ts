@@ -9,6 +9,7 @@ export type OptionalKey = `${string}?`
  *
  * @dsl
  */
+// oxlint-disable-next-line typescript/no-redundant-type-constituents
 export type NameWithOptionality = string | OptionalKey
 
 export const isOptional = (k: NameWithOptionality): k is OptionalKey =>

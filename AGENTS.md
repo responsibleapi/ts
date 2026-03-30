@@ -29,6 +29,22 @@
 - never call `wc`, call `scc` instead (both on files and folders)
 - never pass multiple paths to `scc`. A single dir or a single file only.
 
+### Code search
+
+Use `ripgrep` for:
+
+- exact strings
+- symbol/file discovery
+- comments/docs/config text
+- first-pass broad narrowing
+
+Use `ast-grep` for:
+
+- “find X inside Y”
+- syntax/context constraints
+- refactoring/codemod search
+- “find behavior pattern, not exact text”
+
 ### `git`
 
 - never run `git commit` without running `git add` first
@@ -53,8 +69,8 @@
 
 ## DSL design
 
-- never edit declarations tagged with `@dsl`. If you need to change them, ask
-  first
+- NEVER EDIT declarations with `@dsl` in JSDoc. If you need to change them, ASK
+  FIRST
 - full DSL documentation is spread out in `@dsl` tagged JSDocs, you can concat
   them to get the whole picture
 

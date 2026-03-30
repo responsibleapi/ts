@@ -8,8 +8,7 @@
  */
 import type { oas31 } from "openapi3-ts"
 
-/** codex just trying to make things extra typesafe */
-declare const declaredTagBrand: unique symbol
+const declaredTagBrand = Symbol("declaredTagBrand")
 
 type TagNoName = Omit<oas31.TagObject, "name">
 
@@ -37,6 +36,15 @@ type DeclaredOpTag<TTags extends DeclaredTags = DeclaredTags> =
 export type OpTags<TTags extends DeclaredTags = DeclaredTags> =
   readonly DeclaredOpTag<TTags>[]
 
+const declareTag = <TName extends string, TTag extends TagNoName>(
+  name: TName,
+  tag: TTag,
+): DeclaredTag<TName, TTag> => ({
+  ...tag,
+  name,
+  [declaredTagBrand]: true,
+})
+
 /**
  * Wrap the raw tag registry so the DSL can brand each entry with its key as the
  * OpenAPI tag name. That gives operations a closed set of reusable tag values
@@ -47,12 +55,10 @@ export type OpTags<TTags extends DeclaredTags = DeclaredTags> =
 export const declareTags = <TTags extends TagDeclarations>(
   tags: TTags,
 ): DeclaredTags<TTags> =>
+  /* eslint-disable-next-line typescript-eslint/no-unsafe-type-assertion */
   Object.fromEntries(
     Object.entries(tags).map(([name, declaredTag]) => [
       name,
-      {
-        ...declaredTag,
-        name,
-      },
+      declareTag(name, declaredTag),
     ]),
   ) as DeclaredTags<TTags>

@@ -1,4 +1,5 @@
 export const typesafeLowercase = <S extends string>(s: S): Lowercase<S> =>
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   s.toLowerCase() as Lowercase<S>
 
 /** requires at least 1 key in an object */
