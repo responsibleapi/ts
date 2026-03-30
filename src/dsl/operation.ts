@@ -11,7 +11,16 @@ export interface OpReq {
   readonly security?: Security
   /* optional security means `value` OR `no authentication` */
   readonly "security?"?: Security
-  readonly pathParams?: Record<NameWithOptionality, Schema>
+
+  /**
+   * Path params are always required in the URL, so names with the optional `?`
+   * suffix are rejected by forcing those keys to `never`.
+   *
+   * @dsl
+   */
+  readonly pathParams?: Record<string, Schema> & {
+    readonly [TName in `${string}?`]?: never
+  }
   readonly query?: Record<NameWithOptionality, Schema>
   readonly headers?: Record<NameWithOptionality, Schema>
   readonly body?: Schema | Record<Mime, Schema>
