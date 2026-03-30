@@ -2,7 +2,7 @@ import type { oas31 } from "openapi3-ts"
 import type { AtLeastOne, AtLeastTwo } from "../lib.ts"
 import type { HttpMethod, MethodRoutes } from "./methods.ts"
 import type { MatchStatus, Op, OpRes, ReqAugmentation, RespAugmentation } from "./operation.ts"
-import type { OpTags, TagRegistry } from "./tags.ts"
+import type { DeclaredTags, OpTags } from "./tags.ts"
 
 export type Mime = `${string}/${string}`
 
@@ -30,26 +30,26 @@ export type ScopeRes<T extends object = ScopeResShape> =
         ? T
         : never
 
-type ScopeOrOp<TTags extends TagRegistry = TagRegistry> =
+type ScopeOrOp<TTags extends DeclaredTags = DeclaredTags> =
   | Op<TTags>
   | Scope<TTags>
 
 type HttpPath = `/${string}`
 
 /** for root level; only {@link HttpPath} keys */
-export type PathRoutes<TTags extends TagRegistry = TagRegistry> = Record<
+export type PathRoutes<TTags extends DeclaredTags = DeclaredTags> = Record<
   HttpPath,
   ScopeOrOp<TTags>
 >
 
-type ScopeRoutes<TTags extends TagRegistry = TagRegistry> = MethodRoutes<TTags> &
+type ScopeRoutes<TTags extends DeclaredTags = DeclaredTags> = MethodRoutes<TTags> &
   Partial<PathRoutes<TTags>>
 
-type ScopeInput<TTags extends TagRegistry = TagRegistry> = {
+type ScopeInput<TTags extends DeclaredTags = DeclaredTags> = {
   forAll?: ScopeOpts<TTags>
 } & ScopeRoutes<TTags>
 
-export interface ScopeOpts<TTags extends TagRegistry = TagRegistry> {
+export interface ScopeOpts<TTags extends DeclaredTags = DeclaredTags> {
   req?: ReqAugmentation
   res?: ScopeRes
   tags?: OpTags<TTags>
@@ -63,7 +63,7 @@ export interface ScopeOpts<TTags extends TagRegistry = TagRegistry> {
  *
  * @compiler
  */
-export interface Scope<TTags extends TagRegistry = TagRegistry> {
+export interface Scope<TTags extends DeclaredTags = DeclaredTags> {
   forAll?: ScopeOpts<TTags>
   routes: ScopeRoutes<TTags>
 }
@@ -127,7 +127,7 @@ export function scope<T extends ScopeInput>(arg: ValidScopeArg<T>): Scope {
   }
 }
 
-export function isScope<TTags extends TagRegistry>(
+export function isScope<TTags extends DeclaredTags>(
   _s: ScopeOrOp<TTags>,
 ): _s is Scope<TTags> {
   throw new Error(

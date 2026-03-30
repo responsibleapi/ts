@@ -31,11 +31,9 @@ export type DeclaredTags<TTags extends TagDeclarations = TagDeclarations> = {
   readonly [K in keyof TTags]: DeclaredTag<Extract<K, string>, TTags[K]>
 }
 
-export type TagRegistry = DeclaredTags
+type DeclaredOpTag<TTags extends DeclaredTags = DeclaredTags> = TTags[keyof TTags]
 
-type DeclaredOpTag<TTags extends TagRegistry = TagRegistry> = TTags[keyof TTags]
-
-export type OpTags<TTags extends TagRegistry = TagRegistry> =
+export type OpTags<TTags extends DeclaredTags = DeclaredTags> =
   readonly DeclaredOpTag<TTags>[]
 
 /**

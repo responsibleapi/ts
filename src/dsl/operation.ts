@@ -5,7 +5,7 @@ import type { Param } from "./params.ts"
 import type { Schema } from "./schema.ts"
 import type { Mime } from "./scope.ts"
 import type { Security } from "./security.ts"
-import type { OpTags, TagRegistry } from "./tags.ts"
+import type { DeclaredTags, OpTags } from "./tags.ts"
 
 /**
  * Path params are always required to build the path,
@@ -61,7 +61,7 @@ export type Resp = Nameable<RespParams>
 
 export type OpRes = Record<number, Resp | Schema>
 
-export interface Op<TTags extends TagRegistry = TagRegistry> {
+export interface Op<TTags extends DeclaredTags = DeclaredTags> {
   id?: string
   req?: OpReq | Schema
   res?: OpRes
@@ -72,7 +72,7 @@ export interface Op<TTags extends TagRegistry = TagRegistry> {
 }
 
 export interface OpGET<
-  TTags extends TagRegistry = TagRegistry,
+  TTags extends DeclaredTags = DeclaredTags,
 > extends Op<TTags> {
   /**
    * id for synthetic HEAD. Only valid for GET ops
@@ -83,7 +83,7 @@ export interface OpGET<
 }
 
 export interface OpWithMethod<
-  TTags extends TagRegistry = TagRegistry,
+  TTags extends DeclaredTags = DeclaredTags,
 > extends Op<TTags> {
   method: HttpMethod
 }
