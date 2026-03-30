@@ -26,7 +26,8 @@
 ## CLI tools
 
 - never call `node`, call `bun` instead
-- never call `bunx`, if a package is missing, ask to add it to `package.json`
+- never call `npx` or `bunx`, if a package is missing, ask to add it to
+  `package.json`
 - never run code formatting unless explicitly asked
 - [never call `vitest`](docs/package.jsonc), `bun test` instead
 - `rg`, `ast-grep`, `jq` are available for calling
