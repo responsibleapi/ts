@@ -28,9 +28,11 @@ export interface ResponsibleApiInput {
   partialDoc: PartialDoc
   forAll: ScopeOpts
   routes: PathRoutes
+
   /**
    * Extra `components.responses` entries. OpenAPI allows unused response
-   * components; this matches hand-authored specs that list a full error catalog.
+   * components; this matches hand-authored specs that list a full error
+   * catalog.
    */
   ensureResponseComponents?: readonly Resp[]
 }
