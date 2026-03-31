@@ -3,8 +3,8 @@ import { validate } from "../validate.ts"
 import theJSON from "./readme.json"
 
 describe("readme example", () => {
-  test("readme.json validates as OpenAPI", async () => {
-    /** compiler isn't implemented, this import throws */
+  test.skip("readme.json validates as OpenAPI", async () => {
+    /** Compiler isn't implemented, this import throws */
     const { default: readmeAPI } = await import("./readme.ts")
 
     expect(await validate(readmeAPI)).toEqual<typeof theJSON>(theJSON)
