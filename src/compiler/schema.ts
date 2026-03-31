@@ -5,14 +5,35 @@ import type { Obj, RawSchema, Schema } from "../dsl/schema.ts"
 type Dict = Extract<RawSchema, { type: "object"; propertyNames: unknown }>
 
 export interface SchemaCompileState {
-  components: { schemas: oas31.SchemasObject }
-  inProgress: { schemas: Set<string> }
+  components: {
+    schemas: oas31.SchemasObject
+    parameters: Record<string, oas31.ParameterObject | oas31.ReferenceObject>
+    securitySchemes: Record<
+      string,
+      oas31.SecuritySchemeObject | oas31.ReferenceObject
+    >
+  }
+  inProgress: {
+    schemas: Set<string>
+    parameters: Set<string>
+    securitySchemes: Set<string>
+  }
+  anonymousSecuritySeq: number
 }
 
 export function createSchemaCompileState(): SchemaCompileState {
   return {
-    components: { schemas: {} },
-    inProgress: { schemas: new Set() },
+    components: {
+      schemas: {},
+      parameters: {},
+      securitySchemes: {},
+    },
+    inProgress: {
+      schemas: new Set(),
+      parameters: new Set(),
+      securitySchemes: new Set(),
+    },
+    anonymousSecuritySeq: 0,
   }
 }
 

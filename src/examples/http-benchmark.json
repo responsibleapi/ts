@@ -82,7 +82,7 @@
                 "schema": {
                   "type": "integer",
                   "format": "int32",
-                  "minimum": "1"
+                  "minimum": 1
                 }
               }
             },
@@ -95,14 +95,14 @@
             }
           },
           "400": {
-            "description": "Bad Request",
+            "description": "400",
             "headers": {
               "Content-Length": {
                 "required": true,
                 "schema": {
                   "type": "integer",
                   "format": "int32",
-                  "minimum": "1"
+                  "minimum": 1
                 }
               }
             },
@@ -112,15 +112,15 @@
                   "type": "object",
                   "propertyNames": {
                     "type": "string",
-                    "minLength": "1"
+                    "minLength": 1
                   },
                   "additionalProperties": {
                     "type": "array",
                     "items": {
                       "type": "string",
-                      "minLength": "1"
+                      "minLength": 1
                     },
-                    "minItems": "1"
+                    "minItems": 1
                   }
                 }
               }
@@ -151,7 +151,7 @@
                 "schema": {
                   "type": "integer",
                   "format": "int32",
-                  "minimum": "1"
+                  "minimum": 1
                 }
               }
             },

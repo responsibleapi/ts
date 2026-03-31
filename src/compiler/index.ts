@@ -1,10 +1,13 @@
 import type { oas31 } from "openapi3-ts"
 import { isOptional } from "../dsl/dsl.ts"
+import { dslPathToOpenApiPath, joinHttpPaths } from "./path.ts"
 import {
-  dslPathToOpenApiPath,
-  joinHttpPaths,
-  openApiPathTemplateNames,
-} from "./path.ts"
+  compileOperationParameters,
+  compileSecurityFromAug,
+  pickSecurity,
+  securityLayerFromScopeReq,
+  stripSecurityFields,
+} from "./request.ts"
 import { decodeNameable, type Nameable } from "../dsl/nameable.ts"
 import type { HttpMethod } from "../dsl/methods.ts"
 import type {
@@ -236,8 +239,8 @@ function mergeReqAugmentations(
     return undefined
   }
 
-  const p = parent ?? {}
-  const c = child ?? {}
+  const p = stripSecurityFields(parent) ?? {}
+  const c = stripSecurityFields(child) ?? {}
   const mergedMime = c.mime ?? p.mime
   const mergedBody = c.body !== undefined ? c.body : p.body
 
@@ -270,8 +273,35 @@ function mergeInheritedReq(
   return mergeReqAugmentations(parent, normalizedChild) ?? {}
 }
 
+function mergedReqAndSecurityForOp(
+  schemaState: SchemaCompileState,
+  ctx: CompileScopeContext,
+  op: RouteMethodOp,
+): {
+  mergedReq: ReqAugmentation
+  securityReqs: oas31.SecurityRequirementObject[]
+} {
+  const raw = op.req
+  const child = normalizeOpReq(raw) ?? {}
+  const mimeFromRaw = readReqMimeRaw(raw)
+  const normalizedChild: ReqAugmentation =
+    mimeFromRaw !== undefined ? { ...child, mime: mimeFromRaw } : child
+
+  const mergedReq = mergeInheritedReq(ctx.mergedReq, op)
+  const opSecurityLayer = pickSecurity(normalizedChild)
+  const securityReqs = [
+    ...ctx.securityLayers.flatMap(layer =>
+      compileSecurityFromAug(schemaState, layer),
+    ),
+    ...compileSecurityFromAug(schemaState, opSecurityLayer),
+  ]
+
+  return { mergedReq, securityReqs }
+}
+
 interface CompileScopeContext {
   mergedReq: ReqAugmentation | undefined
+  securityLayers: Pick<ReqAugmentation, "security" | "security?">[]
   resDefaultsLayers: Partial<Record<MatchStatus, RespAugmentation>>[]
   resAdd: OpRes
   mergedTags: ScopeOpts["tags"]
@@ -281,7 +311,9 @@ function compileScopeContextFromForAll(forAll: ScopeOpts): CompileScopeContext {
   const { defaults, add } = parseScopeRes(forAll.res)
 
   return {
-    mergedReq: forAll.req,
+    mergedReq:
+      forAll.req !== undefined ? stripSecurityFields(forAll.req) : undefined,
+    securityLayers: securityLayerFromScopeReq(forAll.req),
     resDefaultsLayers:
       Object.keys(defaults).length > 0 ? [defaults] : [],
     resAdd: add,
@@ -301,6 +333,10 @@ function mergeCompileScope(
 
   return {
     mergedReq: mergeReqAugmentations(parent.mergedReq, childForAll.req),
+    securityLayers: [
+      ...parent.securityLayers,
+      ...securityLayerFromScopeReq(childForAll.req),
+    ],
     resDefaultsLayers: [
       ...parent.resDefaultsLayers,
       ...(Object.keys(defaults).length > 0 ? [defaults] : []),
@@ -329,12 +365,12 @@ function mergeRespAugmentations(
 }
 
 function normalizeRespEntry(entry: Resp | Schema): RespParams {
-  if (typeof entry !== "object" || entry === null) {
-    throw new Error("Invalid response entry")
-  }
-
   if (isDslSchema(entry)) {
     return { body: entry }
+  }
+
+  if (typeof entry !== "object" || entry === null) {
+    throw new Error("Invalid response entry")
   }
 
   return assertInlineComponent(entry, "response")
@@ -489,56 +525,19 @@ function compileResponses(
   return out
 }
 
-function compilePathParameters(
-  schemaState: SchemaCompileState,
-  mergedReq: ReqAugmentation,
-  oasPath: string,
-): oas31.ParameterObject[] | undefined {
-  const namesInPath = openApiPathTemplateNames(oasPath)
-  const pathParams = mergedReq.pathParams ?? {}
-  const out: oas31.ParameterObject[] = []
-
-  for (const key of Object.keys(pathParams)) {
-    if (isOptional(key)) {
-      throw new Error(`Optional path param key "${key}" is not allowed`)
-    }
-  }
-
-  for (const name of namesInPath) {
-    const sch = pathParams[name]
-
-    if (sch === undefined) {
-      throw new Error(
-        `Missing pathParams schema for "${name}" in path ${oasPath}`,
-      )
-    }
-
-    out.push({
-      name,
-      in: "path",
-      required: true,
-      schema: compileSchema(schemaState, sch),
-    })
-  }
-
-  for (const key of Object.keys(pathParams)) {
-    if (!namesInPath.includes(key)) {
-      throw new Error(`pathParams key "${key}" is not used in path ${oasPath}`)
-    }
-  }
-
-  return out.length > 0 ? out : undefined
-}
-
 function compileDirectOp(
   schemaState: SchemaCompileState,
   op: RouteMethodOp,
   ctx: CompileScopeContext,
   oasPath: string,
 ): oas31.OperationObject {
-  const mergedReq = mergeInheritedReq(ctx.mergedReq, op)
+  const { mergedReq, securityReqs } = mergedReqAndSecurityForOp(
+    schemaState,
+    ctx,
+    op,
+  )
   const requestBody = compileRequestBody(schemaState, mergedReq)
-  const parameters = compilePathParameters(schemaState, mergedReq, oasPath)
+  const parameters = compileOperationParameters(schemaState, mergedReq, oasPath)
   const tagNames =
     op.tags !== undefined
       ? op.tags.map(t => t.name)
@@ -554,6 +553,7 @@ function compileDirectOp(
     ...(tagNames !== undefined && tagNames.length > 0 ? { tags: tagNames } : {}),
     ...(parameters !== undefined ? { parameters } : {}),
     ...(requestBody !== undefined ? { requestBody } : {}),
+    ...(securityReqs.length > 0 ? { security: securityReqs } : {}),
     responses: compileResponses(schemaState, op, ctx),
   }
 }
@@ -656,8 +656,22 @@ export function compileResponsibleAPI(api: ResponsibleAPIInput): oas31.OpenAPIOb
     api.partialDoc
 
   const schemaKeys = Object.keys(schemaState.components.schemas)
+  const paramKeys = Object.keys(schemaState.components.parameters)
+  const secKeys = Object.keys(schemaState.components.securitySchemes)
   const components: oas31.ComponentsObject | undefined =
-    schemaKeys.length > 0 ? { schemas: schemaState.components.schemas } : undefined
+    schemaKeys.length > 0 || paramKeys.length > 0 || secKeys.length > 0
+      ? {
+          ...(schemaKeys.length > 0
+            ? { schemas: schemaState.components.schemas }
+            : {}),
+          ...(paramKeys.length > 0
+            ? { parameters: schemaState.components.parameters }
+            : {}),
+          ...(secKeys.length > 0
+            ? { securitySchemes: schemaState.components.securitySchemes }
+            : {}),
+        }
+      : undefined
 
   return {
     openapi,

@@ -1,50 +1,53 @@
-# Compiler learnings (Story 3: nested scopes, paths, tags)
+# Compiler learnings (through Story 4: request compiler)
 
-## Implemented behavior
+## Story 3 recap (scopes, paths, tags)
 
 - **Recursive walk**: `compileRoutes` visits every path key and method key;
-  nested `scope()` nodes merge `forAll` and recurse into `node.routes` (the
-  object returned by `scope()`, not a user-written `routes:` property inside the
-  argument).
-- **Path join**: `joinHttpPaths(prefix, segment)` normalizes a trailing slash on
-  the prefix and concatenates absolute `HttpPath` segments, so `/v1` plus
-  `/users/:userId` becomes `/v1/users/:userId`.
-- **OpenAPI templates**: DSL `:param` segments are turned into `{param}` for
-  emitted `paths` keys and for parameter name alignment; duplicate
-  `(normalized path, method)` is rejected (for example `/a/:id` and `/a/{id}`
-  map to the same item).
-- **`forAll.req`**: Scope stacks merge like the plan: shallow maps for
-  `pathParams` / `query` / `headers`, `params` concatenated, `mime` and `body`
-  child-preferred; operation merge still uses `normalizeOpReq` and
-  `readReqMimeRaw` on the op.
-- **`forAll.res`**: `res.defaults` from ancestors is kept as an ordered list of
-  layers; for each status, augmentations are folded per layer and combined so
-  inner scopes can add headers or mime without flattening conflicting keys
-  incorrectly. `res.add` maps are shallow-merged with the child winning on the
-  same status code.
-- **Tags**: Nearest `forAll.tags` on the scope stack wins; operation-level
-  `tags` override scope tags. Emitted OpenAPI operation `tags` are the tag
-  objects’ `.name` strings.
-- **Path parameters**: Every `{name}` in the OpenAPI path must have a matching
-  `pathParams` entry after merge; extra `pathParams` keys and optional-style
-  keys (`name?`) are rejected.
+  nested `scope()` nodes merge `forAll` and recurse into `node.routes`.
+- **Path join**: `joinHttpPaths(prefix, segment)`; OpenAPI `{param}` templates;
+  duplicate `(normalized path, method)` is rejected.
+- **`forAll.req` (non-security)**: Shallow merge for `pathParams` / `query` /
+  `headers`, `params` concatenated, `mime` and `body` child-preferred.
+- **`forAll.res`**: `res.defaults` layers and `res.add` shallow merge as before.
+- **Tags**: Nearest scope `forAll.tags`; op `tags` override; emitted names are
+  `.name` strings.
 
-## Deferred / not matching the long-form plan yet
+## Story 4: request compiler
 
-- **`security` / `security?`**: Merging still follows plain object spread in
-  `mergeReqAugmentations` (later scope or op replaces earlier `security` fields
-  rather than appending compiled `SecurityRequirementObject[]` and handling
-  `security?` as in the plan). Story scope was “inheritance except security edge
-  cases,” so this stays a known gap until a dedicated security compile pass
-  exists.
-- **Operation `security`**: Still not emitted on `OperationObject` at all.
-- **Response MIME**: If no `defaults` layer that matches the status supplies
-  `mime`, `compileContent` falls back to `application/octet-stream`; nested
-  golden tests should set `mime` on matching `defaults` when JSON bodies are
-  expected.
+- **`src/compiler/request.ts`**: Path/query/header parameters, named `Param`
+  components (`#/components/parameters/{name}`), and security compilation live
+  here. `compileOperationParameters` merges path template names with
+  `pathParams` plus `params` entries (`in: "path"`), then `params`
+  (`in: "query"`), then `query` and `headers` maps. Duplicate `(in, name)` is
+  rejected.
+- **Path params**: Same rules as before: every `{name}` in the template needs a
+  schema (from `pathParams` or a path `Param` in `params`); optional
+  `pathParams` keys (`name?`) and keys not in the template are errors.
+- **`SchemaCompileState`**: Now carries `components.parameters`,
+  `components.securitySchemes`, matching `inProgress` sets, and
+  `anonymousSecuritySeq` for inline schemes used only as security values.
+- **Security merge** (matches compiler plan): `security` and `security?` are
+  stripped from merged `mergedReq` and tracked as `securityLayers` on
+  `CompileScopeContext`. Each layer compiles to `SecurityRequirementObject[]` in
+  order; `security?` appends `[]` then `{}`. Operation-level security is
+  compiled after all inherited layers. Inline or named `SecuritySchemeObject`
+  values register under `components.securitySchemes` and become
+  `{ schemeName: [] }` requirements.
+- **`normalizeRespEntry`**: Schema thunks (`typeof entry === "function"`) are
+  handled before the object check so `res: { 201: () => object(...) }` style
+  entries compile (needed for examples that use lazy schema functions).
+
+## Deferred / follow-ups
+
+- **`http-benchmark.test.ts`**:
+  `expect(validate(httpBenchmarkAPI)).toEqual(theJSON)` still fails:
+  `http-benchmark.json` mixes string-typed numeric constraints
+  (`"minimum": "1"`, etc.) and a custom `400` description where the compiler
+  emits numeric JSON and default `description` from the status code. Aligning
+  the golden requires regenerating or editing `src/examples/http-benchmark.json`
+  (project docs mark `src/examples/` as do-not-edit for routine work).
 
 ## DSL gotcha
 
 - **`scope({ ... })` shape**: Paths and methods sit next to `forAll` at the top
-  level of the argument. There is no `routes: { ... }` wrapper in valid DSL;
-  that was an easy mistake when writing the first golden test.
+  level of the argument; there is no `routes:` wrapper.
