@@ -1,4 +1,4 @@
-import type { Op, GetOp } from "./operation.ts"
+import type { GetOp, Op, OpWithMethod } from "./operation.ts"
 import type { DeclaredTags } from "./tags.ts"
 
 export type MethodRoutes<TTags extends DeclaredTags = DeclaredTags> = {
@@ -11,28 +11,44 @@ export type MethodRoutes<TTags extends DeclaredTags = DeclaredTags> = {
 
 export type HttpMethod = keyof MethodRoutes
 
-export function GET(_op: GetOp): GetOp {
-  throw new Error("TODO")
+export type GetOpWithMethod<TTags extends DeclaredTags = DeclaredTags> = GetOp<TTags> & {
+  method: "GET"
 }
 
-export function HEAD(_op: Op): Op {
-  throw new Error("TODO")
+export function GET(op: GetOp): GetOpWithMethod {
+  return { ...op, method: "GET" }
 }
 
-export function POST(op: Op): Op
-export function POST(id: string, op: Op): Op
-export function POST(_idOrOp: string | Op, _maybeOp?: Op): Op {
-  throw new Error("TODO")
+export function HEAD(op: Op): OpWithMethod {
+  return { ...op, method: "HEAD" }
 }
 
-export function PUT(op: Op): Op
-export function PUT(id: string, op: Op): Op
-export function PUT(_idOrOp: string | Op, _maybeOp?: Op): Op {
-  throw new Error("TODO")
+export function POST(op: Op): OpWithMethod
+export function POST(id: string, op: Op): OpWithMethod
+export function POST(idOrOp: string | Op, maybeOp?: Op): OpWithMethod {
+  if (typeof idOrOp === "string") {
+    return { ...maybeOp!, method: "POST", id: idOrOp }
+  }
+
+  return { ...idOrOp, method: "POST" }
 }
 
-export function DELETE(op: Op): Op
-export function DELETE(id: string, op: Op): Op
-export function DELETE(_idOrOp: string | Op, _maybeOp?: Op): Op {
-  throw new Error("TODO")
+export function PUT(op: Op): OpWithMethod
+export function PUT(id: string, op: Op): OpWithMethod
+export function PUT(idOrOp: string | Op, maybeOp?: Op): OpWithMethod {
+  if (typeof idOrOp === "string") {
+    return { ...maybeOp!, method: "PUT", id: idOrOp }
+  }
+
+  return { ...idOrOp, method: "PUT" }
+}
+
+export function DELETE(op: Op): OpWithMethod
+export function DELETE(id: string, op: Op): OpWithMethod
+export function DELETE(idOrOp: string | Op, maybeOp?: Op): OpWithMethod {
+  if (typeof idOrOp === "string") {
+    return { ...maybeOp!, method: "DELETE", id: idOrOp }
+  }
+
+  return { ...idOrOp, method: "DELETE" }
 }

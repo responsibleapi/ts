@@ -1,4 +1,5 @@
 import type { oas31 } from "openapi3-ts"
+import { compileResponsibleAPI } from "../compiler/index.ts"
 import type { PathRoutes, ScopeOpts } from "./scope.ts"
 
 export type OptionalKey = `${string}?`
@@ -28,6 +29,6 @@ interface ResponsibleAPI {
   routes: PathRoutes
 }
 
-export function responsibleAPI(_api: ResponsibleAPI): oas31.OpenAPIObject {
-  throw new Error("TODO")
+export function responsibleAPI(api: ResponsibleAPI): oas31.OpenAPIObject {
+  return compileResponsibleAPI(api)
 }

@@ -1,7 +1,14 @@
 import type { oas31 } from "openapi3-ts"
 import type { AtLeastOne, AtLeastTwo } from "../lib.ts"
 import type { HttpMethod, MethodRoutes } from "./methods.ts"
-import type { MatchStatus, Op, OpRes, ReqAugmentation, RespAugmentation } from "./operation.ts"
+import type {
+  MatchStatus,
+  Op,
+  OpBase,
+  OpRes,
+  ReqAugmentation,
+  RespAugmentation,
+} from "./operation.ts"
 import type { DeclaredTags, OpTags } from "./tags.ts"
 
 export type Mime = `${string}/${string}`
@@ -30,11 +37,11 @@ export type ScopeRes<T extends object = ScopeResShape> =
         ? T
         : never
 
-type ScopeOrOp<TTags extends DeclaredTags = DeclaredTags> =
-  | Op<TTags>
+export type ScopeOrOp<TTags extends DeclaredTags = DeclaredTags> =
+  | OpBase<TTags>
   | Scope<TTags>
 
-type HttpPath = `/${string}`
+export type HttpPath = `/${string}`
 
 /** for root level; only {@link HttpPath} keys */
 export type PathRoutes<TTags extends DeclaredTags = DeclaredTags> = Record<
@@ -128,10 +135,15 @@ export function scope<T extends ScopeInput>(arg: ValidScopeArg<T>): Scope {
 }
 
 export function isScope<TTags extends DeclaredTags>(
-  _s: ScopeOrOp<TTags>,
-): _s is Scope<TTags> {
-  throw new Error(
-    "we have not figured out how ScopeOrOp is even constructed to start distinguishing them",
+  s: ScopeOrOp<TTags>,
+): s is Scope<TTags> {
+  return (
+    typeof s === "object" &&
+    s !== null &&
+    "routes" in s &&
+    typeof s.routes === "object" &&
+    s.routes !== null &&
+    !("method" in s)
   )
 }
 

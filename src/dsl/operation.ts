@@ -79,7 +79,7 @@ export type OpRes = Record<number, Resp | Schema>
  * tuple of those tag objects; the default keeps bare `Op` / `GetOp` and the
  * HTTP method helpers type-checkable without an explicit type argument.
  */
-interface OpBase<TTags extends DeclaredTags = DeclaredTags> {
+export interface OpBase<TTags extends DeclaredTags = DeclaredTags> {
   id?: string
   res?: OpRes
   deprecated?: boolean
@@ -112,6 +112,16 @@ export interface OpWithMethod<
 > extends Op<TTags> {
   method: HttpMethod
 }
+
+/**
+ * Any operation node produced by HTTP method helpers at runtime (includes
+ * {@link OpWithMethod} and GET’s {@link GetOp} + `method` shape).
+ *
+ * @compiler
+ */
+export type RouteMethodOp<TTags extends DeclaredTags = DeclaredTags> =
+  | OpWithMethod<TTags>
+  | (GetOp<TTags> & { method: "GET" })
 
 /** This exists mostly to distinguish {@link Schema} from {@link Resp} */
 export const resp = (param: RespParams): RespParams => param
