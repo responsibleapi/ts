@@ -8,8 +8,8 @@ import type { Security } from "./security.ts"
 import type { DeclaredTags, OpTags } from "./tags.ts"
 
 /**
- * Path params are always required to build the path,
- * so names with the "?" suffix are rejected by forcing those keys to `never`
+ * Path params are always required to build the path, so names with the "?"
+ * suffix are rejected by forcing those keys to `never`
  *
  * @dsl
  */
@@ -27,10 +27,10 @@ export interface GetOpReq {
   readonly headers?: Record<NameWithOptionality, Schema>
 
   /**
-   * The dedicated reuse mechanism for OpenAPI parameters.
-   * Keep one-off params inline in {@link pathParams}, {@link query}, or
-   * {@link headers}. When a param is shared across operations or scopes,
-   * declare it here instead of reusing parameter maps via object spreading.
+   * The dedicated reuse mechanism for OpenAPI parameters. Keep one-off params
+   * inline in {@link pathParams}, {@link query}, or {@link headers}. When a param
+   * is shared across operations or scopes, declare it here instead of reusing
+   * parameter maps via object spreading.
    *
    * @dsl
    */
@@ -57,8 +57,8 @@ export interface RespParams {
   body?: Schema | Record<Mime, Schema>
 
   /**
-   * even though `oas31.ResponseObject.description` is required,
-   * we don't require it. The compiler will add the status number there
+   * Even though `oas31.ResponseObject.description` is required, we don't
+   * require it. The compiler will add the status number there
    *
    * @compiler
    */
@@ -75,9 +75,9 @@ export type OpRes = Record<number, Resp | Schema>
 /**
  * Shared fields for {@link GetOp} and {@link Op}.
  *
- * `TTags` is a {@link DeclaredTags} registry (from `declareTags`) so `tags` is a tuple of
- * those tag objects; the default keeps bare `Op` / `GetOp` and the HTTP method
- * helpers type-checkable without an explicit type argument.
+ * `TTags` is a {@link DeclaredTags} registry (from `declareTags`) so `tags` is a
+ * tuple of those tag objects; the default keeps bare `Op` / `GetOp` and the
+ * HTTP method helpers type-checkable without an explicit type argument.
  */
 interface OpBase<TTags extends DeclaredTags = DeclaredTags> {
   id?: string
@@ -100,7 +100,7 @@ export interface GetOp<
   req?: GetOpReq
 
   /**
-   * id for synthetic HEAD. Only valid for GET ops
+   * Id for synthetic HEAD. Only valid for GET ops
    *
    * @dsl
    */
@@ -113,5 +113,5 @@ export interface OpWithMethod<
   method: HttpMethod
 }
 
-/** this exists mostly to distinguish {@link Schema} from {@link Resp} */
+/** This exists mostly to distinguish {@link Schema} from {@link Resp} */
 export const resp = (param: RespParams): RespParams => param

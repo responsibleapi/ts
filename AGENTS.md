@@ -70,8 +70,8 @@ Use `ast-grep` for:
 
 ## DSL design
 
-- NEVER EDIT declarations with `@dsl` in JSDoc. If you need to change them, ASK
-  FIRST
+- NEVER EDIT types/signatures marked with `@dsl`. If you need to change them,
+  ASK FIRST
 - full DSL documentation is spread out in `@dsl` tagged JSDocs, you can concat
   them to get the whole picture
 

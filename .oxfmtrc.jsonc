@@ -5,7 +5,14 @@
   "semi": false,
   "trailingComma": "all",
   "printWidth": 80,
-
+  /**
+   * JSDoc formatting applies to TypeScript/JavaScript only (wrap to
+   * printWidth, tag layout). Oxfmt does not reflow `/**` blocks in JSONC—keep
+   * lines within printWidth here by breaking them yourself.
+   */
+  "jsdoc": {
+    "lineWrappingStyle": "greedy"
+  },
   /**
    * Closest built-in replacement for prettier-plugin-organize-imports.
    * Oxfmt sorts imports and specifiers, but it does not remove unused imports.
@@ -14,7 +21,6 @@
     "newlinesBetween": false,
     "partitionByNewline": true
   },
-
   /**
    * Closest built-in replacement for prettier-plugin-packagejson.
    * Oxfmt's package.json ordering is opinionated, not byte-for-byte identical.
@@ -22,7 +28,6 @@
   "sortPackageJson": {
     "sortScripts": true
   },
-
   "overrides": [
     {
       "files": ["*.jsonc"],
