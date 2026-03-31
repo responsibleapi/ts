@@ -2,12 +2,8 @@ import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, POST } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"
 import { resp } from "../dsl/operation.ts"
-import {
-  headerParam,
-  pathParam,
-  queryParam,
-  responseHeader,
-} from "../dsl/params.ts"
+import { headerParam, pathParam, queryParam } from "../dsl/params.ts"
+import { responseHeader } from "../dsl/response-headers.ts"
 import {
   allOf,
   array,

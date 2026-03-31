@@ -29,27 +29,10 @@ export interface HeaderParamRaw extends ParamBase {
   explode?: boolean
 }
 
-export interface HeaderRaw {
-  description?: string
-  schema: Schema
-  required?: boolean
-  deprecated?: boolean
-  example?: unknown
-}
-
 export type ParamRaw = QueryParamRaw | PathParamRaw | HeaderParamRaw
 
 /** @dsl */
 export type ReusableParam = Nameable<ParamRaw>
-
-/**
- * Reusable response header under `components.headers` when passed as a
- * {@link Nameable} thunk in
- * {@link import("./operation.ts").RespParams.headerParams}.
- *
- * @dsl
- */
-export type ReusableHeader = Nameable<HeaderRaw>
 
 export const queryParam = (r: Omit<QueryParamRaw, "in">): QueryParamRaw => ({
   ...r,
@@ -65,5 +48,3 @@ export const headerParam = (r: Omit<HeaderParamRaw, "in">): HeaderParamRaw => ({
   ...r,
   in: "header",
 })
-
-export const responseHeader = (r: HeaderRaw): HeaderRaw => ({ ...r })

@@ -15,7 +15,7 @@ import type {
   RespParams,
   RouteMethodOp,
 } from "../dsl/operation.ts"
-import type { HeaderRaw, ReusableHeader } from "../dsl/params.ts"
+import type { HeaderRaw, ReusableHeader } from "../dsl/response-headers.ts"
 import type { RawSchema, Schema } from "../dsl/schema.ts"
 import type { HttpPath, Mime, ScopeOpts, ScopeRes } from "../dsl/scope.ts"
 import { isScope } from "../dsl/scope.ts"
