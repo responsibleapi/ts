@@ -2,6 +2,9 @@ import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, HEAD } from "../dsl/methods.ts"
+import { named } from "../dsl/nameable.ts"
+import { resp } from "../dsl/operation.ts"
+import { responseHeader } from "../dsl/response-headers.ts"
 import { int32, object, string, unknown } from "../dsl/schema.ts"
 import { scope } from "../dsl/scope.ts"
 import { validate } from "../validate.ts"
@@ -273,6 +276,156 @@ describe("compiler response defaults and HEAD", () => {
         },
       }),
     ).toThrow(/multiple cookies/)
+  })
+})
+
+describe("reusable response headers", () => {
+  const traceHeader = named(
+    "trace-id",
+    responseHeader({
+      description: "Correlation id",
+      schema: string(),
+      required: true,
+    }),
+  )
+
+  test("headers map emits components.headers and $ref on the response", async () => {
+    const rapi = responsibleAPI({
+      partialDoc: {
+        openapi: "3.1.0",
+        info: { title: "Reused response header", version: "1" },
+      },
+      forAll: { res: { mime: "application/json" } },
+      routes: {
+        "/x": GET({
+          res: {
+            200: resp({
+              description: "ok",
+              headers: { "X-Trace-Id": traceHeader },
+              body: object({ ok: string() }),
+            }),
+          },
+        }),
+      },
+    })
+
+    expect(await validate(rapi)).toEqual(rapi)
+
+    expect(rapi.components?.headers?.["trace-id"]).toEqual({
+      description: "Correlation id",
+      required: true,
+      schema: { type: "string" },
+    })
+
+    expect(rapi.paths?.["/x"]?.get?.responses?.["200"]?.headers?.["X-Trace-Id"]).toEqual({
+      $ref: "#/components/headers/trace-id",
+    })
+  })
+
+  test("headerParams expands to response header keys (including Link casing)", async () => {
+    const link = named(
+      "link",
+      responseHeader({
+        description: "Pagination link relation",
+        schema: string(),
+      }),
+    )
+    const total = named(
+      "x-total-count",
+      responseHeader({
+        description: "Total hits",
+        schema: string(),
+      }),
+    )
+
+    const rapi = responsibleAPI({
+      partialDoc: {
+        openapi: "3.1.0",
+        info: { title: "headerParams", version: "1" },
+      },
+      forAll: { res: { mime: "application/json" } },
+      routes: {
+        "/p": GET({
+          res: {
+            200: resp({
+              description: "page",
+              headerParams: [link, total] as const,
+              body: object({ items: object({}) }),
+            }),
+          },
+        }),
+      },
+    })
+
+    expect(await validate(rapi)).toEqual(rapi)
+
+    expect(rapi.paths?.["/p"]?.get?.responses?.["200"]?.headers).toEqual({
+      Link: { $ref: "#/components/headers/link" },
+      "x-total-count": { $ref: "#/components/headers/x-total-count" },
+    })
+  })
+
+  test("the same named header thunk reused across routes shares one component", async () => {
+    const rapi = responsibleAPI({
+      partialDoc: {
+        openapi: "3.1.0",
+        info: { title: "Shared header component", version: "1" },
+      },
+      forAll: { res: { mime: "application/json" } },
+      routes: {
+        "/a": GET({
+          res: {
+            200: resp({
+              headers: { "X-Trace-Id": traceHeader },
+              body: object({ a: string() }),
+            }),
+          },
+        }),
+        "/b": GET({
+          res: {
+            200: resp({
+              headers: { "X-Trace-Id": traceHeader },
+              body: object({ b: string() }),
+            }),
+          },
+        }),
+      },
+    })
+
+    expect(await validate(rapi)).toEqual(rapi)
+
+    expect(Object.keys(rapi.components?.headers ?? {})).toEqual(["trace-id"])
+    expect(rapi.paths?.["/a"]?.get?.responses?.["200"]?.headers?.["X-Trace-Id"]).toEqual({
+      $ref: "#/components/headers/trace-id",
+    })
+    expect(rapi.paths?.["/b"]?.get?.responses?.["200"]?.headers?.["X-Trace-Id"]).toEqual({
+      $ref: "#/components/headers/trace-id",
+    })
+  })
+
+  test("rejects the same components.headers name with a different header definition", () => {
+    const h1 = named("x", responseHeader({ schema: string() }))
+    const h2 = named("x", responseHeader({ schema: int32() }))
+
+    expect(() =>
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.1.0",
+          info: { title: "Header clash", version: "1" },
+        },
+        forAll: { res: { mime: "application/json" } },
+        routes: {
+          "/c": GET({
+            res: {
+              200: resp({
+                headers: { A: h1, B: h2 },
+                body: object({ ok: string() }),
+              }),
+            },
+          }),
+        },
+      }),
+    ).toThrow(/components\.headers: name "x" is already used/)
   })
 })
 

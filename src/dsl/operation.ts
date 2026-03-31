@@ -48,7 +48,7 @@ export interface ReqAugmentation extends OpReq {
 
 export interface RespAugmentation {
   readonly mime?: Mime
-  readonly headers?: Record<NameWithOptionality, Schema>
+  readonly headers?: Record<NameWithOptionality, Schema | ReusableHeader>
 
   /**
    * Reusable response headers follow the same array-first composition pattern
@@ -79,7 +79,7 @@ export interface RespParams {
    */
   description?: string
 
-  headers?: Record<NameWithOptionality, Schema>
+  headers?: Record<NameWithOptionality, Schema | ReusableHeader>
   /**
    * Reusable response headers follow the same array-first composition pattern
    * as {@link GetOpReq.params}. We intentionally do not introduce a dedicated

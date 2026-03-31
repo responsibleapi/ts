@@ -78,11 +78,13 @@ function foldAugmentations(
 
     const headers = { ...acc.headers, ...aug.headers }
     const cookies = { ...acc.cookies, ...aug.cookies }
+    const headerParams = [...(acc.headerParams ?? []), ...(aug.headerParams ?? [])]
     const mergedMime = aug.mime ?? acc.mime
 
     acc = {
       ...(mergedMime !== undefined ? { mime: mergedMime } : {}),
       ...(Object.keys(headers).length > 0 ? { headers } : {}),
+      ...(headerParams.length > 0 ? { headerParams } : {}),
       ...(Object.keys(cookies).length > 0 ? { cookies } : {}),
     }
   }
@@ -376,11 +378,13 @@ function mergeRespAugmentations(
 ): RespAugmentation {
   const headers = { ...a.headers, ...b.headers }
   const cookies = { ...a.cookies, ...b.cookies }
+  const headerParams = [...(a.headerParams ?? []), ...(b.headerParams ?? [])]
   const mime = b.mime ?? a.mime
 
   return {
     ...(mime !== undefined ? { mime } : {}),
     ...(Object.keys(headers).length > 0 ? { headers } : {}),
+    ...(headerParams.length > 0 ? { headerParams } : {}),
     ...(Object.keys(cookies).length > 0 ? { cookies } : {}),
   }
 }
@@ -405,6 +409,56 @@ function escapeRegExp(s: string): string {
 
 function headerComponentRef(name: string): oas31.ReferenceObject {
   return { $ref: `#/components/headers/${name}` }
+}
+
+/**
+ * HTTP header field names are case-insensitive; OpenAPI keys are often written
+ * in conventional casing (e.g. `Link` for RFC 8288).
+ */
+function responseHeaderInstanceKey(componentName: string): string {
+  return componentName === "link" ? "Link" : componentName
+}
+
+function expandHeaderParamsToMap(
+  headerParams: readonly ReusableHeader[] | undefined,
+): Record<string, Schema | ReusableHeader> | undefined {
+  if (headerParams === undefined || headerParams.length === 0) {
+    return undefined
+  }
+
+  const out: Record<string, Schema | ReusableHeader> = {}
+
+  for (const h of headerParams) {
+    const { name } = decodeNameable(h as Nameable<HeaderRaw>)
+
+    if (name === undefined || name === "") {
+      throw new Error(
+        "headerParams entries must be named(..., responseHeader({...})) with a non-empty name.",
+      )
+    }
+
+    out[responseHeaderInstanceKey(name)] = h
+  }
+
+  return out
+}
+
+function mergeHeadersAndHeaderParams(
+  headers: Record<string, Schema | ReusableHeader> | undefined,
+  headerParams: readonly ReusableHeader[] | undefined,
+): Record<string, Schema | ReusableHeader> | undefined {
+  const fromParams = expandHeaderParamsToMap(headerParams)
+  const headerKeys =
+    headers !== undefined ? Object.keys(headers) : ([] as string[])
+
+  if (fromParams === undefined && headerKeys.length === 0) {
+    return undefined
+  }
+
+  return {
+    ...(fromParams ?? {}),
+    ...(headers ?? {}),
+  }
 }
 
 function isHeaderRaw(value: unknown): value is HeaderRaw {
@@ -676,8 +730,16 @@ function compileResponses(
     const concrete = normalizeRespEntry(raw)
     const mime = aug.mime ?? undefined
 
-    const hAug = compileHeaderMap(schemaState, aug.headers) ?? {}
-    const hCon = compileHeaderMap(schemaState, concrete.headers) ?? {}
+    const hAug =
+      compileHeaderMap(
+        schemaState,
+        mergeHeadersAndHeaderParams(aug.headers, aug.headerParams),
+      ) ?? {}
+    const hCon =
+      compileHeaderMap(
+        schemaState,
+        mergeHeadersAndHeaderParams(concrete.headers, concrete.headerParams),
+      ) ?? {}
     const mergedCookies: Record<string, Schema> = {
       ...(aug.cookies ?? {}),
       ...(concrete.cookies ?? {}),
