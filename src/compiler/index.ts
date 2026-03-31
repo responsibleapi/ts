@@ -122,7 +122,9 @@ function assertInlineComponent<T>(n: Nameable<T>, kind: string): T {
   const { name, value } = decodeNameable(n)
 
   if (name !== undefined && name !== "") {
-    throw new Error(`Named ${kind} "${name}" is not supported yet`)
+    throw new Error(
+      `Named ${kind} components are not supported yet (got name "${name}").`,
+    )
   }
 
   return value
@@ -240,7 +242,9 @@ function normalizeOpReq(
     return req
   }
 
-  throw new Error("Invalid request shape")
+  throw new Error(
+    "Invalid request: expected a request object with body/pathParams/query/headers/params/security fields, or a bare body schema.",
+  )
 }
 
 function mergeReqAugmentations(
@@ -385,10 +389,16 @@ function normalizeRespEntry(entry: Resp | Schema): RespParams {
   }
 
   if (typeof entry !== "object" || entry === null) {
-    throw new Error("Invalid response entry")
+    throw new Error(
+      "Invalid response entry: expected a response object or a bare body schema.",
+    )
   }
 
   return assertInlineComponent(entry, "response")
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
 function compileHeaderMap(
@@ -422,37 +432,34 @@ function compileSetCookieHeaders(
     return {}
   }
 
-  const out: oas31.HeadersObject = {}
+  const entries = Object.entries(cookies)
 
-  for (const [rawName, sch] of Object.entries(cookies)) {
-    const name = isOptional(rawName) ? rawName.slice(0, -1) : rawName
-    const required = !isOptional(rawName)
-    const compiled = compileSchema(schemaState, sch)
-    let headerSchema: oas31.SchemaObject | oas31.ReferenceObject = compiled
-
-    if (
-      name === "token" &&
-      typeof compiled === "object" &&
-      compiled !== null &&
-      !("$ref" in compiled) &&
-      compiled.type === "string" &&
-      "minLength" in compiled &&
-      Object.keys(compiled).every(k =>
-        ["type", "minLength", "format", "description", "deprecated"].includes(
-          k,
-        ),
-      )
-    ) {
-      headerSchema = { type: "string", pattern: "token=[^;]+" }
-    }
-
-    out["set-cookie"] = {
-      required,
-      schema: headerSchema,
-    }
+  if (entries.length > 1) {
+    const names = entries.map(([raw]) =>
+      isOptional(raw) ? raw.slice(0, -1) : raw,
+    )
+    throw new Error(
+      `This response declares multiple cookies (${names.join(", ")}); only one Set-Cookie header is modeled per response.`,
+    )
   }
 
-  return out
+  const [rawName, sch] = entries[0]!
+  const name = isOptional(rawName) ? rawName.slice(0, -1) : rawName
+  const required = !isOptional(rawName)
+
+  compileSchema(schemaState, sch)
+
+  const pattern = `${escapeRegExp(name)}=[^;]+`
+
+  return {
+    "set-cookie": {
+      required,
+      schema: {
+        type: "string",
+        pattern,
+      },
+    },
+  }
 }
 
 function isEmptyInlineSchema(
@@ -548,7 +555,9 @@ function concreteResponse(
   const fromAdd = add[code]
 
   if (fromAdd === undefined) {
-    throw new Error(`Missing response for status ${code}`)
+    throw new Error(
+      `Missing response for HTTP status ${code}: declare it on the operation or under forAll.res.add.`,
+    )
   }
 
   return fromAdd
@@ -583,13 +592,15 @@ function compileResponses(
 
     const hAug = compileHeaderMap(schemaState, aug.headers) ?? {}
     const hCon = compileHeaderMap(schemaState, concrete.headers) ?? {}
-    const cookieAug = compileSetCookieHeaders(schemaState, aug.cookies)
-    const cookieCon = compileSetCookieHeaders(schemaState, concrete.cookies)
+    const mergedCookies: Record<string, Schema> = {
+      ...(aug.cookies ?? {}),
+      ...(concrete.cookies ?? {}),
+    }
+    const cookieHeaders = compileSetCookieHeaders(schemaState, mergedCookies)
     const headers: oas31.HeadersObject = {
       ...hAug,
       ...hCon,
-      ...cookieAug,
-      ...cookieCon,
+      ...cookieHeaders,
     }
     const headerObj = Object.keys(headers).length > 0 ? headers : undefined
 
@@ -732,7 +743,9 @@ function placeOperation(
   const existing = paths[oasPath]
 
   if (existing !== undefined && oasMethod in existing) {
-    throw new Error(`Duplicate operation for ${op.method} ${oasPath}`)
+    throw new Error(
+      `Duplicate operation: ${op.method} ${oasPath} is already defined for this path.`,
+    )
   }
 
   const pathItem: oas31.PathItemObject = {
@@ -770,7 +783,9 @@ function compileRoutes(
     }
 
     if (!isRecord(node)) {
-      throw new Error(`Invalid route value for key "${routeKey}"`)
+      throw new Error(
+        `Invalid route value for key "${routeKey}": expected a scope or an operation object.`,
+      )
     }
 
     if (isHttpMethod(routeKey)) {
@@ -791,7 +806,9 @@ function compileRoutes(
     }
 
     if (!isHttpPath(routeKey)) {
-      throw new Error(`Invalid route key "${routeKey}"`)
+      throw new Error(
+        `Invalid route key "${routeKey}": expected a path starting with "/" or an HTTP method nested under a path.`,
+      )
     }
 
     const fullDslPath = joinHttpPaths(pathPrefix, routeKey)
@@ -819,7 +836,9 @@ export function compileResponsibleAPI(
     api.partialDoc.openapi === undefined ||
     api.partialDoc.info === undefined
   ) {
-    throw new Error("partialDoc must include openapi and info")
+    throw new Error(
+      "partialDoc must include both `openapi` and `info` (top-level OpenAPI fields).",
+    )
   }
 
   const schemaState = createSchemaCompileState()

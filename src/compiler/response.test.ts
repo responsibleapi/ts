@@ -194,5 +194,85 @@ describe("compiler response defaults and HEAD", () => {
 
     expect(paths["/p"]?.head?.operationId).toEqual("explicitHead")
   })
+
+  test("Set-Cookie header schema uses name=[^;]+ pattern", async () => {
+    const rapi = responsibleAPI({
+      partialDoc: {
+        openapi: "3.1.0",
+        info: { title: "Cookie pattern", version: "1" },
+      },
+      forAll: { req: { mime: "application/json" } },
+      routes: {
+        "/c": GET({
+          res: {
+            200: {
+              description: "ok",
+              cookies: { sid: string({ minLength: 1 }) },
+            },
+          },
+        }),
+      },
+    })
+
+    expect(await validate(rapi)).toEqual(rapi)
+
+    expect(rapi.paths?.["/c"]?.get?.responses?.["200"]?.headers?.["set-cookie"]).toEqual(
+      {
+        required: true,
+        schema: { type: "string", pattern: "sid=[^;]+" },
+      },
+    )
+  })
+
+  test("rejects multiple cookies on one response", () => {
+    expect(() =>
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.1.0",
+          info: { title: "Multi cookie", version: "1" },
+        },
+        forAll: { req: { mime: "application/json" } },
+        routes: {
+          "/c": GET({
+            res: {
+              200: {
+                cookies: { a: string(), b: string() },
+              },
+            },
+          }),
+        },
+      }),
+    ).toThrow(/multiple cookies/)
+  })
+
+  test("rejects multiple cookies after merging defaults and response", () => {
+    expect(() =>
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.1.0",
+          info: { title: "Merged cookies", version: "1" },
+        },
+        forAll: {
+          req: { mime: "application/json" },
+          res: {
+            defaults: {
+              "200": { cookies: { a: string() } },
+            },
+          },
+        },
+        routes: {
+          "/c": GET({
+            res: {
+              200: {
+                description: "x",
+                cookies: { b: string() },
+                body: object({ ok: string() }),
+              },
+            },
+          }),
+        },
+      }),
+    ).toThrow(/multiple cookies/)
+  })
 })
 

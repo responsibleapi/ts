@@ -7,7 +7,7 @@ import { named } from "../dsl/nameable.ts"
 import type { Op } from "../dsl/operation.ts"
 import type { PathRoutes } from "../dsl/scope.ts"
 import { queryParam } from "../dsl/params.ts"
-import { object, string } from "../dsl/schema.ts"
+import { int32, object, string } from "../dsl/schema.ts"
 import { headerSecurity, httpSecurity } from "../dsl/security.ts"
 import { scope } from "../dsl/scope.ts"
 
@@ -182,7 +182,7 @@ describe("compiler request", () => {
           },
         } as PathRoutes,
       }),
-    ).toThrow(/Optional path param key/)
+    ).toThrow(/Optional path parameter key/)
   })
 
   test("rejects pathParams key not present in path template", () => {
@@ -200,7 +200,7 @@ describe("compiler request", () => {
           }),
         },
       }),
-    ).toThrow(/not used in path/)
+    ).toThrow(/does not appear in path template/)
   })
 
   test("rejects missing path param schema", () => {
@@ -218,7 +218,7 @@ describe("compiler request", () => {
           }),
         },
       }),
-    ).toThrow(/Missing pathParams schema/)
+    ).toThrow(/Missing schema for path parameter/)
   })
 
   test("rejects duplicate query param from params array and query map", () => {
@@ -245,6 +245,54 @@ describe("compiler request", () => {
         },
       }),
     ).toThrow(/Duplicate query parameter/)
+  })
+
+  test("rejects conflicting reuse of components.parameters name", () => {
+    const A = named(
+      "dupParam",
+      queryParam({ name: "alpha_token", schema: string() }),
+    )
+    const B = named(
+      "dupParam",
+      queryParam({ name: "beta_token", schema: int32() }),
+    )
+
+    expect(() =>
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.1.0",
+          info: { title: "t", version: "1" },
+        },
+        forAll: { req: { mime: "application/json" } },
+        routes: {
+          "/a": GET({
+            req: { params: [A, B] },
+            res: { 200: object({}) },
+          }),
+        },
+      }),
+    ).toThrow(/components\.parameters: name "dupParam"/)
+  })
+
+  test("rejects conflicting reuse of components.securitySchemes name", () => {
+    const A = named("auth", httpSecurity({ scheme: "bearer" }))
+    const B = named("auth", httpSecurity({ scheme: "basic" }))
+
+    expect(() =>
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.1.0",
+          info: { title: "t", version: "1" },
+        },
+        forAll: { req: { mime: "application/json", security: A } },
+        routes: {
+          "/x": GET({
+            req: { security: B },
+            res: { 200: object({}) },
+          }),
+        },
+      }),
+    ).toThrow(/components\.securitySchemes: name "auth"/)
   })
 
   test("appends security requirements per scope and operation", async () => {

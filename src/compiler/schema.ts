@@ -1,5 +1,6 @@
 import type { oas31 } from "openapi3-ts"
 import { decodeNameable } from "../dsl/nameable.ts"
+import { deepEqualJson } from "./json-equal.ts"
 import type { Obj, RawSchema, Schema } from "../dsl/schema.ts"
 
 type Dict = Extract<RawSchema, { type: "object"; propertyNames: unknown }>
@@ -148,6 +149,43 @@ export function compileSchema(
   }
 
   if (state.components.schemas[name] !== undefined) {
+    const existing = state.components.schemas[name]
+    const schemaKeysBefore = new Set(Object.keys(state.components.schemas))
+    const paramKeysBefore = new Set(Object.keys(state.components.parameters))
+    const secKeysBefore = new Set(Object.keys(state.components.securitySchemes))
+
+    let candidate: EmittedSchema
+
+    try {
+      candidate = compileRawSchema(state, value, {
+        preserveIntNumDescription: true,
+      })
+    } finally {
+      for (const k of Object.keys(state.components.schemas)) {
+        if (!schemaKeysBefore.has(k)) {
+          delete state.components.schemas[k]
+        }
+      }
+
+      for (const k of Object.keys(state.components.parameters)) {
+        if (!paramKeysBefore.has(k)) {
+          delete state.components.parameters[k]
+        }
+      }
+
+      for (const k of Object.keys(state.components.securitySchemes)) {
+        if (!secKeysBefore.has(k)) {
+          delete state.components.securitySchemes[k]
+        }
+      }
+    }
+
+    if (!deepEqualJson(existing, candidate)) {
+      throw new Error(
+        `components.schemas: name "${name}" is already used by a different schema definition`,
+      )
+    }
+
     return schemaRef(name)
   }
 

@@ -156,4 +156,25 @@ describe("compiler schema", () => {
     })
     expect(Object.keys(doc.components?.schemas ?? {})).toEqual(["Shared"])
   })
+
+  test("rejects conflicting reuse of components.schemas name", () => {
+    const A = named("Dup", object({ x: int32() }))
+    const B = named("Dup", object({ y: string() }))
+
+    expect(() =>
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.1.0",
+          info: { title: "t", version: "1" },
+        },
+        forAll: { req: { mime: "application/json" } },
+        routes: {
+          "/a": POST({
+            req: object({ u: A, v: B }),
+            res: { 200: object({}) },
+          }),
+        },
+      }),
+    ).toThrow(/components\.schemas: name "Dup"/)
+  })
 })

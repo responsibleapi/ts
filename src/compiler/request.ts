@@ -6,6 +6,7 @@ import type { ReqAugmentation } from "../dsl/operation.ts"
 import type { Param, ParamRaw } from "../dsl/params.ts"
 import type { Security } from "../dsl/security.ts"
 import type { Schema } from "../dsl/schema.ts"
+import { deepEqualJson } from "./json-equal.ts"
 import { openApiPathTemplateNames } from "./path.ts"
 import { compileSchema, type SchemaCompileState } from "./schema.ts"
 
@@ -106,7 +107,15 @@ function compileSecurityScheme(
   const { name, value } = decodeNameable(scheme)
 
   if (name !== undefined && name !== "") {
-    if (state.components.securitySchemes[name] !== undefined) {
+    const existingScheme = state.components.securitySchemes[name]
+
+    if (existingScheme !== undefined) {
+      if (!deepEqualJson(existingScheme, value)) {
+        throw new Error(
+          `components.securitySchemes: name "${name}" is already used by a different security scheme`,
+        )
+      }
+
       return name
     }
 
@@ -139,7 +148,9 @@ function compileSecurityInput(
   if (Array.isArray(sec)) {
     return sec.map(item => {
       if (!isSecurityRequirementObject(item)) {
-        throw new Error("Invalid entry in security requirement array")
+        throw new Error(
+          "Security array entries must be OpenAPI security requirement objects (each key is a scheme name, each value is a scope list).",
+        )
       }
 
       return item
@@ -164,7 +175,9 @@ function compileSecurityInput(
     }
   }
 
-  throw new Error("Invalid security value")
+  throw new Error(
+    "Invalid security value: expected a requirement array, a requirement object, a SecuritySchemeObject, or a named security scheme thunk.",
+  )
 }
 
 export function compileSecurityFromAug(
@@ -192,11 +205,11 @@ function paramRawToParameterObject(
   const paramName = raw.name ?? hintName
 
   if (paramName === undefined || paramName === "") {
-    throw new Error("Parameter is missing a name")
+    throw new Error("Parameter has no name; set `name` on the parameter or use a named parameter thunk.")
   }
 
   if (raw.schema === undefined) {
-    throw new Error(`Parameter "${paramName}" is missing a schema`)
+    throw new Error(`Parameter "${paramName}" has no schema.`)
   }
 
   const schema = compileSchema(state, raw.schema)
@@ -237,7 +250,15 @@ export function compileParamComponent(
     return obj
   }
 
-  if (state.components.parameters[resolvedName] !== undefined) {
+  const existingParam = state.components.parameters[resolvedName]
+
+  if (existingParam !== undefined) {
+    if (!deepEqualJson(existingParam, obj)) {
+      throw new Error(
+        `components.parameters: name "${resolvedName}" is already used by a different parameter`,
+      )
+    }
+
     return parameterRef(resolvedName)
   }
 
@@ -289,15 +310,15 @@ function resolvePathParamSchemas(
     const paramName = v.name ?? thunkName
 
     if (paramName === undefined || paramName === "") {
-      throw new Error("Path param in params array must have a name")
+      throw new Error("Path parameter in `params` must declare `name`.")
     }
 
     if (pathParams[paramName] !== undefined) {
-      throw new Error(`Duplicate path param "${paramName}"`)
+      throw new Error(`Duplicate path parameter "${paramName}" in \`params\`.`)
     }
 
     if (v.schema === undefined) {
-      throw new Error(`Path param "${paramName}" is missing a schema`)
+      throw new Error(`Path parameter "${paramName}" in \`params\` has no schema.`)
     }
 
     pathParams[paramName] = v.schema
@@ -305,19 +326,25 @@ function resolvePathParamSchemas(
 
   for (const key of Object.keys(pathParams)) {
     if (isOptional(key)) {
-      throw new Error(`Optional path param key "${key}" is not allowed`)
+      throw new Error(
+        `Optional path parameter key "${key}" is not allowed; path parameters are always required.`,
+      )
     }
   }
 
   for (const name of namesInPath) {
     if (pathParams[name] === undefined) {
-      throw new Error(`Missing pathParams schema for "${name}" in path ${oasPath}`)
+      throw new Error(
+        `Missing schema for path parameter "{${name}}" in path "${oasPath}" (check pathParams or path \`params\`).`,
+      )
     }
   }
 
   for (const key of Object.keys(pathParams)) {
     if (!namesInPath.includes(key)) {
-      throw new Error(`pathParams key "${key}" is not used in path ${oasPath}`)
+      throw new Error(
+        `pathParams key "${key}" does not appear in path template "${oasPath}".`,
+      )
     }
   }
 
@@ -342,7 +369,7 @@ export function compileOperationParameters(
     const slot = paramSlotKey("path", name)
 
     if (seen.has(slot)) {
-      throw new Error(`Duplicate path parameter "${name}"`)
+      throw new Error(`Duplicate path parameter "${name}" for path "${oasPath}".`)
     }
 
     seen.add(slot)
@@ -365,13 +392,13 @@ export function compileOperationParameters(
       const paramName = v.name ?? thunkName
 
       if (paramName === undefined || paramName === "") {
-        throw new Error("Query param in params array must have a name")
+        throw new Error("Query parameter in `params` must declare `name`.")
       }
 
       const slot = paramSlotKey("query", paramName)
 
       if (seen.has(slot)) {
-        throw new Error(`Duplicate query parameter "${paramName}"`)
+        throw new Error(`Duplicate query parameter "${paramName}" in \`params\`.`)
       }
 
       seen.add(slot)
@@ -386,7 +413,7 @@ export function compileOperationParameters(
     const slot = paramSlotKey("query", name)
 
     if (seen.has(slot)) {
-      throw new Error(`Duplicate query parameter "${name}"`)
+      throw new Error(`Duplicate query parameter "${name}".`)
     }
 
     seen.add(slot)
@@ -400,7 +427,7 @@ export function compileOperationParameters(
     const slot = paramSlotKey("header", name)
 
     if (seen.has(slot)) {
-      throw new Error(`Duplicate header parameter "${name}"`)
+      throw new Error(`Duplicate header parameter "${name}".`)
     }
 
     seen.add(slot)
