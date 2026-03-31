@@ -7,7 +7,7 @@ describe("http-benchmark example", () => {
     expect(await validate(theJSON)).toEqual(theJSON)
   })
 
-  test.skip("httpBenchmarkAPI matches http-benchmark.json", async () => {
+  test("httpBenchmarkAPI matches http-benchmark.json", async () => {
     const { httpBenchmarkAPI } = await import("./http-benchmark.ts")
 
     expect(await validate(httpBenchmarkAPI)).toEqual(theJSON)
