@@ -706,6 +706,147 @@ function concreteResponse(
   return fromAdd
 }
 
+function responseComponentRef(name: string): oas31.ReferenceObject {
+  return { $ref: `#/components/responses/${name}` }
+}
+
+function isInlineOpRespObject(value: object): value is OpResp {
+  if (isDslSchema(value)) {
+    return false
+  }
+
+  return (
+    "body" in value ||
+    "headers" in value ||
+    "description" in value ||
+    "headerParams" in value ||
+    "cookies" in value
+  )
+}
+
+function tryDecodeNamedOpRespThunk(
+  raw: Resp | Schema,
+): { name: string; opResp: OpResp } | undefined {
+  if (typeof raw !== "function") {
+    return undefined
+  }
+
+  const { name, value } = decodeNameable(raw as Nameable<unknown>)
+
+  if (name === undefined || name === "") {
+    return undefined
+  }
+
+  if (typeof value !== "object" || value === null) {
+    throw new Error(`Named response "${name}" must wrap resp({ ... }).`)
+  }
+
+  if (isDslSchema(value)) {
+    return undefined
+  }
+
+  if (!isInlineOpRespObject(value)) {
+    throw new Error(`Named response "${name}" must wrap resp({ ... }).`)
+  }
+
+  return { name, opResp: value }
+}
+
+function recordResponseComponent(
+  state: SchemaCompileState,
+  name: string,
+  obj: oas31.ResponseObject,
+): void {
+  const existing = state.components.responses[name]
+
+  if (existing !== undefined) {
+    if (!deepEqualJson(existing, obj)) {
+      throw new Error(
+        `components.responses: name "${name}" is already used by a different response`,
+      )
+    }
+
+    return
+  }
+
+  state.components.responses[name] = obj
+}
+
+function buildMergedResponseObject(
+  schemaState: SchemaCompileState,
+  op: RouteMethodOp,
+  code: number,
+  aug: RespAugmentation,
+  concrete: OpResp,
+  opts?: { stripBodies?: boolean | "explicit-head" },
+): oas31.ResponseObject {
+  const mime = aug.mime ?? undefined
+
+  const hAug =
+    compileHeaderMap(
+      schemaState,
+      mergeHeadersAndHeaderParams(aug.headers, aug.headerParams),
+    ) ?? {}
+  const hCon =
+    compileHeaderMap(
+      schemaState,
+      mergeHeadersAndHeaderParams(concrete.headers, concrete.headerParams),
+    ) ?? {}
+  const mergedCookies: Record<string, Schema> = {
+    ...(aug.cookies ?? {}),
+    ...(concrete.cookies ?? {}),
+  }
+  const cookieHeaders = compileSetCookieHeaders(schemaState, mergedCookies)
+  const headers: oas31.HeadersObject = {
+    ...hAug,
+    ...hCon,
+    ...cookieHeaders,
+  }
+  const headerObj = Object.keys(headers).length > 0 ? headers : undefined
+
+  let content: oas31.ContentObject | undefined
+
+  const buildResponseContent = (): oas31.ContentObject | undefined => {
+    if (concrete.body === undefined) {
+      return undefined
+    }
+
+    if (isMimeMap(concrete.body)) {
+      return compileContent(schemaState, concrete.body, mime)
+    }
+
+    const compiledProbe = compileSchema(schemaState, concrete.body)
+
+    if (isEmptyInlineSchema(compiledProbe)) {
+      if (mime !== "application/json") {
+        return undefined
+      }
+
+      /* 201 + empty JSON matches exceptions golden; other 2xx omit (listenbox 200: unknown). */
+      if (code >= 200 && code < 300 && code !== 201) {
+        return undefined
+      }
+    }
+
+    return compileContent(schemaState, concrete.body, mime)
+  }
+
+  if (opts?.stripBodies === true) {
+    content = undefined
+  } else if (opts?.stripBodies === "explicit-head") {
+    const statusDeclaredOnOp = op.res?.[code] !== undefined
+    content = statusDeclaredOnOp ? undefined : buildResponseContent()
+  } else {
+    content = buildResponseContent()
+  }
+
+  return {
+    description: concrete.description ?? String(code),
+    ...(headerObj !== undefined ? { headers: headerObj } : {}),
+    ...(content !== undefined ? { content } : {}),
+  }
+}
+
 function compileResponses(
   schemaState: SchemaCompileState,
   op: RouteMethodOp,
@@ -730,74 +871,31 @@ function compileResponses(
       aug = mergeRespAugmentations(aug, partial)
     }
     const raw = concreteResponse(code, op, add)
+    const decoded = tryDecodeNamedOpRespThunk(raw)
+
+    if (decoded !== undefined) {
+      const resObj = buildMergedResponseObject(
+        schemaState,
+        op,
+        code,
+        {},
+        decoded.opResp,
+        opts,
+      )
+      recordResponseComponent(schemaState, decoded.name, resObj)
+      out[String(code)] = responseComponentRef(decoded.name)
+      continue
+    }
+
     const concrete = normalizeRespEntry(raw)
-    const mime = aug.mime ?? undefined
-
-    const hAug =
-      compileHeaderMap(
-        schemaState,
-        mergeHeadersAndHeaderParams(aug.headers, aug.headerParams),
-      ) ?? {}
-    const hCon =
-      compileHeaderMap(
-        schemaState,
-        mergeHeadersAndHeaderParams(concrete.headers, concrete.headerParams),
-      ) ?? {}
-    const mergedCookies: Record<string, Schema> = {
-      ...(aug.cookies ?? {}),
-      ...(concrete.cookies ?? {}),
-    }
-    const cookieHeaders = compileSetCookieHeaders(schemaState, mergedCookies)
-    const headers: oas31.HeadersObject = {
-      ...hAug,
-      ...hCon,
-      ...cookieHeaders,
-    }
-    const headerObj = Object.keys(headers).length > 0 ? headers : undefined
-
-    let content: oas31.ContentObject | undefined
-
-    const buildResponseContent = (): oas31.ContentObject | undefined => {
-      if (concrete.body === undefined) {
-        return undefined
-      }
-
-      if (isMimeMap(concrete.body)) {
-        return compileContent(schemaState, concrete.body, mime)
-      }
-
-      const compiledProbe = compileSchema(schemaState, concrete.body)
-
-      if (isEmptyInlineSchema(compiledProbe)) {
-        if (mime !== "application/json") {
-          return undefined
-        }
-
-        /* 201 + empty JSON matches exceptions golden; other 2xx omit (listenbox 200: unknown). */
-        if (code >= 200 && code < 300 && code !== 201) {
-          return undefined
-        }
-      }
-
-      return compileContent(schemaState, concrete.body, mime)
-    }
-
-    if (opts?.stripBodies === true) {
-      content = undefined
-    } else if (opts?.stripBodies === "explicit-head") {
-      const statusDeclaredOnOp = op.res?.[code] !== undefined
-      content = statusDeclaredOnOp ? undefined : buildResponseContent()
-    } else {
-      content = buildResponseContent()
-    }
-
-    const response: oas31.ResponseObject = {
-      description: concrete.description ?? String(code),
-      ...(headerObj !== undefined ? { headers: headerObj } : {}),
-      ...(content !== undefined ? { content } : {}),
-    }
-
-    out[String(code)] = response
+    out[String(code)] = buildMergedResponseObject(
+      schemaState,
+      op,
+      code,
+      aug,
+      concrete,
+      opts,
+    )
   }
 
   return out
@@ -1006,30 +1104,57 @@ export function compileResponsibleAPI(
     paths,
   )
 
+  const dummyOpForComponents = { method: "GET" } as RouteMethodOp
+
+  for (const thunk of api.ensureResponseComponents ?? []) {
+    const decoded = tryDecodeNamedOpRespThunk(thunk as Resp | Schema)
+
+    if (decoded === undefined) {
+      throw new Error(
+        "ensureResponseComponents entries must be named(..., resp({ ... })) thunks.",
+      )
+    }
+
+    const resObj = buildMergedResponseObject(
+      schemaState,
+      dummyOpForComponents,
+      200,
+      {},
+      decoded.opResp,
+      undefined,
+    )
+    recordResponseComponent(schemaState, decoded.name, resObj)
+  }
+
   const { openapi, info, tags, servers, security, externalDocs, webhooks } =
     api.partialDoc
 
   const schemaKeys = Object.keys(schemaState.components.schemas)
   const paramKeys = Object.keys(schemaState.components.parameters)
   const headerKeys = Object.keys(schemaState.components.headers)
+  const responseKeys = Object.keys(schemaState.components.responses)
   const secKeys = Object.keys(schemaState.components.securitySchemes)
   const components: oas31.ComponentsObject | undefined =
     schemaKeys.length > 0 ||
     paramKeys.length > 0 ||
     headerKeys.length > 0 ||
+    responseKeys.length > 0 ||
     secKeys.length > 0
       ? {
-          ...(schemaKeys.length > 0
-            ? { schemas: schemaState.components.schemas }
-            : {}),
-          ...(paramKeys.length > 0
-            ? { parameters: schemaState.components.parameters }
+          ...(secKeys.length > 0
+            ? { securitySchemes: schemaState.components.securitySchemes }
             : {}),
           ...(headerKeys.length > 0
             ? { headers: schemaState.components.headers }
             : {}),
-          ...(secKeys.length > 0
-            ? { securitySchemes: schemaState.components.securitySchemes }
+          ...(paramKeys.length > 0
+            ? { parameters: schemaState.components.parameters }
+            : {}),
+          ...(responseKeys.length > 0
+            ? { responses: schemaState.components.responses }
+            : {}),
+          ...(schemaKeys.length > 0
+            ? { schemas: schemaState.components.schemas }
             : {}),
         }
       : undefined

@@ -10,6 +10,7 @@ export interface SchemaCompileState {
     schemas: oas31.SchemasObject
     parameters: Record<string, oas31.ParameterObject | oas31.ReferenceObject>
     headers: Record<string, oas31.HeaderObject | oas31.ReferenceObject>
+    responses: Record<string, oas31.ResponseObject>
     securitySchemes: Record<
       string,
       oas31.SecuritySchemeObject | oas31.ReferenceObject
@@ -30,6 +31,7 @@ export function createSchemaCompileState(): SchemaCompileState {
       schemas: {},
       parameters: {},
       headers: {},
+      responses: {},
       securitySchemes: {},
     },
     inProgress: {
@@ -79,6 +81,18 @@ function emitObject(state: SchemaCompileState, s: Obj): oas31.SchemaObject {
   }
 
   const { properties: _p, required, type: _t, ...rest } = s
+
+  if (
+    Object.keys(properties).length === 0 &&
+    required !== undefined &&
+    required.length > 0 &&
+    Object.keys(rest).length === 0
+  ) {
+    return {
+      required: orderRequiredArray([...required]),
+    } as oas31.SchemaObject
+  }
+
   const out: Record<string, unknown> = {
     ...(rest as Record<string, unknown>),
     type: "object",
@@ -263,9 +277,16 @@ function compileRawSchema(
       return emitString(s)
 
     default: {
+      if (s.type === "number" && !opts?.preserveIntNumDescription) {
+        const { description: _desc, ...rest } = s
+
+        return { ...rest } as oas31.SchemaObject
+      }
+
       if (
-        (s.type === "integer" || s.type === "number") &&
-        !opts?.preserveIntNumDescription
+        s.type === "integer" &&
+        !opts?.preserveIntNumDescription &&
+        (s as { format?: string }).format !== undefined
       ) {
         const { description: _desc, ...rest } = s
 

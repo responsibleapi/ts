@@ -8,7 +8,6 @@ import {
   allOf,
   array,
   boolean,
-  int32,
   integer,
   object,
   oneOf,
@@ -88,67 +87,47 @@ const jobOpening = () =>
     }),
   })
 
-const apiSpecificationUpload = () =>
-  object({
+const apiSpecificationUpload = object(
+  {
     spec: string({
       format: "binary",
       description: "OpenAPI/Swagger file. We accept JSON or YAML.",
     }),
-  })
+  },
+  { required: [] },
+)
 
-const apiRegistryUUID = () =>
-  string({
-    description:
-      "An API Registry UUID. This can be found by navigating to your API Reference page and viewing code snippets for Node with the `api` library.",
-  })
+const apiRegistryUUID = string({
+  description:
+    "An API Registry UUID. This can be found by navigating to your API Reference page and viewing code snippets for Node with the `api` library.",
+})
 
-const apiSpecificationID = () =>
-  string({
-    description:
-      "ID of the API specification. The unique ID for each API can be found by navigating to your **API Definitions** page.",
-  })
+const apiSpecificationID = string({
+  description:
+    "ID of the API specification. The unique ID for each API can be found by navigating to your **API Definitions** page.",
+})
 
-const readmeVersion = () =>
-  string({
-    description:
-      "Version number of your docs project, for example, v3.0. By default the main project version is used. To see all valid versions for your docs project call https://docs.readme.com/reference/version#getversions.",
-    example: "v3.0",
-  })
+const categorySlug = string({
+  description:
+    'A URL-safe representation of the category title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the category "Getting Started", enter the slug "getting-started".',
+  example: "getting-started",
+})
 
-const categorySlug = () =>
-  string({
-    description:
-      'A URL-safe representation of the category title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the category "Getting Started", enter the slug "getting-started".',
-    example: "getting-started",
-  })
+const changelogSlug = string({
+  description:
+    'A URL-safe representation of the changelog title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the changelog "Owlet Weekly Update", enter the slug "owlet-weekly-update".',
+})
 
-const changelogSlug = () =>
-  string({
-    description:
-      'A URL-safe representation of the changelog title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the changelog "Owlet Weekly Update", enter the slug "owlet-weekly-update".',
-    example: "owlet-weekly-update",
-  })
+const customPageSlug = string({
+  description:
+    'A URL-safe representation of the custom page title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the custom page "Getting Started", enter the slug "getting-started".',
+})
 
-const customPageSlug = () =>
-  string({
-    description:
-      'A URL-safe representation of the custom page title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the custom page "Getting Started", enter the slug "getting-started".',
-    example: "getting-started",
-  })
-
-const docSlug = () =>
-  string({
-    description:
-      'A URL-safe representation of the doc title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the doc "New Features", enter the slug "new-features".',
-    example: "new-features",
-  })
-
-const versionID = () =>
-  string({
-    description:
-      "Semver identifier for the project version. For best results, use the formatted `version_clean` value listed in the response from the [Get Versions endpoint](/reference/getversions).",
-    example: "v1.0.0",
-  })
+const docSlug = string({
+  description:
+    'A URL-safe representation of the doc title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the doc "New Features", enter the slug "new-features".',
+  example: "new-features",
+})
 
 const pageQuery = named(
   "page",
@@ -186,7 +165,7 @@ const xReadmeVersionParam = named(
       "Version number of your docs project, for example, v3.0. By default the main project version is used. To see all valid versions for your docs project call https://docs.readme.com/reference/version#getversions.",
     example: "v3.0",
     required: false,
-    schema: readmeVersion,
+    schema: string(),
   }),
 )
 
@@ -198,7 +177,7 @@ const versionIdParam = named(
       "Semver identifier for the project version. For best results, use the formatted `version_clean` value listed in the response from the [Get Versions endpoint](/reference/getversions).",
     example: "v1.0.0",
     required: true,
-    schema: versionID,
+    schema: string(),
   }),
 )
 
@@ -217,7 +196,8 @@ const tags = declareTags({
 
 const basicAuth = named("apiKey", httpSecurity({ scheme: "basic" }))
 
-const baseError = () =>
+const baseError = named(
+  "baseError",
   object({
     "error?": string({
       description: "An error code unique to the error received.",
@@ -249,15 +229,127 @@ const baseError = () =>
         "Maybe trying again it'll work—who knows!",
       ],
     }),
-  })
+  }),
+)
 
-const errorWithCode = (code: string) =>
-  allOf([
-    baseError,
-    object({
-      "error?": string({ default: code }),
+const ERROR_DEFS = [
+  ["APIKEY_EMPTY", "An API key was not supplied."],
+  ["APIKEY_MISMATCH", "The API key doesn't match the project."],
+  ["APIKEY_NOTFOUND", "The API key couldn't be located."],
+  ["APPLY_INVALID_EMAIL", "You need to provide a valid email."],
+  ["APPLY_INVALID_JOB", "You need to provide a job."],
+  ["APPLY_INVALID_NAME", "You need to provide a name."],
+  ["CATEGORY_INVALID", "The category couldn't be saved."],
+  ["CATEGORY_NOTFOUND", "The category couldn't be found."],
+  ["CHANGELOG_INVALID", "The changelog couldn't be saved."],
+  ["CHANGELOG_NOTFOUND", "The changelog couldn't be found."],
+  ["CUSTOMPAGE_INVALID", "The page couldn't be saved."],
+  ["CUSTOMPAGE_NOTFOUND", "The custom page couldn't be found."],
+  ["DOC_INVALID", "The doc couldn't be saved."],
+  ["DOC_NOTFOUND", "The doc couldn't be found."],
+  ["ENDPOINT_NOTFOUND", "The endpoint doesn't exist."],
+  ["INTERNAL_ERROR", "An unknown error has occurred."],
+  ["PROJECT_NOTFOUND", "The project couldn't be found."],
+  ["REGISTRY_INVALID", "The registry entry couldn't be found."],
+  ["REGISTRY_NOTFOUND", "The registry entry couldn't be found."],
+  ["SPEC_FILE_EMPTY", "A spec file wasn't included."],
+  ["SPEC_ID_DUPLICATE", "The spec ID already tied to another version."],
+  ["SPEC_ID_INVALID", "The spec ID isn't valid."],
+  ["SPEC_INVALID", "The uploaded spec isn't valid JSON or YAML."],
+  ["SPEC_INVALID_SCHEMA", "The uploaded spec has OpenAPI validation errors."],
+  ["SPEC_NOTFOUND", "The spec couldn't be found."],
+  ["SPEC_TIMEOUT", "The spec upload timed out."],
+  ["SPEC_VERSION_NOTFOUND", "The spec version couldn't be found."],
+  ["UNEXPECTED_ERROR", "An unknown error has occurred."],
+  ["VERSION_CANT_DEMOTE_STABLE", "A stable version can't be demoted."],
+  ["VERSION_CANT_REMOVE_STABLE", "A stable version can't be removed."],
+  ["VERSION_DUPLICATE", "The version already exists."],
+  ["VERSION_EMPTY", "No version was supplied."],
+  [
+    "VERSION_FORK_EMPTY",
+    "New versions need to be forked from an existing version.",
+  ],
+  ["VERSION_FORK_NOTFOUND", "The version couldn't be found."],
+  ["VERSION_INVALID", "The version is invalid."],
+  ["VERSION_NOTFOUND", "The version couldn't be found."],
+] as const
+
+type ErrorCode = (typeof ERROR_DEFS)[number][0]
+
+function mkErr(code: string, responseDescription: string) {
+  const schema = named(
+    `error_${code}`,
+    allOf([
+      baseError,
+      object({
+        "error?": string({ default: code }),
+      }),
+    ]),
+  )
+
+  const response = named(
+    `error_${code}`,
+    resp({
+      description: responseDescription,
+      body: { "application/json": schema },
     }),
-  ])
+  )
+
+  return { schema, response }
+}
+
+/* Object.fromEntries widens keys to string; ERROR_DEFS is the exhaustive source of truth. */
+// oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
+const err = Object.fromEntries(
+  ERROR_DEFS.map(([code, desc]) => [code, mkErr(code, desc)]),
+) as Record<ErrorCode, ReturnType<typeof mkErr>>
+
+const UNUSED_ERROR_RESPONSES = [
+  "APIKEY_EMPTY",
+  "APIKEY_MISMATCH",
+  "APIKEY_NOTFOUND",
+  "APPLY_INVALID_EMAIL",
+  "APPLY_INVALID_JOB",
+  "APPLY_INVALID_NAME",
+  "CHANGELOG_INVALID",
+  "CHANGELOG_NOTFOUND",
+  "ENDPOINT_NOTFOUND",
+  "INTERNAL_ERROR",
+  "PROJECT_NOTFOUND",
+  "REGISTRY_INVALID",
+  "SPEC_FILE_EMPTY",
+  "SPEC_ID_DUPLICATE",
+  "SPEC_INVALID",
+  "SPEC_INVALID_SCHEMA",
+  "SPEC_VERSION_NOTFOUND",
+  "UNEXPECTED_ERROR",
+  "VERSION_DUPLICATE",
+  "VERSION_FORK_EMPTY",
+  "VERSION_INVALID",
+] as const satisfies readonly ErrorCode[]
+
+const authUnauthorized = named(
+  "authUnauthorized",
+  resp({
+    description: "Unauthorized",
+    body: {
+      "application/json": oneOf([
+        err.APIKEY_EMPTY.schema,
+        err.APIKEY_NOTFOUND.schema,
+      ]),
+    },
+  }),
+)
+
+const authForbidden = named(
+  "authForbidden",
+  resp({
+    description: "Unauthorized",
+    body: {
+      "application/json": oneOf([err.APIKEY_MISMATCH.schema]),
+    },
+  }),
+)
 
 const category = () =>
   object({
@@ -272,14 +364,6 @@ const category = () =>
         "A category can be part of your reference or guide documentation, which is determined by this field.",
     }),
   })
-
-const createCategory = () =>
-  allOf([
-    category,
-    object({
-      title: string(),
-    }),
-  ])
 
 const changelog = () =>
   object({
@@ -357,7 +441,7 @@ const doc = () =>
       description: "Visibility of the page.",
       default: true,
     }),
-    "order?": int32({
+    "order?": integer({
       description: "The position of the page in your project sidebar.",
       default: 999,
     }),
@@ -421,24 +505,12 @@ const paginationHeaderParams = [
 ] as const
 
 const authResponses = {
-  401: resp({
-    description: "Unauthorized",
-    body: {
-      "application/json": oneOf([
-        errorWithCode("APIKEY_EMPTY"),
-        errorWithCode("APIKEY_NOTFOUND"),
-      ]),
-    },
-  }),
-  403: resp({
-    description: "Unauthorized",
-    body: {
-      "application/json": oneOf([errorWithCode("APIKEY_MISMATCH")]),
-    },
-  }),
+  401: authUnauthorized,
+  403: authForbidden,
 }
 
 export default responsibleAPI({
+  ensureResponseComponents: UNUSED_ERROR_RESPONSES.map(c => err[c].response),
   partialDoc: {
     openapi: "3.0.2",
     info: {
@@ -470,10 +542,7 @@ export default responsibleAPI({
           description: "Successfully retrieved API registry entry.",
           body: { "application/json": object() },
         }),
-        404: resp({
-          description: "There is no API Registry entry with that UUID.",
-          body: { "application/json": errorWithCode("REGISTRY_NOTFOUND") },
-        }),
+        404: err.REGISTRY_NOTFOUND.response,
       },
     }),
     "/api-specification": scope({
@@ -498,15 +567,8 @@ export default responsibleAPI({
             description: "Successfully retrieved API specification metadata.",
             headerParams: paginationHeaderParams,
           }),
-          400: resp({
-            description: "The supplied version header was empty.",
-            body: { "application/json": errorWithCode("VERSION_EMPTY") },
-          }),
-          404: resp({
-            description:
-              "There is no project version matching x-readme-version.",
-            body: { "application/json": errorWithCode("VERSION_NOTFOUND") },
-          }),
+          400: err.VERSION_EMPTY.response,
+          404: err.VERSION_NOTFOUND.response,
         },
       },
       POST: {
@@ -528,17 +590,14 @@ export default responsibleAPI({
             description: "There was a validation error during upload.",
             body: {
               "application/json": oneOf([
-                errorWithCode("SPEC_FILE_EMPTY"),
-                errorWithCode("SPEC_INVALID"),
-                errorWithCode("SPEC_INVALID_SCHEMA"),
-                errorWithCode("SPEC_VERSION_NOTFOUND"),
+                err.SPEC_FILE_EMPTY.schema,
+                err.SPEC_INVALID.schema,
+                err.SPEC_INVALID_SCHEMA.schema,
+                err.SPEC_VERSION_NOTFOUND.schema,
               ]),
             },
           }),
-          408: resp({
-            description: "The API specification upload timed out.",
-            body: { "application/json": errorWithCode("SPEC_TIMEOUT") },
-          }),
+          408: err.SPEC_TIMEOUT.response,
         },
       },
     }),
@@ -570,22 +629,19 @@ export default responsibleAPI({
             description: "There was a validation error during upload.",
             body: {
               "application/json": oneOf([
-                errorWithCode("SPEC_FILE_EMPTY"),
-                errorWithCode("SPEC_ID_DUPLICATE"),
-                errorWithCode("SPEC_ID_INVALID"),
-                errorWithCode("SPEC_INVALID"),
-                errorWithCode("SPEC_INVALID_SCHEMA"),
-                errorWithCode("SPEC_VERSION_NOTFOUND"),
+                err.SPEC_FILE_EMPTY.schema,
+                err.SPEC_ID_DUPLICATE.schema,
+                err.SPEC_ID_INVALID.schema,
+                err.SPEC_INVALID.schema,
+                err.SPEC_INVALID_SCHEMA.schema,
+                err.SPEC_VERSION_NOTFOUND.schema,
               ]),
             },
           }),
           404: resp({
             description: "There is no API specification with that ID.",
           }),
-          408: resp({
-            description: "The API specification upload timed out.",
-            body: { "application/json": errorWithCode("SPEC_TIMEOUT") },
-          }),
+          408: err.SPEC_TIMEOUT.response,
         },
       },
       DELETE: {
@@ -596,14 +652,8 @@ export default responsibleAPI({
           204: resp({
             description: "The API specification was deleted.",
           }),
-          400: resp({
-            description: "The supplied API specification ID was invalid.",
-            body: { "application/json": errorWithCode("SPEC_ID_INVALID") },
-          }),
-          404: resp({
-            description: "There is no API specification with that ID.",
-            body: { "application/json": errorWithCode("SPEC_NOTFOUND") },
-          }),
+          400: err.SPEC_ID_INVALID.response,
+          404: err.SPEC_NOTFOUND.response,
         },
       },
     }),
@@ -667,16 +717,13 @@ export default responsibleAPI({
         description: "Create a new category inside of this project.",
         req: {
           params: [xReadmeVersionParam],
-          body: createCategory,
+          body: allOf([category, object({}, { required: ["title"] })]),
         },
         res: {
           201: resp({
             description: "The category has successfully been created.",
           }),
-          400: resp({
-            description: "The category payload was invalid.",
-            body: { "application/json": errorWithCode("CATEGORY_INVALID") },
-          }),
+          400: err.CATEGORY_INVALID.response,
         },
       },
     }),
@@ -698,10 +745,7 @@ export default responsibleAPI({
           200: resp({
             description: "The category exists and has been returned.",
           }),
-          404: resp({
-            description: "There is no category with that slug.",
-            body: { "application/json": errorWithCode("CATEGORY_NOTFOUND") },
-          }),
+          404: err.CATEGORY_NOTFOUND.response,
         },
       },
       PUT: {
@@ -715,14 +759,8 @@ export default responsibleAPI({
           200: resp({
             description: "The category was successfully updated.",
           }),
-          400: resp({
-            description: "The category payload was invalid.",
-            body: { "application/json": errorWithCode("CATEGORY_INVALID") },
-          }),
-          404: resp({
-            description: "There is no category with that slug.",
-            body: { "application/json": errorWithCode("CATEGORY_NOTFOUND") },
-          }),
+          400: err.CATEGORY_INVALID.response,
+          404: err.CATEGORY_NOTFOUND.response,
         },
       },
       DELETE: {
@@ -734,10 +772,7 @@ export default responsibleAPI({
           204: resp({
             description: "The category was deleted.",
           }),
-          404: resp({
-            description: "There is no category with that slug.",
-            body: { "application/json": errorWithCode("CATEGORY_NOTFOUND") },
-          }),
+          404: err.CATEGORY_NOTFOUND.response,
         },
       },
     }),
@@ -756,10 +791,7 @@ export default responsibleAPI({
           description:
             "The category exists and all of the docs have been returned.",
         }),
-        404: resp({
-          description: "There is no category with that slug.",
-          body: { "application/json": errorWithCode("CATEGORY_NOTFOUND") },
-        }),
+        404: err.CATEGORY_NOTFOUND.response,
       },
     }),
     "/changelogs": scope({
@@ -848,7 +880,7 @@ export default responsibleAPI({
         description: "Delete the changelog with this slug.",
         res: {
           204: resp({
-            description: "The changelog was successfully deleted.",
+            description: "The changelog was successfully updated.",
           }),
           404: resp({
             description: "There is no changelog with that slug.",
@@ -892,10 +924,7 @@ export default responsibleAPI({
           201: resp({
             description: "The custom page was successfully created.",
           }),
-          400: resp({
-            description: "The custom page payload was invalid.",
-            body: { "application/json": errorWithCode("CUSTOMPAGE_INVALID") },
-          }),
+          400: err.CUSTOMPAGE_INVALID.response,
         },
       },
     }),
@@ -919,12 +948,7 @@ export default responsibleAPI({
           200: resp({
             description: "The custom page exists and has been returned.",
           }),
-          404: resp({
-            description: "There is no custom page with that slug.",
-            body: {
-              "application/json": errorWithCode("CUSTOMPAGE_NOTFOUND"),
-            },
-          }),
+          404: err.CUSTOMPAGE_NOTFOUND.response,
         },
       },
       PUT: {
@@ -938,16 +962,8 @@ export default responsibleAPI({
           200: resp({
             description: "The custom page was successfully updated.",
           }),
-          400: resp({
-            description: "The custom page payload was invalid.",
-            body: { "application/json": errorWithCode("CUSTOMPAGE_INVALID") },
-          }),
-          404: resp({
-            description: "There is no custom page with that slug.",
-            body: {
-              "application/json": errorWithCode("CUSTOMPAGE_NOTFOUND"),
-            },
-          }),
+          400: err.CUSTOMPAGE_INVALID.response,
+          404: err.CUSTOMPAGE_NOTFOUND.response,
         },
       },
       DELETE: {
@@ -956,14 +972,9 @@ export default responsibleAPI({
         description: "Delete the custom page with this slug.",
         res: {
           204: resp({
-            description: "The custom page was successfully deleted.",
+            description: "The custom page was successfully updated.",
           }),
-          404: resp({
-            description: "There is no custom page with that slug.",
-            body: {
-              "application/json": errorWithCode("CUSTOMPAGE_NOTFOUND"),
-            },
-          }),
+          404: err.CUSTOMPAGE_NOTFOUND.response,
         },
       },
     }),
@@ -988,10 +999,7 @@ export default responsibleAPI({
           200: resp({
             description: "The doc exists and has been returned.",
           }),
-          404: resp({
-            description: "There is no doc with that slug.",
-            body: { "application/json": errorWithCode("DOC_NOTFOUND") },
-          }),
+          404: err.DOC_NOTFOUND.response,
         },
       },
       PUT: {
@@ -1005,14 +1013,8 @@ export default responsibleAPI({
           200: resp({
             description: "The doc was successfully updated.",
           }),
-          400: resp({
-            description: "The doc payload was invalid.",
-            body: { "application/json": errorWithCode("DOC_INVALID") },
-          }),
-          404: resp({
-            description: "There is no doc with that slug.",
-            body: { "application/json": errorWithCode("DOC_NOTFOUND") },
-          }),
+          400: err.DOC_INVALID.response,
+          404: err.DOC_NOTFOUND.response,
         },
       },
       DELETE: {
@@ -1021,12 +1023,9 @@ export default responsibleAPI({
         description: "Delete the doc with this slug.",
         res: {
           204: resp({
-            description: "The doc was successfully deleted.",
+            description: "The doc was successfully updated.",
           }),
-          404: resp({
-            description: "There is no doc with that slug.",
-            body: { "application/json": errorWithCode("DOC_NOTFOUND") },
-          }),
+          404: err.DOC_NOTFOUND.response,
         },
       },
     }),
@@ -1044,10 +1043,7 @@ export default responsibleAPI({
         201: resp({
           description: "The doc was successfully created.",
         }),
-        400: resp({
-          description: "The doc payload was invalid.",
-          body: { "application/json": errorWithCode("DOC_INVALID") },
-        }),
+        400: err.DOC_INVALID.response,
         ...authResponses,
       },
     }),
@@ -1140,18 +1136,13 @@ export default responsibleAPI({
             description: "There was a validation error during creation.",
             body: {
               "application/json": oneOf([
-                errorWithCode("VERSION_EMPTY"),
-                errorWithCode("VERSION_DUPLICATE"),
-                errorWithCode("VERSION_FORK_EMPTY"),
+                err.VERSION_EMPTY.schema,
+                err.VERSION_DUPLICATE.schema,
+                err.VERSION_FORK_EMPTY.schema,
               ]),
             },
           }),
-          404: resp({
-            description: "The forked version was not found.",
-            body: {
-              "application/json": errorWithCode("VERSION_FORK_NOTFOUND"),
-            },
-          }),
+          404: err.VERSION_FORK_NOTFOUND.response,
         },
       },
     }),
@@ -1175,10 +1166,7 @@ export default responsibleAPI({
           200: resp({
             description: "The version exists and has been returned.",
           }),
-          404: resp({
-            description: "There is no version with that version ID.",
-            body: { "application/json": errorWithCode("VERSION_NOTFOUND") },
-          }),
+          404: err.VERSION_NOTFOUND.response,
         },
       },
       PUT: {
@@ -1192,16 +1180,8 @@ export default responsibleAPI({
           200: resp({
             description: "The version was successfully updated.",
           }),
-          400: resp({
-            description: "The stable version cannot be demoted.",
-            body: {
-              "application/json": errorWithCode("VERSION_CANT_DEMOTE_STABLE"),
-            },
-          }),
-          404: resp({
-            description: "There is no version with that version ID.",
-            body: { "application/json": errorWithCode("VERSION_NOTFOUND") },
-          }),
+          400: err.VERSION_CANT_DEMOTE_STABLE.response,
+          404: err.VERSION_NOTFOUND.response,
         },
       },
       DELETE: {
@@ -1212,16 +1192,8 @@ export default responsibleAPI({
           200: resp({
             description: "The version was successfully deleted.",
           }),
-          400: resp({
-            description: "The stable version cannot be removed.",
-            body: {
-              "application/json": errorWithCode("VERSION_CANT_REMOVE_STABLE"),
-            },
-          }),
-          404: resp({
-            description: "There is no version with that version ID.",
-            body: { "application/json": errorWithCode("VERSION_NOTFOUND") },
-          }),
+          400: err.VERSION_CANT_REMOVE_STABLE.response,
+          404: err.VERSION_NOTFOUND.response,
         },
       },
     }),
