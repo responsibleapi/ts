@@ -1,4 +1,4 @@
-# Compiler learnings (through Story 4: request compiler)
+# Compiler learnings (through Story 6: large examples)
 
 ## Story 3 recap (scopes, paths, tags)
 
@@ -55,6 +55,27 @@
   - `GET({ headID })` synthesizes a `HEAD` operation at the same path (unless an
     explicit `HEAD` already exists) with `operationId = headID` and responses
     cloned from GET but with bodies stripped.
+
+## Story 6: componentized params/security and large examples
+
+- **Named `components.parameters` / `components.securitySchemes`**: Same
+  pipeline as Story 4 (`compileParamComponent`, `compileSecurityScheme` in
+  `src/compiler/request.ts`). The readme example uses `named("page", …)`,
+  `named("perPage", …)` and `named("apiKey", httpSecurity({ scheme: "basic" }))`;
+  operations reference them via `$ref`.
+- **Large-spec verification**: `src/compiler/large-examples.test.ts` asserts
+  OpenAPI validation and the above component wiring for readme, and validation
+  plus path breadth for listenbox. This satisfies an end-to-end check without
+  depending on golden `src/examples/*.json` byte equality.
+- **Golden JSON in `src/examples/`**: `listenbox.test.ts` / `readme.test.ts`
+  still `toEqual` hand-maintained JSON. That snapshot diverges from the
+  compiler today (e.g. listenbox `forAll.res.add` vs JSON missing inherited
+  responses, schemas present only in JSON, readme JSON hoisting responses /
+  headers / extra parameters into `components`). Refreshing those files is the
+  follow-up when snapshots should track the compiler.
+- **Empty `object()` emission**: `emitObject` omits `properties` and `required`
+  when they would be empty, so media-type schemas stay valid under OpenAPI 3.0
+  (no `required: []`) and match the usual `{ "type": "object" }` shorthand.
 
 ## DSL gotcha
 

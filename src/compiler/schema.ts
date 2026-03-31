@@ -65,13 +65,21 @@ function emitObject(state: SchemaCompileState, s: Obj): oas31.SchemaObject {
     properties[k] = compileSchema(state, v)
   }
 
-  const { properties: _p, ...rest } = s
-
-  return {
+  const { properties: _p, required, type: _t, ...rest } = s
+  const out: Record<string, unknown> = {
     ...(rest as Record<string, unknown>),
     type: "object",
-    properties,
-  } as oas31.SchemaObject
+  }
+
+  if (Object.keys(properties).length > 0) {
+    out["properties"] = properties
+  }
+
+  if (required !== undefined && required.length > 0) {
+    out["required"] = required
+  }
+
+  return out as oas31.SchemaObject
 }
 
 function emitDict(state: SchemaCompileState, s: Dict): oas31.SchemaObject {
