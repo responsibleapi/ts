@@ -5,6 +5,8 @@
 - 100% TypeScript codebase
 - never add `oxlint-disable-next-line` unless explicitly asked
 - never edit [package.json](package.json) unless explicitly asked
+- never edit [bunfig.toml](bunfig.toml) unless explicitly asked
+- never disable or skip or ignore tests
 - never say you're done until `bun check` passes
 
 ## Imports from packages
