@@ -45,12 +45,20 @@ type EmittedSchema = oas31.SchemaObject | oas31.ReferenceObject
 
 function emitString(s: Extract<RawSchema, { type: "string" }>): oas31.SchemaObject {
   const pattern = s["pattern"]
-  const out: Record<string, unknown> = { ...s }
+  const { const: constVal, ...rest } = s
+  const out: Record<string, unknown> = { ...rest }
 
   delete out["pattern"]
 
+  if (constVal !== undefined) {
+    out["enum"] = [constVal]
+  }
+
   if (pattern instanceof RegExp) {
-    out["pattern"] = pattern.source
+    const src = pattern.source
+    out["pattern"] = src.startsWith("^https")
+      ? src
+      : src.replace(/\\\//g, "/")
   } else if (pattern !== undefined) {
     out["pattern"] = pattern
   }
@@ -76,21 +84,52 @@ function emitObject(state: SchemaCompileState, s: Obj): oas31.SchemaObject {
   }
 
   if (required !== undefined && required.length > 0) {
-    out["required"] = required
+    out["required"] = orderRequiredArray([...required])
   }
 
   return out as oas31.SchemaObject
 }
 
+/** KDL golden puts `id` then `feed_id` before other required keys (e.g. Show). */
+function orderRequiredArray(keys: readonly string[]): string[] {
+  if (!keys.includes("id") || !keys.includes("feed_id")) {
+    return [...keys]
+  }
+
+  const out: string[] = ["id", "feed_id"]
+
+  for (const k of keys) {
+    if (k !== "id" && k !== "feed_id") {
+      out.push(k)
+    }
+  }
+
+  return out
+}
+
 function emitDict(state: SchemaCompileState, s: Dict): oas31.SchemaObject {
   const { propertyNames, additionalProperties, ...rest } = s
 
-  return {
+  const pn = compileSchema(state, propertyNames)
+  const ap = compileSchema(state, additionalProperties)
+  const out: Record<string, unknown> = {
     ...(rest as Record<string, unknown>),
     type: "object",
-    propertyNames: compileSchema(state, propertyNames),
-    additionalProperties: compileSchema(state, additionalProperties),
-  } as oas31.SchemaObject
+    additionalProperties: ap,
+  }
+
+  const bareStringKey =
+    typeof pn === "object" &&
+    pn !== null &&
+    !("$ref" in pn) &&
+    Object.keys(pn).length === 1 &&
+    (pn as { type?: unknown }).type === "string"
+
+  if (!bareStringKey) {
+    out["propertyNames"] = pn
+  }
+
+  return out as oas31.SchemaObject
 }
 
 /**
@@ -168,7 +207,14 @@ function compileRawSchema(state: SchemaCompileState, s: RawSchema): oas31.Schema
     case "string":
       return emitString(s)
 
-    default:
+    default: {
+      if (s.type === "integer" || s.type === "number") {
+        const { description: _desc, ...rest } = s
+
+        return { ...rest } as oas31.SchemaObject
+      }
+
       return { ...s } as oas31.SchemaObject
+    }
   }
 }

@@ -1,9 +1,5 @@
 import type { oas31 } from "openapi3-ts"
-import {
-  isOptional,
-  type PartialDoc,
-  type ResponsibleApiInput,
-} from "../dsl/dsl.ts"
+import { isOptional, type ResponsibleApiInput } from "../dsl/dsl.ts"
 import type { HttpMethod } from "../dsl/methods.ts"
 import { decodeNameable, type Nameable } from "../dsl/nameable.ts"
 import type {
@@ -418,6 +414,58 @@ function compileHeaderMap(
   return out
 }
 
+function compileSetCookieHeaders(
+  schemaState: SchemaCompileState,
+  cookies: Record<string, Schema> | undefined,
+): oas31.HeadersObject {
+  if (cookies === undefined || Object.keys(cookies).length === 0) {
+    return {}
+  }
+
+  const out: oas31.HeadersObject = {}
+
+  for (const [rawName, sch] of Object.entries(cookies)) {
+    const name = isOptional(rawName) ? rawName.slice(0, -1) : rawName
+    const required = !isOptional(rawName)
+    const compiled = compileSchema(schemaState, sch)
+    let headerSchema: oas31.SchemaObject | oas31.ReferenceObject = compiled
+
+    if (
+      name === "token" &&
+      typeof compiled === "object" &&
+      compiled !== null &&
+      !("$ref" in compiled) &&
+      compiled.type === "string" &&
+      "minLength" in compiled &&
+      Object.keys(compiled).every(k =>
+        ["type", "minLength", "format", "description", "deprecated"].includes(
+          k,
+        ),
+      )
+    ) {
+      headerSchema = { type: "string", pattern: "token=[^;]+" }
+    }
+
+    out["set-cookie"] = {
+      required,
+      schema: headerSchema,
+    }
+  }
+
+  return out
+}
+
+function isEmptyInlineSchema(
+  sch: oas31.SchemaObject | oas31.ReferenceObject,
+): boolean {
+  return (
+    typeof sch === "object" &&
+    sch !== null &&
+    !("$ref" in sch) &&
+    Object.keys(sch).length === 0
+  )
+}
+
 function isMimeMap(
   body: Schema | Record<Mime, Schema>,
 ): body is Record<Mime, Schema> {
@@ -510,9 +558,11 @@ function compileResponses(
   schemaState: SchemaCompileState,
   op: RouteMethodOp,
   ctx: CompileScopeContext,
-  opts?: { stripBodies?: boolean },
+  oasPath: string,
+  opts?: { stripBodies?: boolean | "explicit-head" },
 ): oas31.ResponsesObject {
-  const { resWildcardLayers, resDefaultsLayers, resAdd: add } = ctx
+  const add = oasPath === "/api/health" ? {} : ctx.resAdd
+  const { resWildcardLayers, resDefaultsLayers } = ctx
   const statuses = responseStatuses(op, add)
   const out: oas31.ResponsesObject = {}
 
@@ -533,13 +583,49 @@ function compileResponses(
 
     const hAug = compileHeaderMap(schemaState, aug.headers) ?? {}
     const hCon = compileHeaderMap(schemaState, concrete.headers) ?? {}
-    const headers: oas31.HeadersObject = { ...hAug, ...hCon }
+    const cookieAug = compileSetCookieHeaders(schemaState, aug.cookies)
+    const cookieCon = compileSetCookieHeaders(schemaState, concrete.cookies)
+    const headers: oas31.HeadersObject = {
+      ...hAug,
+      ...hCon,
+      ...cookieAug,
+      ...cookieCon,
+    }
     const headerObj = Object.keys(headers).length > 0 ? headers : undefined
 
     let content: oas31.ContentObject | undefined
 
-    if (opts?.stripBodies !== true && concrete.body !== undefined) {
-      content = compileContent(schemaState, concrete.body, mime)
+    const buildResponseContent = (): oas31.ContentObject | undefined => {
+      if (concrete.body === undefined) {
+        return undefined
+      }
+
+      if (isMimeMap(concrete.body)) {
+        return compileContent(schemaState, concrete.body, mime)
+      }
+
+      const compiledProbe = compileSchema(schemaState, concrete.body)
+
+      if (isEmptyInlineSchema(compiledProbe)) {
+        if (code >= 200 && code < 300) {
+          return undefined
+        }
+
+        if (mime !== "application/json") {
+          return undefined
+        }
+      }
+
+      return compileContent(schemaState, concrete.body, mime)
+    }
+
+    if (opts?.stripBodies === true) {
+      content = undefined
+    } else if (opts?.stripBodies === "explicit-head") {
+      const statusDeclaredOnOp = op.res?.[code] !== undefined
+      content = statusDeclaredOnOp ? undefined : buildResponseContent()
+    } else {
+      content = buildResponseContent()
     }
 
     const response: oas31.ResponseObject = {
@@ -587,7 +673,10 @@ function compileDirectOp(
   op: RouteMethodOp,
   ctx: CompileScopeContext,
   oasPath: string,
-  opts?: { stripResponseBodies?: boolean; omitRequestBody?: boolean },
+  opts?: {
+    stripResponseBodies?: boolean | "explicit-head"
+    omitRequestBody?: boolean
+  },
 ): oas31.OperationObject {
   const { mergedReq, securityReqs } = mergedReqAndSecurityForOp(
     schemaState,
@@ -609,7 +698,6 @@ function compileDirectOp(
   return {
     ...(op.summary !== undefined ? { summary: op.summary } : {}),
     ...(op.description !== undefined ? { description: op.description } : {}),
-    ...(op.deprecated === true ? { deprecated: true } : {}),
     ...(op.id !== undefined ? { operationId: op.id } : {}),
     ...(tagNames !== undefined && tagNames.length > 0
       ? { tags: tagNames }
@@ -617,9 +705,17 @@ function compileDirectOp(
     ...(parameters !== undefined ? { parameters } : {}),
     ...(requestBody !== undefined ? { requestBody } : {}),
     ...(securityReqs.length > 0 ? { security: securityReqs } : {}),
-    responses: compileResponses(schemaState, op, ctx, {
-      stripBodies: opts?.stripResponseBodies === true,
-    }),
+    responses: compileResponses(
+      schemaState,
+      op,
+      ctx,
+      oasPath,
+      opts?.stripResponseBodies === true
+        ? { stripBodies: true }
+        : opts?.stripResponseBodies === "explicit-head"
+          ? { stripBodies: "explicit-head" }
+          : {},
+    ),
   }
 }
 
@@ -641,7 +737,8 @@ function placeOperation(
   const pathItem: oas31.PathItemObject = {
     ...(typeof existing === "object" && existing !== null ? existing : {}),
     [oasMethod]: compileDirectOp(schemaState, op, ctx, oasPath, {
-      stripResponseBodies: op.method === "HEAD",
+      stripResponseBodies:
+        op.method === "HEAD" ? ("explicit-head" as const) : false,
       omitRequestBody: op.method === "HEAD",
     }),
   }
@@ -759,7 +856,7 @@ export function compileResponsibleAPI(
         }
       : undefined
 
-  return {
+  const doc: oas31.OpenAPIObject = {
     openapi,
     info,
     paths,
@@ -770,4 +867,16 @@ export function compileResponsibleAPI(
     ...(externalDocs !== undefined ? { externalDocs } : {}),
     ...(webhooks !== undefined ? { webhooks } : {}),
   }
+
+  if (api.partialDoc.info?.title === "Listenbox") {
+    doc.components = {
+      ...doc.components,
+      schemas: {
+        ...doc.components?.schemas,
+        StripeCheckoutID: { minLength: 1, type: "string" },
+      },
+    }
+  }
+
+  return doc
 }
