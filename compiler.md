@@ -1,5 +1,12 @@
 # Compiler plan
 
+Old compiler:
+`/Users/adelnizamutdinov/responsible/responsible/packages/generator/`
+
+Old examples: `/Users/adelnizamutdinov/responsible/responsible/examples/`
+
+New examples: `src/examples/`. NEVER EDIT THESE FILES.
+
 ## What the current DSL already gives us
 
 - The compiler does not need to parse source code. The runtime values already
