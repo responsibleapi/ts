@@ -7,9 +7,6 @@
     /**
      * We keep `bun test` as the script entrypoint because it is faster for
      * local runs in this project.
-     *
-     * Test files still import from `vitest` because WebStorm still does not
-     * support `bun:test` properly as of March 2026.
      */
     "test": ""
   },
