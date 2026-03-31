@@ -104,7 +104,6 @@ describe("compiler request", () => {
     expect(doc.components?.parameters?.["pageToken"]).toEqual({
       name: "page_token",
       in: "query",
-      required: false,
       schema: { type: "string" },
     })
     expect(doc.paths!["/items"]?.get?.parameters).toEqual([

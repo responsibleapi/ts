@@ -9,6 +9,7 @@ export interface SchemaCompileState {
   components: {
     schemas: oas31.SchemasObject
     parameters: Record<string, oas31.ParameterObject | oas31.ReferenceObject>
+    headers: Record<string, oas31.HeaderObject | oas31.ReferenceObject>
     securitySchemes: Record<
       string,
       oas31.SecuritySchemeObject | oas31.ReferenceObject
@@ -17,6 +18,7 @@ export interface SchemaCompileState {
   inProgress: {
     schemas: Set<string>
     parameters: Set<string>
+    headers: Set<string>
     securitySchemes: Set<string>
   }
   anonymousSecuritySeq: number
@@ -27,11 +29,13 @@ export function createSchemaCompileState(): SchemaCompileState {
     components: {
       schemas: {},
       parameters: {},
+      headers: {},
       securitySchemes: {},
     },
     inProgress: {
       schemas: new Set(),
       parameters: new Set(),
+      headers: new Set(),
       securitySchemes: new Set(),
     },
     anonymousSecuritySeq: 0,
@@ -152,6 +156,7 @@ export function compileSchema(
     const existing = state.components.schemas[name]
     const schemaKeysBefore = new Set(Object.keys(state.components.schemas))
     const paramKeysBefore = new Set(Object.keys(state.components.parameters))
+    const headerKeysBefore = new Set(Object.keys(state.components.headers))
     const secKeysBefore = new Set(Object.keys(state.components.securitySchemes))
 
     let candidate: EmittedSchema
@@ -170,6 +175,12 @@ export function compileSchema(
       for (const k of Object.keys(state.components.parameters)) {
         if (!paramKeysBefore.has(k)) {
           delete state.components.parameters[k]
+        }
+      }
+
+      for (const k of Object.keys(state.components.headers)) {
+        if (!headerKeysBefore.has(k)) {
+          delete state.components.headers[k]
         }
       }
 

@@ -2,8 +2,6 @@
 
 ## `readme.test.ts`
 
-- Missing DSL for `components.headers` (golden file defines reusable headers
-  under `components.headers`; the compiler does not emit that bucket yet).
 - Missing thunks / wiring in `src/examples/readme.ts` that produce
   `components.responses` as in `src/examples/readme.json` (golden has a large
   `components.responses` map starting around line 1493; paths reference these

@@ -215,6 +215,7 @@ function paramRawToParameterObject(
     in: raw.in,
     schema,
     ...(raw.description !== undefined ? { description: raw.description } : {}),
+    ...(raw.example !== undefined ? { example: raw.example } : {}),
   }
 
   if (raw.in === "path") {
@@ -228,7 +229,7 @@ function paramRawToParameterObject(
 
   return {
     ...base,
-    required: raw.required ?? false,
+    ...(raw.required !== undefined ? { required: raw.required } : {}),
     ...(raw.style !== undefined ? { style: raw.style } : {}),
     ...(raw.explode !== undefined ? { explode: raw.explode } : {}),
   }
@@ -354,6 +355,33 @@ function paramSlotKey(loc: string, name: string): string {
   return `${loc}:${name}`
 }
 
+function namedPathParamForTemplateName(
+  mergedReq: ReqAugmentation,
+  pathName: string,
+): ReusableParam | undefined {
+  for (const entry of mergedReq.params ?? []) {
+    const { name: thunkName, value: v } = decodeNameable(entry)
+
+    if (v.in !== "path") {
+      continue
+    }
+
+    const paramName = v.name ?? thunkName
+
+    if (paramName !== pathName) {
+      continue
+    }
+
+    if (thunkName === undefined || thunkName === "") {
+      return undefined
+    }
+
+    return entry
+  }
+
+  return undefined
+}
+
 export function compileOperationParameters(
   state: SchemaCompileState,
   mergedReq: ReqAugmentation,
@@ -374,12 +402,32 @@ export function compileOperationParameters(
     }
 
     seen.add(slot)
-    out.push({
-      name,
-      in: "path",
-      required: true,
-      schema: compileSchema(state, pathSchemas[name]!),
-    })
+    const namedPath = namedPathParamForTemplateName(mergedReq, name)
+
+    if (namedPath !== undefined) {
+      out.push(compileParamComponent(state, namedPath))
+    } else {
+      out.push({
+        name,
+        in: "path",
+        required: true,
+        schema: compileSchema(state, pathSchemas[name]!),
+      })
+    }
+  }
+
+  const queryMap = mergedReq.query ?? {}
+
+  for (const rawName of Object.keys(queryMap)) {
+    const name = isOptional(rawName) ? rawName.slice(0, -1) : rawName
+    const slot = paramSlotKey("query", name)
+
+    if (seen.has(slot)) {
+      throw new Error(`Duplicate query parameter "${name}".`)
+    }
+
+    seen.add(slot)
+    out.push(compileMapParameter(state, rawName, queryMap[rawName]!, "query"))
   }
 
   for (const p of mergedReq.params ?? []) {
@@ -407,20 +455,25 @@ export function compileOperationParameters(
       seen.add(slot)
       out.push(compileParamComponent(state, p))
     }
-  }
 
-  const queryMap = mergedReq.query ?? {}
+    if (v.in === "header") {
+      const paramName = v.name ?? thunkName
 
-  for (const rawName of Object.keys(queryMap)) {
-    const name = isOptional(rawName) ? rawName.slice(0, -1) : rawName
-    const slot = paramSlotKey("query", name)
+      if (paramName === undefined || paramName === "") {
+        throw new Error("Header parameter in `params` must declare `name`.")
+      }
 
-    if (seen.has(slot)) {
-      throw new Error(`Duplicate query parameter "${name}".`)
+      const slot = paramSlotKey("header", paramName)
+
+      if (seen.has(slot)) {
+        throw new Error(
+          `Duplicate header parameter "${paramName}" in \`params\`.`,
+        )
+      }
+
+      seen.add(slot)
+      out.push(compileParamComponent(state, p))
     }
-
-    seen.add(slot)
-    out.push(compileMapParameter(state, rawName, queryMap[rawName]!, "query"))
   }
 
   const headerMap = mergedReq.headers ?? {}

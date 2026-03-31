@@ -1,7 +1,7 @@
 import type { NameWithOptionality, OptionalKey } from "./dsl.ts"
 import type { HttpMethod } from "./methods.ts"
 import type { Nameable } from "./nameable.ts"
-import type { ReusableParam } from "./params.ts"
+import type { ReusableHeader, ReusableParam } from "./params.ts"
 import type { Schema } from "./schema.ts"
 import type { Mime } from "./scope.ts"
 import type { Security } from "./security.ts"
@@ -47,7 +47,7 @@ export interface ReqAugmentation extends OpReq {
 
 export interface RespAugmentation {
   readonly mime?: Mime
-  readonly headers?: Record<NameWithOptionality, Schema>
+  readonly headers?: Record<NameWithOptionality, Schema | ReusableHeader>
   readonly cookies?: Record<NameWithOptionality, Schema>
 }
 
@@ -64,7 +64,7 @@ export interface RespParams {
    */
   description?: string
 
-  headers?: Record<NameWithOptionality, Schema>
+  headers?: Record<NameWithOptionality, Schema | ReusableHeader>
   cookies?: Record<NameWithOptionality, Schema>
 }
 

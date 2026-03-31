@@ -7,7 +7,7 @@ type Scalar<T> = T extends (...args: unknown[]) => unknown ? never : T
 
 /**
  * In DSL positions that accept {@link Nameable}, passing a {@link NamedThunk}
- * emits an OpenAPI `{ "$ref":  "#/components/<T>/<name>" }`, where `<name>`
+ * emits an OpenAPI `{ "$ref": "#/components/<T>/<name>" }`, where `<name>`
  * comes from {@link Function.name}.
  *
  * Never call the thunk, always pass the reference

@@ -15,7 +15,8 @@ import type {
   RespParams,
   RouteMethodOp,
 } from "../dsl/operation.ts"
-import type { Schema } from "../dsl/schema.ts"
+import type { HeaderRaw, ReusableHeader } from "../dsl/params.ts"
+import type { RawSchema, Schema } from "../dsl/schema.ts"
 import type { HttpPath, Mime, ScopeOpts, ScopeRes } from "../dsl/scope.ts"
 import { isScope } from "../dsl/scope.ts"
 import { dslPathToOpenApiPath, joinHttpPaths } from "./path.ts"
@@ -26,6 +27,7 @@ import {
   securityLayerFromScopeReq,
   stripSecurityFields,
 } from "./request.ts"
+import { deepEqualJson } from "./json-equal.ts"
 import {
   compileSchema,
   createSchemaCompileState,
@@ -401,9 +403,88 @@ function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
+function headerComponentRef(name: string): oas31.ReferenceObject {
+  return { $ref: `#/components/headers/${name}` }
+}
+
+function isHeaderRaw(value: unknown): value is HeaderRaw {
+  if (value === null || typeof value !== "object") {
+    return false
+  }
+
+  return "schema" in value && !("type" in value)
+}
+
+function isNamedResponseHeaderThunk(
+  v: Schema | ReusableHeader,
+): v is ReusableHeader {
+  if (typeof v !== "function") {
+    return false
+  }
+
+  const d = decodeNameable(v as Nameable<HeaderRaw | RawSchema>)
+
+  return d.name !== undefined && d.name !== "" && isHeaderRaw(d.value)
+}
+
+function headerRawToHeaderObject(
+  state: SchemaCompileState,
+  raw: HeaderRaw,
+): oas31.HeaderObject {
+  return {
+    ...(raw.description !== undefined ? { description: raw.description } : {}),
+    schema: compileSchema(state, raw.schema),
+    ...(raw.required !== undefined ? { required: raw.required } : {}),
+    ...(raw.deprecated !== undefined ? { deprecated: raw.deprecated } : {}),
+    ...(raw.example !== undefined ? { example: raw.example } : {}),
+  }
+}
+
+function compileHeaderComponent(
+  state: SchemaCompileState,
+  header: ReusableHeader,
+): oas31.ReferenceObject {
+  const { name: thunkName, value } = decodeNameable(header)
+  const resolvedName =
+    thunkName !== undefined && thunkName !== "" ? thunkName : undefined
+  const obj = headerRawToHeaderObject(state, value)
+
+  if (resolvedName === undefined || resolvedName === "") {
+    throw new Error(
+      "Response header reuse requires named(..., responseHeader({...})) with a non-empty name.",
+    )
+  }
+
+  const existing = state.components.headers[resolvedName]
+
+  if (existing !== undefined) {
+    if (!deepEqualJson(existing, obj)) {
+      throw new Error(
+        `components.headers: name "${resolvedName}" is already used by a different header`,
+      )
+    }
+
+    return headerComponentRef(resolvedName)
+  }
+
+  if (state.inProgress.headers.has(resolvedName)) {
+    return headerComponentRef(resolvedName)
+  }
+
+  state.inProgress.headers.add(resolvedName)
+
+  try {
+    state.components.headers[resolvedName] = obj
+  } finally {
+    state.inProgress.headers.delete(resolvedName)
+  }
+
+  return headerComponentRef(resolvedName)
+}
+
 function compileHeaderMap(
   schemaState: SchemaCompileState,
-  headers: Record<string, Schema> | undefined,
+  headers: Record<string, Schema | ReusableHeader> | undefined,
 ): oas31.HeadersObject | undefined {
   if (headers === undefined || Object.keys(headers).length === 0) {
     return undefined
@@ -411,13 +492,18 @@ function compileHeaderMap(
 
   const out: oas31.HeadersObject = {}
 
-  for (const [rawName, sch] of Object.entries(headers)) {
+  for (const [rawName, val] of Object.entries(headers)) {
     const name = isOptional(rawName) ? rawName.slice(0, -1) : rawName
     const required = !isOptional(rawName)
 
+    if (isNamedResponseHeaderThunk(val)) {
+      out[name] = compileHeaderComponent(schemaState, val)
+      continue
+    }
+
     out[name] = {
       required,
-      schema: compileSchema(schemaState, sch),
+      schema: compileSchema(schemaState, val),
     }
   }
 
@@ -860,15 +946,22 @@ export function compileResponsibleAPI(
 
   const schemaKeys = Object.keys(schemaState.components.schemas)
   const paramKeys = Object.keys(schemaState.components.parameters)
+  const headerKeys = Object.keys(schemaState.components.headers)
   const secKeys = Object.keys(schemaState.components.securitySchemes)
   const components: oas31.ComponentsObject | undefined =
-    schemaKeys.length > 0 || paramKeys.length > 0 || secKeys.length > 0
+    schemaKeys.length > 0 ||
+    paramKeys.length > 0 ||
+    headerKeys.length > 0 ||
+    secKeys.length > 0
       ? {
           ...(schemaKeys.length > 0
             ? { schemas: schemaState.components.schemas }
             : {}),
           ...(paramKeys.length > 0
             ? { parameters: schemaState.components.parameters }
+            : {}),
+          ...(headerKeys.length > 0
+            ? { headers: schemaState.components.headers }
             : {}),
           ...(secKeys.length > 0
             ? { securitySchemes: schemaState.components.securitySchemes }

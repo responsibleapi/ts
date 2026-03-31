@@ -2,12 +2,18 @@ import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, POST } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"
 import { resp } from "../dsl/operation.ts"
-import { queryParam } from "../dsl/params.ts"
+import {
+  headerParam,
+  pathParam,
+  queryParam,
+  responseHeader,
+} from "../dsl/params.ts"
 import {
   allOf,
   array,
   boolean,
   int32,
+  integer,
   object,
   oneOf,
   string,
@@ -153,7 +159,7 @@ const pageQuery = named(
   queryParam({
     name: "page",
     description: "Used to specify further pages (starts at 1).",
-    schema: int32({
+    schema: integer({
       default: 1,
       minimum: 1,
     }),
@@ -166,7 +172,7 @@ const perPageQuery = named(
     name: "perPage",
     description:
       "Number of items to include in pagination (up to 100, defaults to 10).",
-    schema: int32({
+    schema: integer({
       default: 10,
       minimum: 1,
       maximum: 100,
@@ -175,6 +181,30 @@ const perPageQuery = named(
 )
 
 const paginationParams = [perPageQuery, pageQuery] as const
+
+const xReadmeVersionParam = named(
+  "x-readme-version",
+  headerParam({
+    name: "x-readme-version",
+    description:
+      "Version number of your docs project, for example, v3.0. By default the main project version is used. To see all valid versions for your docs project call https://docs.readme.com/reference/version#getversions.",
+    example: "v3.0",
+    required: false,
+    schema: readmeVersion,
+  }),
+)
+
+const versionIdParam = named(
+  "versionId",
+  pathParam({
+    name: "versionId",
+    description:
+      "Semver identifier for the project version. For best results, use the formatted `version_clean` value listed in the response from the [Get Versions endpoint](/reference/getversions).",
+    example: "v1.0.0",
+    required: true,
+    schema: versionID,
+  }),
+)
 
 const tags = declareTags({
   "API Registry": {},
@@ -371,15 +401,27 @@ const version = () =>
     }),
   })
 
-const paginationHeaders = {
-  Link: string({
+const linkPaginationHeader = named(
+  "link",
+  responseHeader({
     description:
       "Pagination information. See https://docs.readme.com/reference/pagination for more information.",
+    schema: string(),
   }),
-  "x-total-count": string({
+)
+
+const xTotalCountHeader = named(
+  "x-total-count",
+  responseHeader({
     description:
       "The total amount of results, ignoring pagination. See https://docs.readme.com/reference/pagination for more information about pagination.",
+    schema: string(),
   }),
+)
+
+const paginationHeaders = {
+  Link: linkPaginationHeader,
+  "x-total-count": xTotalCountHeader,
 }
 
 const authResponses = {
@@ -443,9 +485,6 @@ export default responsibleAPI({
         tags: [tags["API Specification"]],
         req: {
           security: basicAuth,
-          headers: {
-            "x-readme-version?": readmeVersion,
-          },
         },
         res: {
           add: authResponses,
@@ -456,7 +495,7 @@ export default responsibleAPI({
         summary: "Get metadata",
         description: "Get API specification metadata.",
         req: {
-          params: paginationParams,
+          params: [...paginationParams, xReadmeVersionParam],
         },
         res: {
           200: resp({
@@ -480,6 +519,7 @@ export default responsibleAPI({
         description:
           "Upload an API specification to ReadMe. Or, to use a newer solution see https://docs.readme.com/docs/automatically-sync-api-specification-with-github.",
         req: {
+          params: [xReadmeVersionParam],
           body: {
             "multipart/form-data": apiSpecificationUpload,
           },
@@ -609,9 +649,6 @@ export default responsibleAPI({
         req: {
           mime: "application/json",
           security: basicAuth,
-          headers: {
-            "x-readme-version?": readmeVersion,
-          },
         },
       },
       GET: {
@@ -619,7 +656,7 @@ export default responsibleAPI({
         summary: "Get all categories",
         description: "Returns all the categories for a specified version.",
         req: {
-          params: paginationParams,
+          params: [xReadmeVersionParam, ...paginationParams],
         },
         res: {
           200: resp({
@@ -633,6 +670,7 @@ export default responsibleAPI({
         summary: "Create category",
         description: "Create a new category inside of this project.",
         req: {
+          params: [xReadmeVersionParam],
           body: createCategory,
         },
         res: {
@@ -653,9 +691,7 @@ export default responsibleAPI({
           mime: "application/json",
           security: basicAuth,
           pathParams: { slug: categorySlug },
-          headers: {
-            "x-readme-version?": readmeVersion,
-          },
+          params: [xReadmeVersionParam],
         },
       },
       GET: {
@@ -717,9 +753,7 @@ export default responsibleAPI({
       req: {
         security: basicAuth,
         pathParams: { slug: categorySlug },
-        headers: {
-          "x-readme-version?": readmeVersion,
-        },
+        params: [xReadmeVersionParam],
       },
       res: {
         200: resp({
@@ -944,9 +978,7 @@ export default responsibleAPI({
           mime: "application/json",
           security: basicAuth,
           pathParams: { slug: docSlug },
-          headers: {
-            "x-readme-version?": readmeVersion,
-          },
+          params: [xReadmeVersionParam],
         },
         res: {
           add: authResponses,
@@ -1009,9 +1041,7 @@ export default responsibleAPI({
       tags: [tags.Docs],
       req: {
         security: basicAuth,
-        headers: {
-          "x-readme-version?": readmeVersion,
-        },
+        params: [xReadmeVersionParam],
         body: { "application/json": doc },
       },
       res: {
@@ -1032,9 +1062,7 @@ export default responsibleAPI({
       tags: [tags.Docs],
       req: {
         security: basicAuth,
-        headers: {
-          "x-readme-version?": readmeVersion,
-        },
+        params: [xReadmeVersionParam],
         query: {
           search: string({
             description: "Search string to look for.",
@@ -1137,7 +1165,7 @@ export default responsibleAPI({
         req: {
           mime: "application/json",
           security: basicAuth,
-          pathParams: { versionId: versionID },
+          params: [versionIdParam],
         },
         res: {
           add: authResponses,
