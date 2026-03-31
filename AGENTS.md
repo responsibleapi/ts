@@ -5,11 +5,10 @@
 - 100% TypeScript codebase
 - DSL is ready
 - have not started implementing the compiler
-- never run the whole test suite, run individual test files instead
 
 ## TypeScript
 
-- ALWAYS run `typecheck` and `lint` after making changes
+- ALWAYS run `bun check` to verify your changes
 - never add `oxlint-disable-next-line` unless explicitly asked
 
 ## Imports from packages
