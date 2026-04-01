@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest"
 import { validate } from "../validate.ts"
 import json from "./youtube.json"
+import youtubeAPI from "./youtube.ts"
 
 describe("youtube example", () => {
   test("youtube.json is valid", async () => {
@@ -8,9 +9,6 @@ describe("youtube example", () => {
   })
 
   test("youtube.json validates as OpenAPI", async () => {
-    /** Compiler isn't implemented, this import throws */
-    const { default: api } = await import("./youtube.ts")
-
-    expect(await validate(api)).toEqual(json)
+    expect(await validate(youtubeAPI)).toEqual(json)
   })
 })
