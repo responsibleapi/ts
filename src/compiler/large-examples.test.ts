@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { validate } from "../validate.ts"
+import { validate } from "../help/validate.ts"
 
 /**
  * Story 6: large specs validate end-to-end; named query params and named HTTP

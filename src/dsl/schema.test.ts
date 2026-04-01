@@ -1,6 +1,6 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
-import { validate } from "../validate.ts"
+import { validate } from "../help/validate.ts"
 import type { RawSchema } from "./schema.ts"
 import {
   allOf,

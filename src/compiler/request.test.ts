@@ -1,6 +1,6 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
-import { validate } from "../validate.ts"
+import { validate } from "../help/validate.ts"
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, POST } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"

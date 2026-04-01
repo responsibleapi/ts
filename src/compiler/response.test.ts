@@ -7,7 +7,7 @@ import { resp } from "../dsl/operation.ts"
 import { responseHeader } from "../dsl/response-headers.ts"
 import { int32, object, string, unknown } from "../dsl/schema.ts"
 import { scope } from "../dsl/scope.ts"
-import { validate } from "../validate.ts"
+import { validate } from "../help/validate.ts"
 
 describe("compiler response defaults and HEAD", () => {
   test("scope-level res.mime is a wildcard default mime", async () => {

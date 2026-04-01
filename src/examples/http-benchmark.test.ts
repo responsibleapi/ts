@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { validate } from "../validate.ts"
+import { validate } from "../help/validate.ts"
 import theJSON from "./http-benchmark.json"
 
 describe("http-benchmark example", () => {

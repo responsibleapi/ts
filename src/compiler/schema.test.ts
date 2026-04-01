@@ -1,6 +1,6 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
-import { validate } from "../validate.ts"
+import { validate } from "../help/validate.ts"
 import { responsibleAPI } from "../dsl/dsl.ts"
 import type { NamedThunk } from "../dsl/nameable.ts"
 import { named } from "../dsl/nameable.ts"
