@@ -89,7 +89,7 @@ function emitObject(state: SchemaCompileState, s: Obj): oas31.SchemaObject {
     Object.keys(rest).length === 0
   ) {
     return {
-      required: orderRequiredArray([...required]),
+      required: [...required],
     } as oas31.SchemaObject
   }
 
@@ -103,27 +103,10 @@ function emitObject(state: SchemaCompileState, s: Obj): oas31.SchemaObject {
   }
 
   if (required !== undefined && required.length > 0) {
-    out["required"] = orderRequiredArray([...required])
+    out["required"] = [...required]
   }
 
   return out as oas31.SchemaObject
-}
-
-/** KDL golden puts `id` then `feed_id` before other required keys (e.g. Show). */
-function orderRequiredArray(keys: readonly string[]): string[] {
-  if (!keys.includes("id") || !keys.includes("feed_id")) {
-    return [...keys]
-  }
-
-  const out: string[] = ["id", "feed_id"]
-
-  for (const k of keys) {
-    if (k !== "id" && k !== "feed_id") {
-      out.push(k)
-    }
-  }
-
-  return out
 }
 
 function emitDict(state: SchemaCompileState, s: Dict): oas31.SchemaObject {

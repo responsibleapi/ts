@@ -52,5 +52,6 @@ const normObj = <T extends object>(obj: T): T => {
   return normalizedObject
 }
 
+/** Sorts arrays */
 export const normalize = <T extends oas31.OpenAPIObject>(doc: T): T =>
   normObj(doc)
