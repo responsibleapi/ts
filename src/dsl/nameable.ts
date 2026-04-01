@@ -48,40 +48,30 @@ function getRefSibling<T>(target: T, key: keyof T): string | undefined {
  * to attach them.
  */
 export const named = <T>(name: string, value: Scalar<T>): NamedThunk<T> => {
-  const thunk: NamedThunk<T> = () => value
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+  const thunk = (() => value) as NamedThunk<T>
+
   Object.defineProperty(thunk, "name", {
     value: name,
     writable: false,
     enumerable: false,
     configurable: true,
   })
+
   return thunk
 }
 
 /**
  * Wraps a {@link NamedThunk} with OpenAPI reference siblings. The returned thunk
- * forwards `()` to the inner thunk and copies {@link Function.name}. Reuse
- * previous sibling values explicitly via object spread when needed.
+ * keeps the same resolved value and copies {@link Function.name}. Existing
+ * sibling values are preserved unless the outer wrapper overrides them.
  */
 export const ref = <T>(
   thunk: NamedThunk<T>,
   fields: RefWithoutRef,
 ): NamedThunk<T> => {
-  const wrapper = (() => thunk()) as NamedThunk<T>
-
-  Object.defineProperty(wrapper, "name", {
-    value: thunk.name,
-    writable: false,
-    enumerable: false,
-    configurable: true,
-  })
-
-  if (fields.summary !== undefined) {
-    wrapper.summary = fields.summary
-  }
-  if (fields.description !== undefined) {
-    wrapper.description = fields.description
-  }
+  const wrapper = named(thunk.name, thunk())
+  Object.assign(wrapper, thunk, fields)
 
   return wrapper
 }

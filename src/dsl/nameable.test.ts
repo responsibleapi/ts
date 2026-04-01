@@ -73,16 +73,18 @@ describe("nameable", () => {
     })
   })
 
-  test("ref does not merge siblings across chained wrappers implicitly", () => {
+  test("ref preserves existing summary when outer wrapper adds description", () => {
     const inp = { in: "query" as const, name: "q" }
     const inner = named("Param", inp)
-    const withDesc = ref(inner, { description: "D" })
-    const withSummary = ref(withDesc, { summary: "S" })
+    const withSummary = ref(inner, { summary: "S" })
+    const withDescription = ref(withSummary, { description: "D" })
 
-    expect(decodeNameable<typeof inp>(withSummary)).toEqual({
+    expect(withDescription.summary).toBe("S")
+    expect(decodeNameable<typeof inp>(withDescription)).toEqual({
       name: "Param",
       value: inp,
       summary: "S",
+      description: "D",
     })
   })
 
@@ -90,7 +92,8 @@ describe("nameable", () => {
     const inp = { in: "query" as const, name: "q" }
     const inner = named("Param", inp)
     const withDesc = ref(inner, { description: "D" })
-    const reused = { description: withDesc.description }
+
+    const reused = { description: withDesc.description ?? "" }
     const withBoth = ref(withDesc, { ...reused, summary: "S" })
 
     expect(decodeNameable<typeof inp>(withBoth)).toEqual({
