@@ -50,5 +50,5 @@ const normObj = <T extends object>(obj: T): T => {
   return normalizedObject
 }
 
-export const normalize = (doc: oas31.OpenAPIObject): oas31.OpenAPIObject =>
+export const normalize = <T extends oas31.OpenAPIObject>(doc: T): T =>
   normObj(doc)
