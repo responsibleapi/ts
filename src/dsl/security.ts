@@ -1,6 +1,8 @@
 import type { oas31 } from "openapi3-ts"
 import type { Nameable, NamedThunk } from "./nameable.ts"
 
+const SECURITY_SCHEMES = Symbol("securitySchemes")
+
 type SecurityScheme = Nameable<oas31.SecuritySchemeObject>
 
 type OAuth2SecuritySchemeObject<
@@ -46,6 +48,68 @@ export type Security =
   | SecurityScheme
   | oas31.SecurityRequirementObject
   | readonly oas31.SecurityRequirementObject[]
+
+function attachSecuritySchemes<T>(
+  value: T,
+  schemes: readonly NamedSecurityScheme[],
+): T {
+  if (schemes.length === 0 || typeof value !== "object" || value === null) {
+    return value
+  }
+
+  Object.defineProperty(value, SECURITY_SCHEMES, {
+    value: schemes,
+    enumerable: false,
+  })
+
+  return value
+}
+
+function attachedSecuritySchemes(
+  value: unknown,
+): readonly NamedSecurityScheme[] {
+  if (typeof value !== "object" || value === null) {
+    return []
+  }
+
+  const schemes = (value as { [SECURITY_SCHEMES]?: readonly NamedSecurityScheme[] })[
+    SECURITY_SCHEMES
+  ]
+
+  return Array.isArray(schemes) ? schemes : []
+}
+
+function dedupeSecuritySchemes(
+  schemes: readonly NamedSecurityScheme[],
+): NamedSecurityScheme[] {
+  const seen = new Set<string>()
+  const out: NamedSecurityScheme[] = []
+
+  for (const scheme of schemes) {
+    if (seen.has(scheme.name)) {
+      continue
+    }
+
+    seen.add(scheme.name)
+    out.push(scheme)
+  }
+
+  return out
+}
+
+export function getAttachedSecuritySchemes(
+  value: Security | SecurityOperand,
+): readonly NamedSecurityScheme[] {
+  if (Array.isArray(value)) {
+    return dedupeSecuritySchemes(value.flatMap(item => getAttachedSecuritySchemes(item)))
+  }
+
+  if (typeof value === "function") {
+    return value.name ? [value] : []
+  }
+
+  return attachedSecuritySchemes(value)
+}
 
 /**
  * This unwraps {@link Nameable} so scope inference works for both inline
@@ -126,7 +190,7 @@ const toSecurityRequirement = (
   }
 
   if (security.name) {
-    return { [security.name]: [] }
+    return attachSecuritySchemes({ [security.name]: [] }, [security])
   }
 
   throw new Error(
@@ -139,14 +203,21 @@ const toSecurityRequirement = (
 export const oauth2Requirement = <T extends NamedOAuth2SecurityScheme>(
   scheme: T,
   scopes: readonly OAuth2ScopeName<T>[],
-): oas31.SecurityRequirementObject => ({
-  [scheme.name]: [...scopes],
-})
+): oas31.SecurityRequirementObject =>
+  attachSecuritySchemes(
+    {
+      [scheme.name]: [...scopes],
+    },
+    [scheme],
+  )
 
 export const securityAND = (
   ...items: SecurityOperands
 ): oas31.SecurityRequirementObject => {
   const merged: oas31.SecurityRequirementObject = {}
+  const schemes = dedupeSecuritySchemes(
+    items.flatMap(item => getAttachedSecuritySchemes(item)),
+  )
 
   for (const item of items) {
     for (const [scheme, scopes] of Object.entries(
@@ -159,7 +230,7 @@ export const securityAND = (
     }
   }
 
-  return merged
+  return attachSecuritySchemes(merged, schemes)
 }
 
 export const securityOR = (
