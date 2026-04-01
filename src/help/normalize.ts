@@ -3,66 +3,52 @@ import type { oas31 } from "openapi3-ts"
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
-const normalizeValue = (value: unknown): unknown => {
+function normVal(value: unknown): unknown {
   if (!Array.isArray(value)) {
     if (isObject(value)) {
-      return normalizeObject(value)
+      return normObj(value)
     }
     return value
   }
 
-  const normalizedItems = value.map(item => normalizeValue(item))
+  const arr = value.map(item => normVal(item))
 
-  if (
-    normalizedItems.every((item): item is string => typeof item === "string")
-  ) {
-    return [...normalizedItems].sort((left, right) => left.localeCompare(right))
+  if (arr.every((item): item is string => typeof item === "string")) {
+    return [...arr].sort((left, right) => left.localeCompare(right))
   }
 
-  if (
-    normalizedItems.every((item): item is number => typeof item === "number")
-  ) {
-    return [...normalizedItems].sort((left, right) => left - right)
+  if (arr.every((item): item is number => typeof item === "number")) {
+    return [...arr].sort((left, right) => left - right)
   }
 
-  if (
-    normalizedItems.every((item): item is boolean => typeof item === "boolean")
-  ) {
-    return [...normalizedItems].sort(
-      (left, right) => Number(left) - Number(right),
-    )
+  if (arr.every((item): item is boolean => typeof item === "boolean")) {
+    return [...arr].sort((left, right) => Number(left) - Number(right))
   }
 
-  if (normalizedItems.every(Array.isArray)) {
-    return normalizedItems
+  if (arr.every(Array.isArray)) {
+    return arr
   }
 
-  if (
-    normalizedItems.every((item): item is Record<string, unknown> =>
-      isObject(item),
-    )
-  ) {
-    return [...normalizedItems].sort((left, right) => {
+  if (arr.every((item): item is Record<string, unknown> => isObject(item))) {
+    return [...arr].sort((left, right) => {
       const leftName = typeof left["name"] === "string" ? left["name"] : ""
       const rightName = typeof right["name"] === "string" ? right["name"] : ""
       return leftName.localeCompare(rightName)
     })
   }
 
-  // TBD: define a stable ordering for mixed or unsupported array element shapes.
-  return normalizedItems
+  throw new Error(`Invalid value for ${JSON.stringify(arr)}`)
 }
 
-const normalizeObject = <T extends object>(obj: T): T => {
+const normObj = <T extends object>(obj: T): T => {
   const normalizedObject = {} as T
 
   for (const k in obj) {
-    normalizedObject[k as keyof T] = normalizeValue(obj[k]) as T[keyof T]
+    normalizedObject[k as keyof T] = normVal(obj[k]) as T[keyof T]
   }
 
   return normalizedObject
 }
 
-export function normalize(doc: oas31.OpenAPIObject): oas31.OpenAPIObject {
-  return normalizeObject(doc)
-}
+export const normalize = (doc: oas31.OpenAPIObject): oas31.OpenAPIObject =>
+  normObj(doc)

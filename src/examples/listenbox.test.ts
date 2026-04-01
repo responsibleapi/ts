@@ -1,12 +1,14 @@
+import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
+import { normalize } from "../help/normalize.ts"
 import { validate } from "../help/validate.ts"
 import json from "./listenbox.json"
+import listenboxAPI from "./listenbox.ts"
 
 describe("listenbox", () => {
   test("listenbox.json validates as OpenAPI", async () => {
-    /** Compiler isn't implemented, this import throws */
-    const { default: api } = await import("./listenbox.ts")
-
-    expect(await validate(api)).toEqual(json)
+    expect(normalize(await validate(listenboxAPI))).toEqual(
+      normalize(json as oas31.OpenAPIObject),
+    )
   })
 })
