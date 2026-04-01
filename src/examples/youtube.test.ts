@@ -10,7 +10,7 @@ describe("youtube example", () => {
     expect(await validate(json)).toEqual(json)
   })
 
-  test.skip("youtube.json validates as OpenAPI", async () => {
+  test("youtube.json validates as OpenAPI", async () => {
     expect(normalize(await validate(youtubeAPI))).toEqual(
       normalize(json as oas31.OpenAPIObject),
     )
