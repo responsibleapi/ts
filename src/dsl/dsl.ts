@@ -33,6 +33,8 @@ export interface ResponsibleApiInput {
    * Extra `components.responses` entries. OpenAPI allows unused response
    * components; this matches hand-authored specs that list a full error
    * catalog.
+   *
+   * DO NOT USE. Used only by `readme.ts`
    */
   ensureResponseComponents?: readonly Resp[]
 }
