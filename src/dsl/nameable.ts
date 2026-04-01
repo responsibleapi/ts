@@ -65,9 +65,10 @@ export const named = <T>(name: string, value: Scalar<T>): NamedThunk<T> => {
  */
 export const ref = <T>(
   thunk: NamedThunk<T>,
-  fields: Partial<RefWithoutRef>,
+  fields: RefWithoutRef,
 ): NamedThunk<T> => {
   const wrapper = (() => thunk()) as NamedThunk<T>
+
   Object.defineProperty(wrapper, "name", {
     value: thunk.name,
     writable: false,
