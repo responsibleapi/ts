@@ -41,9 +41,11 @@ function normVal(value: unknown): unknown {
 }
 
 const normObj = <T extends object>(obj: T): T => {
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   const normalizedObject = {} as T
 
   for (const k in obj) {
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     normalizedObject[k as keyof T] = normVal(obj[k]) as T[keyof T]
   }
 
