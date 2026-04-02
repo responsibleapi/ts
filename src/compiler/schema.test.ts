@@ -1,12 +1,12 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
-import { validate } from "../help/validate.ts"
 import { responsibleAPI } from "../dsl/dsl.ts"
-import type { NamedThunk } from "../dsl/nameable.ts"
-import { named } from "../dsl/nameable.ts"
 import { POST } from "../dsl/methods.ts"
+import type { NamedThunk } from "../dsl/nameable.ts"
+import { named, ref } from "../dsl/nameable.ts"
 import type { Obj, Schema } from "../dsl/schema.ts"
 import { array, int32, object, string } from "../dsl/schema.ts"
+import { validate } from "../help/validate.ts"
 import { compileSchema, createSchemaCompileState } from "./schema.ts"
 
 /** Lazy {@link NamedThunk} for recursive schemas (`named()` is eager-only). */
@@ -76,9 +76,9 @@ describe("compiler schema", () => {
       required: ["message"],
     })
 
-    expect(doc.paths?.["/x"]?.post?.requestBody).toEqual<
-      oas31.RequestBodyObject
-    >({
+    expect(
+      doc.paths?.["/x"]?.post?.requestBody,
+    ).toEqual<oas31.RequestBodyObject>({
       required: true,
       content: {
         "application/json": {
@@ -155,6 +155,42 @@ describe("compiler schema", () => {
       },
     })
     expect(Object.keys(doc.components?.schemas ?? {})).toEqual(["Shared"])
+  })
+
+  test("schema $ref siblings are preserved on object properties", () => {
+    const Shared = named("Shared", object({ id: int32() }))
+    const state = createSchemaCompileState()
+
+    const compiled = compileSchema(
+      state,
+      object({
+        first: ref(Shared, { description: "First shared schema" }),
+        second: ref(Shared, { description: "Second shared schema" }),
+      }),
+    )
+
+    expect(compiled).toEqual<oas31.SchemaObject>({
+      type: "object",
+      properties: {
+        first: {
+          $ref: "#/components/schemas/Shared",
+          description: "First shared schema",
+        },
+        second: {
+          $ref: "#/components/schemas/Shared",
+          description: "Second shared schema",
+        },
+      },
+      required: ["first", "second"],
+    })
+
+    expect(state.components.schemas["Shared"]).toEqual<oas31.SchemaObject>({
+      type: "object",
+      properties: {
+        id: { type: "integer", format: "int32" },
+      },
+      required: ["id"],
+    })
   })
 
   test("rejects conflicting reuse of components.schemas name", () => {

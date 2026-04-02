@@ -1,7 +1,7 @@
 import type { oas31 } from "openapi3-ts"
 import { decodeNameable } from "../dsl/nameable.ts"
-import { deepEqualJson } from "./json-equal.ts"
 import type { Obj, RawSchema, Schema } from "../dsl/schema.ts"
+import { deepEqualJson } from "./json-equal.ts"
 
 type Dict = Extract<RawSchema, { type: "object"; propertyNames: unknown }>
 
@@ -50,7 +50,25 @@ function schemaRef(name: string): oas31.ReferenceObject {
 
 type EmittedSchema = oas31.SchemaObject | oas31.ReferenceObject
 
-function emitString(s: Extract<RawSchema, { type: "string" }>): oas31.SchemaObject {
+function schemaRefWithSiblings(
+  name: string,
+  siblings: {
+    summary?: string
+    description?: string
+  },
+): oas31.ReferenceObject {
+  return {
+    ...schemaRef(name),
+    ...(siblings.summary !== undefined ? { summary: siblings.summary } : {}),
+    ...(siblings.description !== undefined
+      ? { description: siblings.description }
+      : {}),
+  }
+}
+
+function emitString(
+  s: Extract<RawSchema, { type: "string" }>,
+): oas31.SchemaObject {
   const pattern = s["pattern"]
   const { const: constVal, ...rest } = s
   const out: Record<string, unknown> = { ...rest }
@@ -63,9 +81,7 @@ function emitString(s: Extract<RawSchema, { type: "string" }>): oas31.SchemaObje
 
   if (pattern instanceof RegExp) {
     const src = pattern.source
-    out["pattern"] = src.startsWith("^https")
-      ? src
-      : src.replace(/\\\//g, "/")
+    out["pattern"] = src.startsWith("^https") ? src : src.replace(/\\\//g, "/")
   } else if (pattern !== undefined) {
     out["pattern"] = pattern
   }
@@ -143,7 +159,11 @@ export function compileSchema(
   state: SchemaCompileState,
   schema: Schema,
 ): EmittedSchema {
-  const { name, value } = decodeNameable(schema)
+  const { name, value, summary, description } = decodeNameable(schema)
+  const refSiblings = {
+    ...(summary !== undefined ? { summary } : {}),
+    ...(description !== undefined ? { description } : {}),
+  }
 
   if (name === undefined || name === "") {
     return compileRawSchema(state, value)
@@ -194,11 +214,11 @@ export function compileSchema(
       )
     }
 
-    return schemaRef(name)
+    return schemaRefWithSiblings(name, refSiblings)
   }
 
   if (state.inProgress.schemas.has(name)) {
-    return schemaRef(name)
+    return schemaRefWithSiblings(name, refSiblings)
   }
 
   state.inProgress.schemas.add(name)
@@ -213,7 +233,7 @@ export function compileSchema(
     state.inProgress.schemas.delete(name)
   }
 
-  return schemaRef(name)
+  return schemaRefWithSiblings(name, refSiblings)
 }
 
 function compileRawSchema(
