@@ -101,3 +101,18 @@ git log --all --since='%day% 00:00:00' --until='%day% 23:59:59' --numstat --form
 
 - `git add` files from current session
 - `git commit` current session with extremely concise yet precise msg
+
+## Cursor Cloud specific instructions
+
+- **Runtime**: Bun (installed at `~/.bun/bin/bun`). Ensure `~/.bun/bin` is on
+  `PATH`.
+- **No services to start**: This is a pure TypeScript library with zero
+  external dependencies (no DB, no Docker, no servers).
+- **Key commands** are in `package.json` scripts: `bun run typecheck`, `bun run
+  lint`, `bun test <file>`. See `bun run check` for running all three in
+  parallel.
+- **Compiler is unimplemented**: `src/dsl/methods.ts` throws `TODO`. Tests that
+  invoke `responsibleAPI()` or HTTP method functions (`GET`, `POST`, etc.) with
+  actual compilation will fail — this is expected, not an environment issue.
+- **Individual test files only**: Per project convention, run `bun test
+  src/path/to/file.test.ts` rather than `bun test` with no args.
