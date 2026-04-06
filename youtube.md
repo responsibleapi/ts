@@ -2,12 +2,28 @@
 
 ## Goal
 
-Make `src/examples/youtube.ts` model raw OAS path items directly.
+Make `src/examples/youtube.ts` model `src/examples/youtube.json` directly.
 
-The current file is mixing two different ideas:
+The current file is still mixing two different `scope` roles:
 
-- one `scope` as an exact OAS `PathItem`
-- one `scope` as a URL-prefix grouping convenience
+- exact raw-path scope: `"/youtube/v3/captions"` and `"/youtube/v3/videos"`
+  each carry same-path methods directly on the scope
+- URL-prefix grouping scope: `"/youtube/v3/watermarks"` is only a container for
+  `"/set"` and `"/unset"`
+- hybrid scope: `"/youtube/v3/liveBroadcasts"` is both an exact raw path item
+  and a parent for `"/bind"`, `"/cuepoint"`, and `"/transition"`
+
+That blocks the goal at line 5 because `src/examples/youtube.json` is organized
+as `39` independent raw OAS path items, while `youtube.ts` is still partly
+organized as convenience trees. Once a scope can mean either "this exact path
+item" or "a prefix that happens to own several path items", the source stops
+being a direct mirror of the raw JSON shape. You then have to infer whether
+shared `forAll`, `req`, `res`, and `tags` are meant to belong to one raw path
+item or to several sibling raw path items. That ambiguity is exactly what makes
+parameter and response placement drift easy: values that are shared for prefix
+convenience can look like they belong to a concrete raw path item, and values
+that belong to one raw path item can be written at a parent scope that also
+governs descendants.
 
 The captions regression was not caused by nesting alone:
 
@@ -40,7 +56,8 @@ The captions regression was not caused by nesting alone:
 
 ## Structural Direction
 
-Keep raw OAS behavior correct first. Exact-path mirroring in source is optional.
+Keep `src/examples/youtube.json` as the direct modeling target. Exact-path
+mirroring in source is required here.
 
 With the current compiler:
 
