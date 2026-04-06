@@ -1,83 +1,70 @@
-# Compiler Fix Plan
+# `youtube.ts` compiler-phase plan
 
-## Current failure
+## Entry Criteria
 
-- As of 2026-04-02, `bun test` fails only on `src/examples/youtube.test.ts`.
-- `bun test src/compiler` already passes, so the compiler has coverage gaps
-  around real-world emission details rather than a broad regression in the
-  existing unit tests.
-- Per repo rules, do not update `src/examples/youtube.json`; the fix needs to
-  come from compiler behavior and added tests.
+Only start compiler work after:
 
-## Regressions to fix
+- the DSL decision is settled
+- `src/examples/youtube.ts` reflects the intended parameter placement
+- human review of the example shape is complete
+- a remaining mismatch is clearly compiler behavior, not source modeling
 
-4. Request bodies are always marked `required: true`. `compileRequestBody()`
-   currently forces `required: true`, but the golden spec omits that field.
-   Since `@dsl` request types do not expose body-required control, this should
-   be fixed in compiler emission rather than by changing DSL signatures.
-   Affected area: `src/compiler/index.ts`
+## Compiler Scope
 
-5. Emission order is not stable enough for arrays that the normalizer does not
-   sort. This shows up in security requirement arrays and `$ref`-only parameter
-   arrays. Once the structural issues above are fixed, the remaining ordering
-   must be made deterministic so the YouTube golden matches consistently.
-   Affected area: `src/compiler/index.ts`, `src/compiler/request.ts`
+Inspect and change compiler behavior only as needed to make compiled output
+match `src/examples/youtube.json`.
 
-## Implementation order
+Primary file:
 
-1. Add focused compiler tests before changing behavior. Add or extend tests
-   under `src/compiler/` for:
-   - `ref(..., { description })` on schema properties
-   - query-map param description hoisting
-   - optional query/header params omitting `required: false`
-   - array query params emitting `style: "form"` and `explode: true`
-   - hoisting inherited params to `PathItemObject.parameters`
-   - request bodies omitting `required` unless the DSL later gains explicit
-     support
-   - deterministic merged security ordering if still needed after structural
-     fixes
+- `src/compiler/request.ts`
 
-2. Teach schema compilation to preserve reference siblings. Keep component
-   registration exactly as it is for equality/reuse, but when a `Nameable`
-   resolves to a `$ref`, merge supported sibling fields from `decodeNameable()`
-   into the emitted `ReferenceObject`.
+Compiler fixes must preserve the distinction between:
 
-3. Rework parameter compilation into two layers. Split parameter emission into:
-   - inherited path-item params from scope/root `forAll`
-   - operation-local params from the method node Then dedupe by `(in, name)`
-     across both layers so operation-local params cannot silently double-emit
-     inherited params.
+- reusable `req.params`
+- inline `req.query`
+- inline `req.pathParams`
+- inline `req.headers`
 
-4. Normalize map-style parameter emission. Update `compileMapParameter()` so it:
-   - lifts supported metadata from compiled schemas to the parameter object for
-     all scalar/array cases, not just strings
-   - preserves the reduced schema body without duplicating parameter-level docs
-   - emits explicit query array serialization defaults
-   - omits `required` for optional query/header params
+## Work Order
 
-5. Stop forcing request bodies to be required. Change `compileRequestBody()` to
-   emit only `content` for now. If body-required control is ever needed, that
-   should be a separate DSL design discussion because `@dsl` signatures are
-   currently fixed.
-
-6. Make ordering deterministic where normalization does not help. After the
-   structural fixes, sort nameless emitted arrays by a compiler-defined stable
-   key:
-   - parameter refs by `$ref`
-   - security requirement objects by a stable serialized key Only do this where
-     needed, so named parameter arrays and response content ordering are not
-     disturbed unnecessarily.
+1. Confirm the remaining mismatch still exists after the human phase.
+2. Identify the exact compiler behavior causing it.
+3. Fix `src/compiler`.
+4. Add or update focused coverage for the compiler behavior.
+5. Run automated verification in the required order.
 
 ## Verification
 
-1. `bun test src/compiler`
-2. `bun test`
-3. `bun tsc`
-4. `bun lint`
+Run in this order:
 
-## One open question
+1. if `src/dsl` changed, run focused `bun test` coverage first
+2. stop for human review if `src/examples` changed
+3. if `src/compiler` changed, run focused coverage and then full `bun test`
+4. `bun tsc`
+5. `bun lint`
 
-- If small YouTube diffs remain after the compiler fixes, check whether they are
-  true compiler issues or drift between `src/examples/youtube.ts` and the golden
-  fixture. Do that inspection before considering any fixture update, because the
-  repo rules treat `.json` examples as golden.
+Required passing checks at the end:
+
+- `bun test src/examples/youtube.test.ts`
+- `bun tsc`
+- `bun lint`
+
+Spot-check these raw paths after each cluster:
+
+- `/youtube/v3/captions`
+- `/youtube/v3/captions/{id}`
+- `/youtube/v3/liveBroadcasts`
+- `/youtube/v3/liveBroadcasts/bind`
+- `/youtube/v3/videos`
+- `/youtube/v3/videos/getRating`
+- `/youtube/v3/watermarks/set`
+
+## Final Success Criteria
+
+- `src/examples/youtube.json` is unchanged
+- each raw OAS path gets the correct effective path-level params
+- raw inline params stay modeled as inline unless a real reusable component is
+  intended
+- after the examples are settled, compiler work continues until full `bun test`
+  passes
+- `bun test src/examples/youtube.test.ts`, `bun tsc`, and `bun lint` all pass
