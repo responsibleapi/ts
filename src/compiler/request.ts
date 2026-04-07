@@ -6,6 +6,7 @@ import type { ReqAugmentation } from "../dsl/operation.ts"
 import type { ReusableParam, ParamRaw } from "../dsl/params.ts"
 import type { Schema } from "../dsl/schema.ts"
 import type { Security } from "../dsl/security.ts"
+import { getAttachedSecuritySchemes } from "../dsl/security.ts"
 import { deepEqualJson } from "./json-equal.ts"
 import { openApiPathTemplateNames } from "./path.ts"
 import { compileSchema, type SchemaCompileState } from "./schema.ts"
@@ -182,11 +183,19 @@ function compileSecurityScheme(
   return anon
 }
 
+function registerAttachedSecuritySchemes(state: SchemaCompileState, sec: Security): void {
+  for (const thunk of getAttachedSecuritySchemes(sec)) {
+    compileSecurityScheme(state, thunk)
+  }
+}
+
 function compileSecurityInput(
   state: SchemaCompileState,
   sec: Security,
 ): oas31.SecurityRequirementObject[] {
   if (Array.isArray(sec)) {
+    registerAttachedSecuritySchemes(state, sec)
+
     return sec.map(item => {
       if (!isSecurityRequirementObject(item)) {
         throw new Error(
@@ -206,6 +215,8 @@ function compileSecurityInput(
 
   if (typeof sec === "object" && sec !== null) {
     if (isSecurityRequirementObject(sec)) {
+      registerAttachedSecuritySchemes(state, sec)
+
       return [sec]
     }
 

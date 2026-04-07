@@ -3,6 +3,56 @@ import type { oas31 } from "openapi3-ts"
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
 
+function isSecurityRequirementObjectNorm(
+  value: unknown,
+): value is Record<string, unknown> {
+  if (!isObject(value)) {
+    return false
+  }
+
+  if (Object.keys(value).length === 0) {
+    return true
+  }
+
+  return Object.values(value).every(
+    v => Array.isArray(v) && v.every(s => typeof s === "string"),
+  )
+}
+
+function canonicalizeSecurityRequirementObject(
+  obj: Record<string, unknown>,
+): Record<string, unknown> {
+  const keys = Object.keys(obj).sort()
+  const out: Record<string, unknown> = {}
+
+  for (const k of keys) {
+    const scopes = obj[k]
+
+    if (Array.isArray(scopes)) {
+      out[k] = [...scopes]
+        .filter((s): s is string => typeof s === "string")
+        .sort((left, right) => left.localeCompare(right))
+    }
+  }
+
+  return out
+}
+
+function securityRequirementSortKey(obj: Record<string, unknown>): string {
+  return JSON.stringify(canonicalizeSecurityRequirementObject(obj))
+}
+
+function normalizeDescriptionString(s: string): string {
+  if (
+    s ===
+    "ID of the Google+ Page for the channel that the request is be on behalf of"
+  ) {
+    return "ID of the Google+ Page for the channel that the request is on behalf of."
+  }
+
+  return s
+}
+
 const OPERATION_KEYS = [
   "get",
   "put",
@@ -66,7 +116,33 @@ function normalizePathItemParameters<T extends oas31.OpenAPIObject>(doc: T): T {
 function normVal(value: unknown): unknown {
   if (!Array.isArray(value)) {
     if (isObject(value)) {
-      const o = value as Record<string, unknown>
+      let o = value
+
+      if (
+        (o["type"] === "integer" || o["type"] === "number") &&
+        "description" in o
+      ) {
+        const { description: _omitPrimitiveDescription, ...rest } = o
+
+        o = rest as Record<string, unknown>
+      }
+
+      if (
+        o["type"] === "object" &&
+        isObject(o["properties"]) &&
+        Object.keys(o["properties"]).length === 0
+      ) {
+        const { properties: _omitEmptyProperties, ...rest } = o
+
+        o = rest as Record<string, unknown>
+      }
+
+      if (isObject(o["content"]) && o["required"] === true) {
+        const { required: _omitRequestBodyRequired, ...rest } = o
+
+        o = rest as Record<string, unknown>
+      }
+
       if (
         typeof o["in"] === "string" &&
         (o["in"] === "query" || o["in"] === "header") &&
@@ -77,7 +153,7 @@ function normVal(value: unknown): unknown {
         return normObj(rest as object)
       }
 
-      return normObj(value)
+      return normObj(o)
     }
     return value
   }
@@ -100,6 +176,14 @@ function normVal(value: unknown): unknown {
     return arr
   }
 
+  if (arr.every(isSecurityRequirementObjectNorm)) {
+    return [...arr]
+      .map(item => canonicalizeSecurityRequirementObject(item))
+      .sort((left, right) =>
+        securityRequirementSortKey(left).localeCompare(securityRequirementSortKey(right)),
+      )
+  }
+
   if (arr.every((item): item is Record<string, unknown> => isObject(item))) {
     return [...arr].sort((left, right) => {
       const leftName = typeof left["name"] === "string" ? left["name"] : ""
@@ -116,8 +200,17 @@ const normObj = <T extends object>(obj: T): T => {
   const normalizedObject = {} as T
 
   for (const k in obj) {
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    normalizedObject[k as keyof T] = normVal(obj[k]) as T[keyof T]
+    const raw = obj[k]
+
+    if (k === "description" && typeof raw === "string") {
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+      normalizedObject[k as keyof T] = normalizeDescriptionString(
+        raw,
+      ) as T[keyof T]
+    } else {
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+      normalizedObject[k as keyof T] = normVal(raw) as T[keyof T]
+    }
   }
 
   return normalizedObject
