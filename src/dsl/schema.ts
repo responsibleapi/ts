@@ -120,10 +120,6 @@ export type Schema = Nameable<RawSchema>
 
 type DictKeySchema = Nameable<Str | Num>
 
-interface ObjectOpts extends SchemaOpts {
-  required?: readonly string[]
-}
-
 export const dict = (k: DictKeySchema, v: Schema, opts?: DictOpts): Dict => ({
   ...opts,
   type: "object",
@@ -133,7 +129,7 @@ export const dict = (k: DictKeySchema, v: Schema, opts?: DictOpts): Dict => ({
 
 export const object = (
   props: Readonly<Record<NameWithOptionality, Schema>> = {},
-  opts?: ObjectOpts,
+  opts?: SchemaOpts,
 ): Obj => ({
   ...opts,
   type: "object",
@@ -143,7 +139,7 @@ export const object = (
       v,
     ]),
   ),
-  required: opts?.required ?? Object.keys(props).filter(k => !isOptional(k)),
+  required: Object.keys(props).filter(k => !isOptional(k)),
 })
 
 export const int64 = (opts?: NumberOpts): Int => ({

@@ -87,15 +87,12 @@ const jobOpening = () =>
     }),
   })
 
-const apiSpecificationUpload = object(
-  {
-    spec: string({
-      format: "binary",
-      description: "OpenAPI/Swagger file. We accept JSON or YAML.",
-    }),
-  },
-  { required: [] },
-)
+const apiSpecificationUpload = object({
+  "spec?": string({
+    format: "binary",
+    description: "OpenAPI/Swagger file. We accept JSON or YAML.",
+  }),
+})
 
 const apiRegistryUUID = string({
   description:
@@ -351,12 +348,14 @@ const authForbidden = named(
   }),
 )
 
+const categoryTitle = string({
+  description:
+    "A short title for the category. This is what will show in the sidebar.",
+})
+
 const category = () =>
   object({
-    "title?": string({
-      description:
-        "A short title for the category. This is what will show in the sidebar.",
-    }),
+    "title?": categoryTitle,
     "type?": string({
       enum: ["reference", "guide"],
       default: "guide",
@@ -717,7 +716,7 @@ export default responsibleAPI({
         description: "Create a new category inside of this project.",
         req: {
           params: [xReadmeVersionParam],
-          body: allOf([category, object({}, { required: ["title"] })]),
+          body: allOf([category, object({ title: categoryTitle })]),
         },
         res: {
           201: resp({

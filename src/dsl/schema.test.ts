@@ -121,16 +121,11 @@ describe("schema", () => {
     await expectValidSchema(schema)
   })
 
-  test("object with explicit required override", async () => {
-    const schema = object(
-      {
-        title: string(),
-        subtitle: string(),
-      },
-      {
-        required: [],
-      },
-    )
+  test("object with optional property names yields empty required", async () => {
+    const schema = object({
+      "title?": string(),
+      "subtitle?": string(),
+    })
 
     expect(schema).toEqual({
       type: "object",
