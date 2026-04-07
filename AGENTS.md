@@ -8,8 +8,7 @@
 - never edit [package.json](package.json) unless explicitly asked
 - never edit [bunfig.toml](bunfig.toml) unless explicitly asked
 - never disable or skip or ignore tests
-- never regenerate `.json` examples from compiler output. `.json` files are
-  golden. never edit them unless explicitly asked.
+- never edit `src/examples/*.json` files unless explicitly asked
 
 ## Imports from packages
 
