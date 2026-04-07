@@ -180,7 +180,9 @@ function normVal(value: unknown): unknown {
     return [...arr]
       .map(item => canonicalizeSecurityRequirementObject(item))
       .sort((left, right) =>
-        securityRequirementSortKey(left).localeCompare(securityRequirementSortKey(right)),
+        securityRequirementSortKey(left).localeCompare(
+          securityRequirementSortKey(right),
+        ),
       )
   }
 
