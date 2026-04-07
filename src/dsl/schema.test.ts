@@ -1,5 +1,6 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
+import { normalize } from "../help/normalize.ts"
 import { validate } from "../help/validate.ts"
 import type { RawSchema } from "./schema.ts"
 import {
@@ -447,5 +448,49 @@ describe("schema", () => {
     })
 
     await expectValidSchema(schema)
+  })
+
+  test("readme createCategory body allOf second shard: required-only normalizes to explicit object", async () => {
+    const category = object({ slug: string() })
+    const compilerShard = object({ title: unknown() })
+
+    const docCompiler: Partial<oas31.OpenAPIObject> = {
+      openapi: "3.1.0",
+      info: { title: "normalize shard", version: "1" },
+      paths: {},
+      components: {
+        schemas: {
+          category: category as oas31.SchemaObject,
+          UnderTest: {
+            allOf: [
+              { $ref: "#/components/schemas/category" },
+              compilerShard,
+            ],
+          } as oas31.SchemaObject,
+        },
+      },
+    }
+
+    const docFixture: Partial<oas31.OpenAPIObject> = {
+      openapi: "3.1.0",
+      info: { title: "normalize shard", version: "1" },
+      paths: {},
+      components: {
+        schemas: {
+          category: category as oas31.SchemaObject,
+          UnderTest: {
+            allOf: [
+              { $ref: "#/components/schemas/category" },
+              { required: ["title"] },
+            ],
+          } as oas31.SchemaObject,
+        },
+      },
+    }
+
+    const normCompiler = normalize(await validate(docCompiler))
+    const normFixture = normalize(await validate(docFixture))
+
+    expect(normCompiler).toEqual(normFixture)
   })
 })

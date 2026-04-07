@@ -153,6 +153,41 @@ function normVal(value: unknown): unknown {
         return normObj(rest as object)
       }
 
+      if (
+        !("type" in o) &&
+        !("properties" in o) &&
+        !("$ref" in o) &&
+        !("allOf" in o) &&
+        !("oneOf" in o) &&
+        !("anyOf" in o)
+      ) {
+        const req = o["required"]
+
+        if (
+          Array.isArray(req) &&
+          req.length > 0 &&
+          req.every((x): x is string => typeof x === "string")
+        ) {
+          const sortedRequired = [...req].sort((left, right) =>
+            left.localeCompare(right),
+          )
+          const properties: Record<string, unknown> = {}
+
+          for (const k of sortedRequired) {
+            properties[k] = {}
+          }
+
+          const { required: _omitRequired, ...rest } = o
+
+          o = {
+            ...rest,
+            type: "object",
+            properties,
+            required: sortedRequired,
+          }
+        }
+      }
+
       return normObj(o)
     }
     return value
