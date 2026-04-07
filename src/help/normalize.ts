@@ -38,6 +38,15 @@ function canonicalizeSecurityRequirementObject(
   return out
 }
 
+/**
+ * Sort key for arrays of security requirement objects in {@linkcode normVal}.
+ *
+ * Each element is first {@link canonicalizeSecurityRequirementObject | canonicalized}
+ * (sorted keys, sorted scope strings). The outer array is then sorted by
+ * comparing those canonical forms as JSON strings with `localeCompare`, so
+ * order is lexicographic on `JSON.stringify(canonical)` and is stable for
+ * fixture diffs, not an OpenAPI “business” ordering.
+ */
 function securityRequirementSortKey(obj: Record<string, unknown>): string {
   return JSON.stringify(canonicalizeSecurityRequirementObject(obj))
 }
@@ -70,6 +79,16 @@ const OPERATION_KEYS = [
  * the older operation-level layout. This helper normalizes both representations
  * to the same operation-level form so fixture comparisons keep validating the
  * compiler change without rewriting those golden JSON files.
+ *
+ * **Merge order:** for each HTTP operation on a path item that has a
+ * `parameters` array, merged operation parameters are built as path-item
+ * parameters first, then existing operation parameters
+ * (`[...pathItemParameters, ...operationParameters]`).
+ *
+ * **Final order:** after {@linkcode normalize} runs, any `parameters` array is
+ * normalized as an array of objects and sorted by each object’s `name` (see
+ * `normVal`), so the order you see in output is alphabetical by `name`, not
+ * the raw merge order above.
  */
 function normalizePathItemParameters<T extends oas31.OpenAPIObject>(doc: T): T {
   if (doc.paths === undefined) {
