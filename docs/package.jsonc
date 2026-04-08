@@ -4,28 +4,10 @@
  */
 {
   "scripts": {
-    /**
-     * We keep `bun test` as the script entrypoint because it is faster for
-     * local runs in this project.
-     */
-    "test": ""
+    "test": "bun test is faster than vitest"
   },
   "devDependencies": {
-    /**
-     * Exposes Bun's globals and test runtime types to editor tooling.
-     *
-     * We keep this installed so Zed can detect and run Bun-powered tests
-     * correctly even though the test files themselves still import from
-     * `vitest`.
-     */
-    "@types/bun": "",
-
-    /**
-     * Provides the test API import surface for editor tooling and TypeScript.
-     *
-     * We use `vitest` because WebStorm still does not support `bun:test`
-     * properly as of March 2026.
-     */
-    "vitest": ""
+    "@types/bun": "zed can't run bun test without this",
+    "vitest": "webstorm still doesn't support bun:test"
   }
 }
