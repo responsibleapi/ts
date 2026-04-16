@@ -2,9 +2,11 @@
 
 ## Goal
 
-- Produce sibling `src/examples/pachca.ts` that expresses `src/examples/pachca.yaml` in the current DSL.
+- Produce sibling `src/examples/pachca.ts` that expresses
+  `src/examples/pachca.yaml` in the current DSL.
 - Keep `pachca.yaml` as the source spec while translation is in progress.
-- Target the style already used by `src/examples/youtube.ts`, `src/examples/readme.ts`, and `src/examples/listenbox.ts`.
+- Target the style already used by `src/examples/youtube.ts`,
+  `src/examples/readme.ts`, and `src/examples/listenbox.ts`.
 
 ## Files Studied
 
@@ -68,17 +70,22 @@
 - Path conversion:
   - OpenAPI `/users/{id}` becomes DSL `"/users/:id"`.
 - Parameters:
-  - Repeated query/path/header params should become named reusable params via `queryParam`, `pathParam`, `headerParam`.
-  - One-off params can stay inline in `req.query`, `req.pathParams`, `req.headers`.
+  - Repeated query/path/header params should become named reusable params via
+    `queryParam`, `pathParam`, `headerParam`.
+  - One-off params can stay inline in `req.query`, `req.pathParams`,
+    `req.headers`.
 - Schemas:
   - Use plain function thunks for recursive or graph-heavy schemas.
-  - Use `named(...)` for leaf reusable pieces where a stable component name matters and recursion is not needed.
-  - Use `ref(...)` only when a `$ref` sibling `summary` or `description` is needed.
+  - Use `named(...)` for leaf reusable pieces where a stable component name
+    matters and recursion is not needed.
+  - Use `ref(...)` only when a `$ref` sibling `summary` or `description` is
+    needed.
 - Bodies:
   - `requestBody.content` maps to `req.body`.
   - `responses[*].content` maps to `resp({ body: ... })`.
 - Responses:
-  - Repeated `data` / `data + meta` wrappers should be factored into reusable helpers or named schemas.
+  - Repeated `data` / `data + meta` wrappers should be factored into reusable
+    helpers or named schemas.
 - Security:
   - Use DSL security on scopes/ops, not raw strings.
 
@@ -101,7 +108,8 @@
 ## Recommended Route Strategy
 
 - Translate routes after the schema catalog is stable.
-- Group by prefix, not by raw source order, so the generated file stays navigable.
+- Group by prefix, not by raw source order, so the generated file stays
+  navigable.
 - A reasonable route order:
   1. `/audit_events`
   2. `/bots`
@@ -135,18 +143,21 @@
   - it does not model raw `additionalProperties: true`
 - Exact top-level global security placement
   - current DSL naturally emits per-operation security via `forAll.req.security`
-  - `partialDoc.security` is copied through, but security schemes are only registered when the DSL security path is exercised
+  - `partialDoc.security` is copied through, but security schemes are only
+    registered when the DSL security path is exercised
 - Object-level example richness
   - the schema DSL is narrower than raw OpenAPI objects in a few places
 
 ## What This Means For `pachca.ts`
 
-- A semantically close translation is possible for a large part of the file today.
+- A semantically close translation is possible for a large part of the file
+  today.
 - A structurally faithful translation is blocked until we choose a strategy for:
   - `nullable`
   - vendor extensions
   - boolean `additionalProperties`
-- If byte-for-byte or normalized-equivalence against `pachca.yaml` matters, those gaps should be addressed before implementation.
+- If byte-for-byte or normalized-equivalence against `pachca.yaml` matters,
+  those gaps should be addressed before implementation.
 
 ## Suggested Minimal DSL Extensions
 
@@ -154,7 +165,8 @@
   - add `nullable?: true` support
   - or add a raw-schema escape hatch for cases the typed helpers do not cover
 - Operation/scope:
-  - add typed extension support such as `extensions?: Record<\`x-${string}\`, unknown>`
+  - add typed extension support such as `extensions?: Record<\`x-${string}\`,
+    unknown>`
 - Object dictionaries:
   - add support for `additionalProperties: true`
 - Root auth:
@@ -163,11 +175,14 @@
 ## Generator Idea
 
 - `typescript` can help with code generation and printing TS source.
-- Bun natively supports importing `.yaml` and `.yml`, so a Bun-run generator can consume `pachca.yaml` directly without adding a YAML package.
+- Bun natively supports importing `.yaml` and `.yml`, so a Bun-run generator can
+  consume `pachca.yaml` directly without adding a YAML package.
 - Practical split:
-  - import `./pachca.yaml` from the Bun script that generates or validates `pachca.ts`
+  - import `./pachca.yaml` from the Bun script that generates or validates
+    `pachca.ts`
   - generate `pachca.ts` from that object using TS AST or string templates
-- This keeps `pachca.yaml` as the source spec while avoiding an extra dependency just for YAML parsing.
+- This keeps `pachca.yaml` as the source spec while avoiding an extra dependency
+  just for YAML parsing.
 
 ## Implementation Phases
 
@@ -188,5 +203,7 @@
 
 - Is exact OpenAPI parity required, or is semantic parity enough?
 - Can the DSL/compiler be extended first?
-- Must the translation tooling run outside Bun, or is a Bun-only import path acceptable?
-- Should Pachca-specific `x-*` metadata live in emitted OpenAPI, or is it acceptable to keep it in side metadata for now?
+- Must the translation tooling run outside Bun, or is a Bun-only import path
+  acceptable?
+- Should Pachca-specific `x-*` metadata live in emitted OpenAPI, or is it
+  acceptable to keep it in side metadata for now?
