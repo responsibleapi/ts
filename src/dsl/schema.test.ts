@@ -342,6 +342,21 @@ describe("schema", () => {
     await expectValidSchema(schema)
   })
 
+  test("string with contentMediaType", async () => {
+    const schema = string({
+      description: "OpenAPI/Swagger file. We accept JSON or YAML.",
+      contentMediaType: "application/octet-stream",
+    })
+
+    expect(schema).toEqual({
+      type: "string",
+      description: "OpenAPI/Swagger file. We accept JSON or YAML.",
+      contentMediaType: "application/octet-stream",
+    })
+
+    await expectValidSchema(schema)
+  })
+
   test("oneOf", async () => {
     const schema = oneOf([string(), int32()])
 

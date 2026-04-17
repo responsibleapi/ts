@@ -90,7 +90,7 @@ const jobOpening = () =>
 
 const apiSpecificationUpload = object({
   "spec?": string({
-    format: "binary",
+    contentMediaType: "application/octet-stream",
     description: "OpenAPI/Swagger file. We accept JSON or YAML.",
   }),
 })

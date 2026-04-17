@@ -1,5 +1,6 @@
 import { isOptional, type NameWithOptionality } from "./dsl.ts"
 import type { Nameable } from "./nameable.ts"
+import type { Mime } from "./scope.ts"
 
 type KnownStringFormat =
   | "byte"
@@ -27,6 +28,7 @@ type SchemaOpts<T> = Readonly<{
 
 interface StringsOpts extends SchemaOpts<string> {
   format?: StringFormat
+  contentMediaType?: Mime
   minLength?: number
   maxLength?: number
   pattern?: string | RegExp
