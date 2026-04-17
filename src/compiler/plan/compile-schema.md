@@ -126,5 +126,4 @@
 ## Success Criteria
 
 - `bun check` passes
-- `src/examples/` stays unmodified
-- `src/dsl/` stays unmodified
+- `git diff` only has files in `src/compiler/` and nothing else
