@@ -130,14 +130,19 @@ export type OpResponses = Record<number, Resp | Schema>
  * `TTags` is a {@link DeclaredTags} registry (from `declareTags`) so `tags` is a
  * tuple of those tag objects; the default keeps bare `Op` / `GetOp` and the
  * HTTP method helpers type-checkable without an explicit type argument.
+ *
+ * x-stuff extensions are supported here
+ *
+ * @dsl
  */
 export interface OpBase<TTags extends DeclaredTags = DeclaredTags> {
-  id?: string
-  res?: OpResponses
-  deprecated?: boolean
-  description?: string
-  summary?: string
-  tags?: OpTags<TTags>
+  readonly id?: string
+  readonly res?: OpResponses
+  readonly deprecated?: boolean
+  readonly description?: string
+  readonly summary?: string
+  readonly tags?: OpTags<TTags>
+  readonly [ext: `x-${string}`]: unknown
 }
 
 export interface Op<
