@@ -22,5 +22,6 @@
     /** `true` breaks single file typechecks */
     "incremental": false
   },
-  "include": ["src", "scripts"]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules/**/*"]
 }

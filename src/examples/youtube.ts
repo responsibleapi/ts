@@ -13,6 +13,7 @@ import {
   object,
   string,
   uint32,
+  unknown,
 } from "../dsl/schema.ts"
 import { scope } from "../dsl/scope.ts"
 import {
@@ -2827,7 +2828,7 @@ function InvideoPosition() {
       }),
       "type?": string({
         description: "Defines the position type.",
-        enum: ["corner"],
+        const: "corner",
       }),
     },
     {
@@ -6160,7 +6161,7 @@ const videosListMaxResultsSchema = integer({
 
 export default responsibleAPI({
   partialDoc: {
-    openapi: "3.0.0",
+    openapi: "3.1.0",
     info: {
       contact: {
         name: "Google",
@@ -6347,7 +6348,7 @@ export default responsibleAPI({
             }),
           },
           body: {
-            "application/octet-stream": Caption,
+            "application/octet-stream": unknown(),
             "text/xml": Caption,
           },
         },
@@ -6374,7 +6375,7 @@ export default responsibleAPI({
             }),
           },
           body: {
-            "application/octet-stream": Caption,
+            "application/octet-stream": unknown(),
             "text/xml": Caption,
           },
         },
@@ -6428,7 +6429,7 @@ export default responsibleAPI({
           "https://www.googleapis.com/auth/youtube.upload",
         ),
         body: {
-          "application/octet-stream": ChannelBannerResource,
+          "application/octet-stream": unknown(),
           "image/jpeg": ChannelBannerResource,
           "image/png": ChannelBannerResource,
         },
@@ -8134,7 +8135,7 @@ export default responsibleAPI({
             "https://www.googleapis.com/auth/youtube.upload",
           ),
           body: {
-            "application/octet-stream": Video,
+            "application/octet-stream": unknown(),
             "video/1d-interleaved-parityfec": Video,
             "video/3gpp": Video,
             "video/3gpp-tt": Video,
@@ -8333,7 +8334,7 @@ export default responsibleAPI({
             oauthScope("https://www.googleapis.com/auth/youtubepartner"),
           ),
           body: {
-            "application/octet-stream": InvideoBranding,
+            "application/octet-stream": unknown(),
             "image/jpeg": InvideoBranding,
             "image/png": InvideoBranding,
           },

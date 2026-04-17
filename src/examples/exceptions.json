@@ -8,6 +8,7 @@
   "paths": {
     "/app_errors/{appID}": {
       "post": {
+        "operationId": "newError",
         "parameters": [
           {
             "name": "appID",
@@ -18,7 +19,6 @@
             }
           }
         ],
-        "operationId": "newError",
         "requestBody": {
           "required": true,
           "content": {
@@ -39,6 +39,7 @@
         }
       },
       "get": {
+        "operationId": "appErrors",
         "parameters": [
           {
             "name": "appID",
@@ -49,7 +50,6 @@
             }
           }
         ],
-        "operationId": "appErrors",
         "responses": {
           "200": {
             "description": "200",
@@ -72,6 +72,7 @@
     },
     "/errors/{errID}": {
       "get": {
+        "operationId": "errorOccurrences",
         "parameters": [
           {
             "name": "errID",
@@ -82,7 +83,6 @@
             }
           }
         ],
-        "operationId": "errorOccurrences",
         "responses": {
           "200": {
             "description": "200",
@@ -108,13 +108,13 @@
     "schemas": {
       "AppID": {
         "type": "string",
-        "pattern": "^app_\\w+$",
-        "example": "app_123"
+        "examples": ["app_123"],
+        "pattern": "^app_\\w+$"
       },
       "ErrID": {
         "type": "string",
-        "pattern": "^err_\\w+$",
-        "example": "err_123"
+        "examples": ["err_123"],
+        "pattern": "^err_\\w+$"
       },
       "NonEmptyStr": {
         "type": "string",
@@ -155,10 +155,10 @@
         ]
       },
       "UnixMillis": {
+        "description": "UNIX epoch milliseconds",
         "type": "integer",
         "format": "int64",
-        "description": "UNIX epoch milliseconds",
-        "example": 1739982555384
+        "examples": [1739982555384]
       },
       "OneErr": {
         "type": "object",

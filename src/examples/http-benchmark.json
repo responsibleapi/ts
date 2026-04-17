@@ -4,61 +4,6 @@
     "title": "HTTP benchmarks",
     "version": "1"
   },
-  "components": {
-    "schemas": {
-      "PostID": {
-        "type": "integer",
-        "format": "int64",
-        "minimum": 1
-      },
-      "UserID": {
-        "type": "integer",
-        "format": "int64",
-        "minimum": 1
-      },
-      "UnixMillis": {
-        "type": "integer",
-        "format": "int64",
-        "description": "UNIX epoch milliseconds"
-      },
-      "Post": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/PostID"
-          },
-          "user_id": {
-            "$ref": "#/components/schemas/UserID"
-          },
-          "content": {
-            "type": "string",
-            "minLength": 1
-          },
-          "created_at": {
-            "$ref": "#/components/schemas/UnixMillis"
-          },
-          "updated_at": {
-            "$ref": "#/components/schemas/UnixMillis"
-          }
-        },
-        "required": ["id", "user_id", "content", "created_at", "updated_at"]
-      },
-      "NewPost": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "content": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": ["email", "content"]
-      }
-    }
-  },
   "paths": {
     "/posts": {
       "post": {
@@ -110,10 +55,6 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "propertyNames": {
-                    "type": "string",
-                    "minLength": 1
-                  },
                   "additionalProperties": {
                     "type": "array",
                     "items": {
@@ -121,6 +62,10 @@
                       "minLength": 1
                     },
                     "minItems": 1
+                  },
+                  "propertyNames": {
+                    "type": "string",
+                    "minLength": 1
                   }
                 }
               }
@@ -179,10 +124,6 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "propertyNames": {
-                    "type": "string",
-                    "minLength": 1
-                  },
                   "additionalProperties": {
                     "type": "array",
                     "items": {
@@ -190,12 +131,80 @@
                       "minLength": 1
                     },
                     "minItems": 1
+                  },
+                  "propertyNames": {
+                    "type": "string",
+                    "minLength": 1
                   }
                 }
               }
             }
           }
         }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PostID": {
+        "type": "integer",
+        "format": "int64",
+        "minimum": 1
+      },
+      "UserID": {
+        "type": "integer",
+        "format": "int64",
+        "minimum": 1
+      },
+      "UnixMillis": {
+        "description": "UNIX epoch milliseconds",
+        "type": "integer",
+        "format": "int64"
+      },
+      "Post": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/PostID"
+          },
+          "user_id": {
+            "$ref": "#/components/schemas/UserID"
+          },
+          "content": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/UnixMillis"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/UnixMillis"
+          }
+        },
+        "required": [
+          "id",
+          "user_id",
+          "content",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "NewPost": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "content": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "content"
+        ]
       }
     }
   }

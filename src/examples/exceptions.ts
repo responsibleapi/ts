@@ -6,13 +6,13 @@ import { scope } from "../dsl/scope.ts"
 const AppID = () =>
   string({
     pattern: /^app_\w+$/,
-    example: "app_123",
+    examples: ["app_123"],
   })
 
 const ErrID = () =>
   string({
     pattern: /^err_\w+$/,
-    example: "err_123",
+    examples: ["err_123"],
   })
 
 const NonEmptyStr = () => string({ minLength: 1 })
@@ -27,7 +27,7 @@ const NewErr = () =>
 const UnixMillis = () =>
   int64({
     description: "UNIX epoch milliseconds",
-    example: 1739982555384,
+    examples: [1739982555384],
   })
 
 const OneErr = () =>

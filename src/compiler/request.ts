@@ -266,7 +266,9 @@ function paramRawToParameterObject(
     throw new Error(`Parameter "${paramName}" has no schema.`)
   }
 
-  const schema = compileSchema(state, raw.schema)
+  const schema = compileSchema(state, raw.schema, {
+    collapseExamplesToExample: true,
+  })
   const base: oas31.ParameterObject = {
     name: paramName,
     in: raw.in,
@@ -340,6 +342,7 @@ function compileMapParameter(
 ): oas31.ParameterObject {
   const name = isOptional(rawName) ? rawName.slice(0, -1) : rawName
   const compiled = compileSchema(state, sch, {
+    collapseExamplesToExample: true,
     preserveIntNumDescription: true,
   })
   const { description, schema } = stripParameterDescription(compiled)
@@ -509,7 +512,9 @@ function compilePathParametersForLayer(
     if (namedPath !== undefined) {
       out.push(compileParamComponent(state, namedPath))
     } else {
-      const compiled = compileSchema(state, pathSchemas[name]!)
+      const compiled = compileSchema(state, pathSchemas[name]!, {
+        collapseExamplesToExample: true,
+      })
       if (isStringSchemaObject(compiled)) {
         const { description, example, ...schema } = compiled
 
