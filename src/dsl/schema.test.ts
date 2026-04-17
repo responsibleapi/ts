@@ -462,10 +462,7 @@ describe("schema", () => {
         schemas: {
           category: category as oas31.SchemaObject,
           UnderTest: {
-            allOf: [
-              { $ref: "#/components/schemas/category" },
-              compilerShard,
-            ],
+            allOf: [{ $ref: "#/components/schemas/category" }, compilerShard],
           } as oas31.SchemaObject,
         },
       },

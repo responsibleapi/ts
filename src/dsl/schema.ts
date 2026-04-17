@@ -19,10 +19,10 @@ type SchemaOpts<T> = Readonly<{
   description?: string
   deprecated?: boolean
 
-  /** @deprecated */
-  example?: T
-
   examples?: readonly T[]
+
+  /** @deprecated Use {@link examples} instead */
+  example?: T
 }>
 
 interface StringsOpts extends SchemaOpts<string> {
