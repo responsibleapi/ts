@@ -79,15 +79,15 @@ POST({
 })
 ```
 
-## Rejected Alternative
+## Alternative
 
-- Do not add raw template-literal index signature directly to `OpBase`, like:
+- raw template-literal index signature directly to `OpBase`, like:
 
 ```ts
 readonly [name: `x-${string}`]: unknown
 ```
 
-- Reasons:
+- Cons:
   - makes every operation object structurally open-ended
   - weaker excess-property checking
   - weaker docs surface than one named field
