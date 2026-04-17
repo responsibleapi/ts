@@ -14,30 +14,33 @@ type KnownStringFormat =
 
 type StringFormat = KnownStringFormat | (string & {})
 
-type SchemaOpts = Readonly<{
+type SchemaOpts<T> = Readonly<{
   default?: unknown
   description?: string
   deprecated?: boolean
+
+  /** @deprecated */
+  example?: T
+
+  examples?: readonly T[]
 }>
 
-interface StringsOpts extends SchemaOpts {
+interface StringsOpts extends SchemaOpts<string> {
   format?: StringFormat
   minLength?: number
   maxLength?: number
   pattern?: string | RegExp
   enum?: readonly string[]
   const?: string
-  example?: string
 }
 
 interface Str extends StringsOpts {
   type: "string"
 }
 
-interface NumberOpts extends SchemaOpts {
+interface NumberOpts extends SchemaOpts<number> {
   minimum?: number
   maximum?: number
-  example?: number
 }
 
 interface Int extends NumberOpts {
@@ -50,18 +53,17 @@ interface Float extends NumberOpts {
   format?: "float" | "double"
 }
 
-export type Obj = Readonly<{
+export interface Obj extends SchemaOpts<Record<string, unknown>> {
   type: "object"
   properties: Record<string, Schema>
   required?: readonly string[]
-}>
+}
 
 type Unknown = Record<string, never>
 
-interface ArrayOpts extends SchemaOpts {
+interface ArrayOpts extends SchemaOpts<ReadonlyArray<unknown>> {
   minItems?: number
   maxItems?: number
-  example?: readonly unknown[]
 }
 
 interface Arr extends ArrayOpts {
@@ -75,13 +77,11 @@ export const array = (items: Schema, opts?: ArrayOpts): Arr => ({
   ...opts,
 })
 
-interface Bool extends SchemaOpts {
+interface Bool extends SchemaOpts<boolean> {
   type: "boolean"
 }
 
-interface DictOpts extends SchemaOpts {
-  example?: Record<PropertyKey, unknown>
-}
+interface DictOpts extends SchemaOpts<Record<PropertyKey, unknown>> {}
 
 type Dict = Readonly<{
   type: "object"
@@ -90,15 +90,15 @@ type Dict = Readonly<{
 }> &
   DictOpts
 
-type OneOf = Readonly<{
+interface OneOf extends SchemaOpts<unknown> {
   oneOf: readonly Schema[]
-}>
+}
 
-interface AnyOf {
+interface AnyOf extends SchemaOpts<unknown> {
   anyOf: readonly Schema[]
 }
 
-interface AllOf {
+interface AllOf extends SchemaOpts<unknown> {
   allOf: readonly Schema[]
 }
 
@@ -127,9 +127,11 @@ export const dict = (k: DictKeySchema, v: Schema, opts?: DictOpts): Dict => ({
   additionalProperties: v,
 })
 
+interface ObjectOpts extends SchemaOpts<Record<string, unknown>> {}
+
 export const object = (
   props: Readonly<Record<NameWithOptionality, Schema>> = {},
-  opts?: SchemaOpts,
+  opts?: ObjectOpts,
 ): Obj => ({
   ...opts,
   type: "object",
@@ -202,13 +204,22 @@ export const string = (opts?: StringsOpts): Str => ({
   ...opts,
 })
 
-export const oneOf = (schemas: readonly Schema[]): OneOf => ({ oneOf: schemas })
+export const oneOf = (
+  schemas: readonly Schema[],
+  opts?: SchemaOpts<unknown>,
+): OneOf => ({ ...opts, oneOf: schemas })
 
-export const anyOf = (schemas: readonly Schema[]): AnyOf => ({ anyOf: schemas })
+export const anyOf = (
+  schemas: readonly Schema[],
+  opts?: SchemaOpts<unknown>,
+): AnyOf => ({ ...opts, anyOf: schemas })
 
-export const allOf = (schemas: readonly Schema[]): AllOf => ({ allOf: schemas })
+export const allOf = (
+  schemas: readonly Schema[],
+  opts?: SchemaOpts<unknown>,
+): AllOf => ({ ...opts, allOf: schemas })
 
-export const boolean = (opts?: SchemaOpts): Bool => ({
+export const boolean = (opts?: SchemaOpts<boolean>): Bool => ({
   type: "boolean",
   ...opts,
 })
