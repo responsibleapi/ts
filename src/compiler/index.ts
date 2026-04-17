@@ -19,7 +19,12 @@ import type { HeaderRaw, ReusableHeader } from "../dsl/response-headers.ts"
 import type { RawSchema, Schema } from "../dsl/schema.ts"
 import type { HttpPath, Mime, ScopeOpts, ScopeRes } from "../dsl/scope.ts"
 import { isScope } from "../dsl/scope.ts"
+import {
+  createComponentRegistryState,
+  type ComponentRegistryState,
+} from "./components.ts"
 import { deepEqualJson } from "./json-equal.ts"
+import { emitSchemaRefOrValue } from "./emit-schema.ts"
 import { dslPathToOpenApiPath, joinHttpPaths } from "./path.ts"
 import {
   compileParameterLayers,
@@ -28,11 +33,7 @@ import {
   securityLayerFromScopeReq,
   stripSecurityFields,
 } from "./request.ts"
-import {
-  compileSchema,
-  createSchemaCompileState,
-  type SchemaCompileState,
-} from "./schema.ts"
+import { getSchemaUseExample, stripSchemaUsageFields } from "./schema-usage.ts"
 
 const OAS_METHOD: Record<HttpMethod, keyof oas31.PathItemObject> = {
   GET: "get",
@@ -303,7 +304,7 @@ function normalizeReqAugmentation(
 }
 
 function mergedReqAndSecurityForOp(
-  schemaState: SchemaCompileState,
+  schemaState: ComponentRegistryState,
   ctx: CompileScopeContext,
   op: RouteMethodOp,
 ): {
@@ -487,22 +488,23 @@ function isNamedResponseHeaderThunk(
 }
 
 function headerRawToHeaderObject(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   raw: HeaderRaw,
 ): oas31.HeaderObject {
+  const schema = emitSchemaRefOrValue(state, raw.schema)
+  const example = raw.example ?? getSchemaUseExample(raw.schema)
+
   return {
     ...(raw.description !== undefined ? { description: raw.description } : {}),
-    schema: compileSchema(state, raw.schema, {
-      collapseExamplesToExample: true,
-    }),
+    schema: stripSchemaUsageFields(schema, { example: true }),
     ...(raw.required !== undefined ? { required: raw.required } : {}),
     ...(raw.deprecated !== undefined ? { deprecated: raw.deprecated } : {}),
-    ...(raw.example !== undefined ? { example: raw.example } : {}),
+    ...(example !== undefined ? { example } : {}),
   }
 }
 
 function compileHeaderComponent(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   header: ReusableHeader,
 ): oas31.ReferenceObject {
   const { name: thunkName, value } = decodeNameable(header)
@@ -544,7 +546,7 @@ function compileHeaderComponent(
 }
 
 function compileHeaderMap(
-  schemaState: SchemaCompileState,
+  schemaState: ComponentRegistryState,
   headers: Record<string, Schema | ReusableHeader> | undefined,
 ): oas31.HeadersObject | undefined {
   if (headers === undefined || Object.keys(headers).length === 0) {
@@ -562,9 +564,13 @@ function compileHeaderMap(
       continue
     }
 
+    const schema = emitSchemaRefOrValue(schemaState, val)
+    const example = getSchemaUseExample(val)
+
     out[name] = {
       required,
-      schema: compileSchema(schemaState, val),
+      ...(example !== undefined ? { example } : {}),
+      schema: stripSchemaUsageFields(schema, { example: true }),
     }
   }
 
@@ -572,7 +578,7 @@ function compileHeaderMap(
 }
 
 function compileSetCookieHeaders(
-  schemaState: SchemaCompileState,
+  schemaState: ComponentRegistryState,
   cookies: Record<string, Schema> | undefined,
 ): oas31.HeadersObject {
   if (cookies === undefined || Object.keys(cookies).length === 0) {
@@ -594,7 +600,7 @@ function compileSetCookieHeaders(
   const name = isOptional(rawName) ? rawName.slice(0, -1) : rawName
   const required = !isOptional(rawName)
 
-  compileSchema(schemaState, sch)
+  emitSchemaRefOrValue(schemaState, sch)
 
   const pattern = `${escapeRegExp(name)}=[^;]+`
 
@@ -641,12 +647,12 @@ function isMimeMap(
 }
 
 function compileContent(
-  schemaState: SchemaCompileState,
+  schemaState: ComponentRegistryState,
   body: Schema | Record<Mime, Schema>,
   defaultMime: Mime | undefined,
 ): oas31.ContentObject {
   const mediaEntry = (mimeType: string, sch: Schema): oas31.MediaTypeObject => {
-    const compiled = compileSchema(schemaState, sch)
+    const compiled = emitSchemaRefOrValue(schemaState, sch)
 
     return isEmptyInlineSchema(compiled) && omitSchemaWhenEmptyUnknown(mimeType)
       ? {}
@@ -675,7 +681,7 @@ function compileContent(
 }
 
 function compileRequestBody(
-  schemaState: SchemaCompileState,
+  schemaState: ComponentRegistryState,
   merged: ReqAugmentation,
 ): oas31.RequestBodyObject | undefined {
   if (merged.body === undefined) {
@@ -773,7 +779,7 @@ function tryDecodeNamedOpRespThunk(
 }
 
 function recordResponseComponent(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   name: string,
   obj: oas31.ResponseObject,
 ): void {
@@ -793,7 +799,7 @@ function recordResponseComponent(
 }
 
 function buildMergedResponseObject(
-  schemaState: SchemaCompileState,
+  schemaState: ComponentRegistryState,
   op: RouteMethodOp,
   code: number,
   aug: RespAugmentation,
@@ -842,7 +848,7 @@ function buildMergedResponseObject(
       return compileContent(schemaState, concrete.body, mime)
     }
 
-    const compiledProbe = compileSchema(schemaState, concrete.body)
+    const compiledProbe = emitSchemaRefOrValue(schemaState, concrete.body)
 
     if (isEmptyInlineSchema(compiledProbe)) {
       return undefined
@@ -868,7 +874,7 @@ function buildMergedResponseObject(
 }
 
 function compileResponses(
-  schemaState: SchemaCompileState,
+  schemaState: ComponentRegistryState,
   op: RouteMethodOp,
   ctx: CompileScopeContext,
   oasPath: string,
@@ -953,7 +959,7 @@ function synthesizeHeadOpFromGet(
 }
 
 function compileDirectOp(
-  schemaState: SchemaCompileState,
+  schemaState: ComponentRegistryState,
   op: RouteMethodOp,
   ctx: CompileScopeContext,
   oasPath: string,
@@ -1020,7 +1026,7 @@ function compileDirectOp(
 }
 
 function placeOperation(
-  schemaState: SchemaCompileState,
+  schemaState: ComponentRegistryState,
   paths: oas31.PathsObject,
   dslPath: string,
   ctx: CompileScopeContext,
@@ -1076,7 +1082,7 @@ function placeOperation(
 }
 
 function compileRoutes(
-  schemaState: SchemaCompileState,
+  schemaState: ComponentRegistryState,
   routes: Record<string, unknown>,
   ctx: CompileScopeContext,
   pathPrefix: string,
@@ -1148,7 +1154,7 @@ export function compileResponsibleAPI(
     )
   }
 
-  const schemaState = createSchemaCompileState()
+  const schemaState = createComponentRegistryState()
   const rootCtx = compileScopeContextFromForAll(api.forAll)
   const paths: oas31.PathsObject = {
     ...(api.partialDoc.paths ?? {}),

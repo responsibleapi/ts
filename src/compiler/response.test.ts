@@ -1,7 +1,7 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
 import { responsibleAPI } from "../dsl/dsl.ts"
-import { GET, HEAD } from "../dsl/methods.ts"
+import { GET, HEAD, POST } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"
 import { resp } from "../dsl/operation.ts"
 import { responseHeader } from "../dsl/response-headers.ts"
@@ -441,6 +441,65 @@ describe("reusable response headers", () => {
       rapi.paths?.["/b"]?.get?.responses?.["200"]?.headers?.["trace-id"],
     ).toEqual({
       $ref: "#/components/headers/trace-id",
+    })
+  })
+
+  test("reuses named schema across request body and response header without mutating component shape", async () => {
+    const Shared = named(
+      "SharedHeaderValue",
+      string({
+        description: "Shared header value",
+        examples: ["trace-123"],
+        pattern: /^[a-z0-9-]+$/,
+      }),
+    )
+
+    const rapi = responsibleAPI({
+      partialDoc: {
+        openapi: "3.1.0",
+        info: { title: "Shared body and header schema", version: "1" },
+      },
+      forAll: {
+        req: { mime: "application/json" },
+        res: { mime: "application/json" },
+      },
+      routes: {
+        "/x": POST({
+          req: Shared,
+          res: {
+            200: resp({
+              headers: {
+                "X-Trace": Shared,
+              },
+              body: object({ ok: string() }),
+            }),
+          },
+        }),
+      },
+    })
+
+    expect(await validate(rapi)).toEqual(rapi)
+
+    expect(rapi.components?.schemas?.["SharedHeaderValue"]).toEqual({
+      type: "string",
+      description: "Shared header value",
+      examples: ["trace-123"],
+      pattern: "^[a-z0-9-]+$",
+    })
+    expect(rapi.paths?.["/x"]?.post?.requestBody).toEqual({
+      required: true,
+      content: {
+        "application/json": {
+          schema: { $ref: "#/components/schemas/SharedHeaderValue" },
+        },
+      },
+    })
+    expect(rapi.paths?.["/x"]?.post?.responses?.["200"]?.headers).toEqual({
+      "X-Trace": {
+        required: true,
+        example: "trace-123",
+        schema: { $ref: "#/components/schemas/SharedHeaderValue" },
+      },
     })
   })
 

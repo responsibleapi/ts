@@ -7,53 +7,36 @@ import type { ReusableParam, ParamRaw } from "../dsl/params.ts"
 import type { Schema } from "../dsl/schema.ts"
 import type { Security } from "../dsl/security.ts"
 import { getAttachedSecuritySchemes } from "../dsl/security.ts"
+import type { ComponentRegistryState } from "./components.ts"
 import { deepEqualJson } from "./json-equal.ts"
+import { emitSchemaRefOrValue, type EmittedSchema } from "./emit-schema.ts"
 import { openApiPathTemplateNames } from "./path.ts"
-import { compileSchema, type SchemaCompileState } from "./schema.ts"
+import {
+  getSchemaUseDescription,
+  getSchemaUseExample,
+  stripSchemaUsageFields,
+} from "./schema-usage.ts"
 
-type ParameterSchema = oas31.SchemaObject | oas31.ReferenceObject
+type ParameterSchema = EmittedSchema
 
-type ParameterSchemaWithDescription = ParameterSchema & {
-  description: string
-}
-
-function isParameterSchemaWithDescription(
+function parameterSchemaFields(
+  source: Schema,
   compiled: ParameterSchema,
-): compiled is ParameterSchemaWithDescription {
-  return (
-    typeof compiled === "object" &&
-    compiled !== null &&
-    typeof compiled.description === "string"
-  )
-}
-
-function isSchemaObject(
-  compiled: ParameterSchema,
-): compiled is oas31.SchemaObject {
-  return (
-    typeof compiled === "object" && compiled !== null && !("$ref" in compiled)
-  )
-}
-
-function isStringSchemaObject(
-  compiled: ParameterSchema,
-): compiled is oas31.SchemaObject & { type: "string" } {
-  return isSchemaObject(compiled) && compiled.type === "string"
-}
-
-function stripParameterDescription(compiled: ParameterSchema): {
+): {
   description?: string
+  example?: unknown
   schema: ParameterSchema
 } {
-  if (!isParameterSchemaWithDescription(compiled)) {
-    return { schema: compiled }
-  }
-
-  const { description, ...schema } = compiled
+  const description = getSchemaUseDescription(source)
+  const example = getSchemaUseExample(source)
 
   return {
-    description,
-    schema,
+    ...(description !== undefined ? { description } : {}),
+    ...(example !== undefined ? { example } : {}),
+    schema: stripSchemaUsageFields(compiled, {
+      description: true,
+      example: true,
+    }),
   }
 }
 
@@ -143,7 +126,7 @@ function isSecurityRequirementObject(
 }
 
 function compileSecurityScheme(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   scheme: Nameable<oas31.SecuritySchemeObject> | oas31.SecuritySchemeObject,
 ): string {
   const { name, value } = decodeNameable(scheme)
@@ -183,14 +166,17 @@ function compileSecurityScheme(
   return anon
 }
 
-function registerAttachedSecuritySchemes(state: SchemaCompileState, sec: Security): void {
+function registerAttachedSecuritySchemes(
+  state: ComponentRegistryState,
+  sec: Security,
+): void {
   for (const thunk of getAttachedSecuritySchemes(sec)) {
     compileSecurityScheme(state, thunk)
   }
 }
 
 function compileSecurityInput(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   sec: Security,
 ): oas31.SecurityRequirementObject[] {
   if (Array.isArray(sec)) {
@@ -233,7 +219,7 @@ function compileSecurityInput(
 }
 
 export function compileSecurityFromAug(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   layer: Pick<ReqAugmentation, "security" | "security?">,
 ): oas31.SecurityRequirementObject[] {
   const out: oas31.SecurityRequirementObject[] = []
@@ -250,7 +236,7 @@ export function compileSecurityFromAug(
 }
 
 function paramRawToParameterObject(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   raw: ParamRaw,
   hintName?: string,
 ): oas31.ParameterObject {
@@ -266,15 +252,24 @@ function paramRawToParameterObject(
     throw new Error(`Parameter "${paramName}" has no schema.`)
   }
 
-  const schema = compileSchema(state, raw.schema, {
-    collapseExamplesToExample: true,
-  })
+  const { description, example, schema } = parameterSchemaFields(
+    raw.schema,
+    emitSchemaRefOrValue(state, raw.schema),
+  )
   const base: oas31.ParameterObject = {
     name: paramName,
     in: raw.in,
     schema,
-    ...(raw.description !== undefined ? { description: raw.description } : {}),
-    ...(raw.example !== undefined ? { example: raw.example } : {}),
+    ...(raw.description !== undefined
+      ? { description: raw.description }
+      : description !== undefined
+        ? { description }
+        : {}),
+    ...(raw.example !== undefined
+      ? { example: raw.example }
+      : example !== undefined
+        ? { example }
+        : {}),
   }
 
   if (raw.in === "path") {
@@ -295,7 +290,7 @@ function paramRawToParameterObject(
 }
 
 export function compileParamComponent(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   param: ReusableParam,
 ): oas31.ParameterObject | oas31.ReferenceObject {
   const { name: thunkName, value } = decodeNameable(param)
@@ -335,17 +330,16 @@ export function compileParamComponent(
 }
 
 function compileMapParameter(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   rawName: NameWithOptionality,
   sch: Schema,
   location: "query" | "header",
 ): oas31.ParameterObject {
   const name = isOptional(rawName) ? rawName.slice(0, -1) : rawName
-  const compiled = compileSchema(state, sch, {
-    collapseExamplesToExample: true,
-    preserveIntNumDescription: true,
-  })
-  const { description, schema } = stripParameterDescription(compiled)
+  const { description, example, schema } = parameterSchemaFields(
+    sch,
+    emitSchemaRefOrValue(state, sch),
+  )
   const { value } = decodeNameable(sch)
   const isArrayQueryParam =
     location === "query" &&
@@ -361,6 +355,7 @@ function compileMapParameter(
     in: location,
     ...(required ? { required: true } : {}),
     ...(description !== undefined ? { description } : {}),
+    ...(example !== undefined ? { example } : {}),
     ...(isArrayQueryParam ? { style: "form", explode: true } : {}),
     schema,
   }
@@ -483,7 +478,7 @@ function hasPathParamForTemplateName(
 }
 
 function compilePathParametersForLayer(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   req: ReqAugmentation | undefined,
   mergedReq: ReqAugmentation,
   oasPath: string,
@@ -512,34 +507,26 @@ function compilePathParametersForLayer(
     if (namedPath !== undefined) {
       out.push(compileParamComponent(state, namedPath))
     } else {
-      const compiled = compileSchema(state, pathSchemas[name]!, {
-        collapseExamplesToExample: true,
-      })
-      if (isStringSchemaObject(compiled)) {
-        const { description, example, ...schema } = compiled
+      const pathSchema = pathSchemas[name]!
+      const { description, example, schema } = parameterSchemaFields(
+        pathSchema,
+        emitSchemaRefOrValue(state, pathSchema),
+      )
 
-        out.push({
-          name,
-          in: "path",
-          required: true,
-          ...(description !== undefined ? { description } : {}),
-          ...(example !== undefined ? { example } : {}),
-          schema: schema as oas31.SchemaObject,
-        })
-      } else {
-        out.push({
-          name,
-          in: "path",
-          required: true,
-          schema: compiled,
-        })
-      }
+      out.push({
+        name,
+        in: "path",
+        required: true,
+        ...(description !== undefined ? { description } : {}),
+        ...(example !== undefined ? { example } : {}),
+        schema,
+      })
     }
   }
 }
 
 function compileQueryParametersForLayer(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   req: ReqAugmentation | undefined,
   seen: Set<string>,
   out: (oas31.ParameterObject | oas31.ReferenceObject)[],
@@ -560,7 +547,7 @@ function compileQueryParametersForLayer(
 }
 
 function compileReusableParametersForLayer(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   req: ReqAugmentation | undefined,
   seen: Set<string>,
   out: (oas31.ParameterObject | oas31.ReferenceObject)[],
@@ -613,7 +600,7 @@ function compileReusableParametersForLayer(
 }
 
 function compileHeaderParametersForLayer(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   req: ReqAugmentation | undefined,
   seen: Set<string>,
   out: (oas31.ParameterObject | oas31.ReferenceObject)[],
@@ -634,7 +621,7 @@ function compileHeaderParametersForLayer(
 }
 
 function compileParametersForLayer(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   req: ReqAugmentation | undefined,
   mergedReq: ReqAugmentation,
   oasPath: string,
@@ -651,7 +638,7 @@ function compileParametersForLayer(
 }
 
 export function compileParameterLayers(
-  state: SchemaCompileState,
+  state: ComponentRegistryState,
   inheritedReq: ReqAugmentation | undefined,
   operationReq: ReqAugmentation | undefined,
   mergedReq: ReqAugmentation,

@@ -15,11 +15,13 @@
 - `src/dsl/schema.ts` already models OpenAPI 3.1 / JSON Schema payloads.
 - Current compiler layer mixes two different jobs:
   - graph lowering: named thunk -> component + `$ref`
-  - schema mutation: examples collapsing, regex stringification, dict/object rewrites
+  - schema mutation: examples collapsing, regex stringification, dict/object
+    rewrites
 - Mixed design already leaks bugs:
   - named schema component shape depends on first call-site options
   - duplicate-name comparison replays different options than first registration
-  - emitted schema can differ from DSL schema even when no component extraction is needed
+  - emitted schema can differ from DSL schema even when no component extraction
+    is needed
 
 ## Hard Constraint
 
@@ -27,7 +29,10 @@
 - Two DSL features are not raw OpenAPI values:
   - `Schema = Nameable<RawSchema>` allows function thunks inside schema trees
   - `string({ pattern: /.../ })` allows `RegExp`, which must serialize to string
-- So plan is not "do nothing". Plan is "remove schema compiler as mutating serializer; keep only tiny lowering helpers elsewhere".
+- So plan is not "do nothing". Plan is "remove schema compiler as mutating
+  serializer; keep only tiny lowering helpers elsewhere".
+
+- DO NOT EDIT FILES OUTSIDE OF `src/compiler/`
 
 ## Target Design
 
@@ -58,7 +63,8 @@
 
 ## 2. Define Canonical Schema Emission Rules
 
-- Canonical component schema must equal DSL schema shape after only unavoidable lowering:
+- Canonical component schema must equal DSL schema shape after only unavoidable
+  lowering:
   - nested named thunks replaced with `$ref`
   - `RegExp` converted to pattern string
 - Delete compiler-only rewrites unless explicit OpenAPI requirement exists:
@@ -66,12 +72,14 @@
   - omit `propertyNames` for bare string keys
   - call-site-controlled `examples` -> `example`
   - call-site-controlled integer/number description stripping
-- If one of these rewrites is still desired, move it to exact consumer and test there.
+- If one of these rewrites is still desired, move it to exact consumer and test
+  there.
 
 ## 3. Replace `SchemaCompileState`
 
 - Move schema-related state out of `schema.ts`.
-- Likely destination: `src/compiler/components.ts` or fold into existing compiler state module.
+- Likely destination: `src/compiler/components.ts` or fold into existing
+  compiler state module.
 - Rename state to match real ownership, e.g. `ComponentRegistryState`.
 - Keep existing non-schema component registries together if useful:
   - `schemas`
@@ -82,7 +90,8 @@
 
 ## 4. Build Tiny Schema Lowering Helper
 
-- Introduce one internal helper with narrow contract, e.g. `emitSchemaRefOrValue(...)`.
+- Introduce one internal helper with narrow contract, e.g.
+  `emitSchemaRefOrValue(...)`.
 - Helper responsibilities:
   - decode `Nameable`
   - register named schemas
@@ -103,7 +112,8 @@
   - decide parameter/header/path `example` handling at emission time
   - stop passing schema emission options
 - `src/compiler/index.ts`
-  - response/request-body/header builders consume canonical schema values directly
+  - response/request-body/header builders consume canonical schema values
+    directly
   - header emission handles header-level `example` itself
 - After this step, remove:
   - `collapseExamplesToExample`
@@ -121,9 +131,10 @@
 ## Solved Questions
 
 - `RegExp` support: keep tiny serializer helper
-- Bare `propertyNames: { type: "string" }`: keep verbatim because DSL already emits valid OAS 3.1
+- Bare `propertyNames: { type: "string" }`: keep verbatim because DSL already
+  emits valid OAS 3.1
 
 ## Success Criteria
 
 - `bun check` passes
-- `git diff` only has files in `src/compiler/` and nothing else
+- files outside `src/compiler/` not changed

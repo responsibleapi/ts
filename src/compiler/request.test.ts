@@ -130,6 +130,141 @@ describe("compiler request", () => {
     ])
   })
 
+  test("reuses named schema across body, query, header, and path without mutating component shape", async () => {
+    const Shared = named(
+      "SharedToken",
+      string({
+        description: "Shared token",
+        examples: ["alpha"],
+        pattern: /^[a-z]+$/,
+      }),
+    )
+
+    const api = responsibleAPI({
+      partialDoc: {
+        openapi: "3.1.0",
+        info: { title: "Shared schema contexts", version: "1" },
+      },
+      forAll: { req: { mime: "application/json" } },
+      routes: {
+        "/items/:id": POST({
+          req: {
+            body: Shared,
+            pathParams: { id: Shared },
+            query: { filter: Shared },
+            headers: { "X-Trace": Shared },
+          },
+          res: { 200: object({ ok: string() }) },
+        }),
+      },
+    })
+
+    const doc = await validate(api)
+
+    expect(doc.components?.schemas?.["SharedToken"]).toEqual({
+      type: "string",
+      description: "Shared token",
+      examples: ["alpha"],
+      pattern: "^[a-z]+$",
+    })
+    expect(doc.paths?.["/items/{id}"]?.post?.requestBody).toEqual({
+      required: true,
+      content: {
+        "application/json": {
+          schema: { $ref: "#/components/schemas/SharedToken" },
+        },
+      },
+    } satisfies oas31.RequestBodyObject)
+    expect(doc.paths?.["/items/{id}"]?.post?.parameters).toEqual([
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        description: "Shared token",
+        example: "alpha",
+        schema: { $ref: "#/components/schemas/SharedToken" },
+      },
+      {
+        name: "filter",
+        in: "query",
+        required: true,
+        description: "Shared token",
+        example: "alpha",
+        schema: { $ref: "#/components/schemas/SharedToken" },
+      },
+      {
+        name: "X-Trace",
+        in: "header",
+        required: true,
+        description: "Shared token",
+        example: "alpha",
+        schema: { $ref: "#/components/schemas/SharedToken" },
+      },
+    ])
+  })
+
+  test("schema component registration stays order-independent across body and parameter sites", async () => {
+    const Shared = named(
+      "StableShared",
+      string({
+        description: "Stable shared schema",
+        examples: ["alpha"],
+      }),
+    )
+
+    const paramFirst = await validate(
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.1.0",
+          info: { title: "Param first", version: "1" },
+        },
+        forAll: { req: { mime: "application/json" } },
+        routes: {
+          "/items/:id": POST({
+            req: {
+              pathParams: { id: Shared },
+            },
+            res: { 200: object({}) },
+          }),
+          "/body": POST({
+            req: Shared,
+            res: { 200: object({}) },
+          }),
+        },
+      }),
+    )
+    const bodyFirst = await validate(
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.1.0",
+          info: { title: "Body first", version: "1" },
+        },
+        forAll: { req: { mime: "application/json" } },
+        routes: {
+          "/body": POST({
+            req: Shared,
+            res: { 200: object({}) },
+          }),
+          "/items/:id": POST({
+            req: {
+              pathParams: { id: Shared },
+            },
+            res: { 200: object({}) },
+          }),
+        },
+      }),
+    )
+
+    expect(paramFirst.components?.schemas?.["StableShared"]).toEqual({
+      type: "string",
+      description: "Stable shared schema",
+      examples: ["alpha"],
+    })
+    expect(bodyFirst.components?.schemas?.["StableShared"]).toEqual(
+      paramFirst.components?.schemas?.["StableShared"],
+    )
+  })
+
   test("named reusable query param becomes components.parameters $ref", async () => {
     const PageToken = named(
       "pageToken",

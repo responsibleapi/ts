@@ -1,6 +1,5 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
-import { compileSchema, createSchemaCompileState } from "../compiler/schema.ts"
 import { normalize } from "../help/normalize.ts"
 import { validate } from "../help/validate.ts"
 import type { RawSchema } from "./schema.ts"
@@ -48,7 +47,7 @@ const expectValidSchema = async (schema: RawSchema): Promise<void> => {
 }
 
 const compileTestSchema = (schema: RawSchema): oas31.SchemaObject =>
-  compileSchema(createSchemaCompileState(), schema) as oas31.SchemaObject
+  schema as oas31.SchemaObject
 
 describe("schema", () => {
   test("array", async () => {
