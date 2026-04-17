@@ -116,16 +116,20 @@ type NonNullSchemaType =
   | "object"
   | "array"
 
-type Nullable = (
-  | Omit<Str, "type">
-  | Omit<Num, "type">
-  | Omit<Bool, "type">
-  | Omit<Obj, "type">
-  | Omit<Arr, "type">
-  | Omit<Dict, "type">
-) & {
-  type: readonly [NonNullSchemaType, "null"]
-}
+type Nullable =
+  | ({
+      type: readonly [NonNullSchemaType, "null"]
+    } & (
+      | Omit<Str, "type">
+      | Omit<Num, "type">
+      | Omit<Bool, "type">
+      | Omit<Obj, "type">
+      | Omit<Arr, "type">
+      | Omit<Dict, "type">
+    ))
+  | Null
+  | Unknown
+  | AnyOf
 
 type Num = Int | Float
 type NonNullTypedSchema = Str | Num | Bool | Obj | Arr | Dict
@@ -252,7 +256,7 @@ const isNonNullTypedSchema = (
 ): schema is NonNullTypedSchema =>
   "type" in schema && typeof schema.type === "string" && schema.type !== "null"
 
-export const nullable = (schema: RawSchema): RawSchema => {
+export const nullable = (schema: RawSchema): Nullable => {
   if (isNonNullTypedSchema(schema)) {
     return {
       ...schema,

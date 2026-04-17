@@ -496,6 +496,60 @@ describe("schema", () => {
     await expectValidSchema(schema)
   })
 
+  test("nullable unknown", async () => {
+    const schema = nullable(unknown())
+
+    expect(schema).toEqual({})
+
+    expect(compileTestSchema(schema)).toEqual<oas31.SchemaObject>({})
+
+    await expectValidSchema(schema)
+  })
+
+  test("nullable anyOf", async () => {
+    const schema = nullable(anyOf([string(), int32()]))
+
+    expect(schema).toEqual({
+      anyOf: [
+        {
+          anyOf: [
+            {
+              type: "string",
+            },
+            {
+              type: "integer",
+              format: "int32",
+            },
+          ],
+        },
+        {
+          type: "null",
+        },
+      ],
+    })
+
+    expect(compileTestSchema(schema)).toEqual<oas31.SchemaObject>({
+      anyOf: [
+        {
+          anyOf: [
+            {
+              type: "string",
+            },
+            {
+              type: "integer",
+              format: "int32",
+            },
+          ],
+        },
+        {
+          type: "null",
+        },
+      ],
+    })
+
+    await expectValidSchema(schema)
+  })
+
   test("boolean", async () => {
     const schema = boolean({
       description: "Whether the feature is enabled",
