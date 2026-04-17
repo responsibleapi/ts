@@ -13,7 +13,6 @@ import { emitSchemaRefOrValue, type EmittedSchema } from "./emit-schema.ts"
 import { openApiPathTemplateNames } from "./path.ts"
 import {
   getSchemaUseDescription,
-  getSchemaUseExample,
   stripSchemaUsageFields,
 } from "./schema-usage.ts"
 
@@ -24,18 +23,14 @@ function parameterSchemaFields(
   compiled: ParameterSchema,
 ): {
   description?: string
-  example?: unknown
   schema: ParameterSchema
 } {
   const description = getSchemaUseDescription(source)
-  const example = getSchemaUseExample(source)
 
   return {
     ...(description !== undefined ? { description } : {}),
-    ...(example !== undefined ? { example } : {}),
     schema: stripSchemaUsageFields(compiled, {
       description: true,
-      example: true,
     }),
   }
 }
@@ -252,7 +247,7 @@ function paramRawToParameterObject(
     throw new Error(`Parameter "${paramName}" has no schema.`)
   }
 
-  const { description, example, schema } = parameterSchemaFields(
+  const { description, schema } = parameterSchemaFields(
     raw.schema,
     emitSchemaRefOrValue(state, raw.schema),
   )
@@ -265,11 +260,7 @@ function paramRawToParameterObject(
       : description !== undefined
         ? { description }
         : {}),
-    ...(raw.example !== undefined
-      ? { example: raw.example }
-      : example !== undefined
-        ? { example }
-        : {}),
+    ...(raw.example !== undefined ? { example: raw.example } : {}),
   }
 
   if (raw.in === "path") {
@@ -336,7 +327,7 @@ function compileMapParameter(
   location: "query" | "header",
 ): oas31.ParameterObject {
   const name = isOptional(rawName) ? rawName.slice(0, -1) : rawName
-  const { description, example, schema } = parameterSchemaFields(
+  const { description, schema } = parameterSchemaFields(
     sch,
     emitSchemaRefOrValue(state, sch),
   )
@@ -355,7 +346,6 @@ function compileMapParameter(
     in: location,
     ...(required ? { required: true } : {}),
     ...(description !== undefined ? { description } : {}),
-    ...(example !== undefined ? { example } : {}),
     ...(isArrayQueryParam ? { style: "form", explode: true } : {}),
     schema,
   }
@@ -508,7 +498,7 @@ function compilePathParametersForLayer(
       out.push(compileParamComponent(state, namedPath))
     } else {
       const pathSchema = pathSchemas[name]!
-      const { description, example, schema } = parameterSchemaFields(
+      const { description, schema } = parameterSchemaFields(
         pathSchema,
         emitSchemaRefOrValue(state, pathSchema),
       )
@@ -518,7 +508,6 @@ function compilePathParametersForLayer(
         in: "path",
         required: true,
         ...(description !== undefined ? { description } : {}),
-        ...(example !== undefined ? { example } : {}),
         schema,
       })
     }

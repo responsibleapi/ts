@@ -181,7 +181,6 @@ describe("compiler request", () => {
         in: "path",
         required: true,
         description: "Shared token",
-        example: "alpha",
         schema: { $ref: "#/components/schemas/SharedToken" },
       },
       {
@@ -189,7 +188,6 @@ describe("compiler request", () => {
         in: "query",
         required: true,
         description: "Shared token",
-        example: "alpha",
         schema: { $ref: "#/components/schemas/SharedToken" },
       },
       {
@@ -197,10 +195,99 @@ describe("compiler request", () => {
         in: "header",
         required: true,
         description: "Shared token",
-        example: "alpha",
         schema: { $ref: "#/components/schemas/SharedToken" },
       },
     ])
+  })
+
+  test("keeps schema-owned examples inside parameter schemas", async () => {
+    const Cursor = named(
+      "cursor",
+      queryParam({
+        name: "cursor",
+        example: "cursor-param-example",
+        schema: string({ examples: ["cursor-schema-example"] }),
+      }),
+    )
+
+    const api = responsibleAPI({
+      partialDoc: {
+        openapi: "3.1.0",
+        info: { title: "Parameter schema examples", version: "1" },
+      },
+      forAll: { req: { mime: "application/json" } },
+      routes: {
+        "/items/:id": GET({
+          req: {
+            pathParams: {
+              id: string({
+                description: "Item id",
+                examples: ["item-123"],
+              }),
+            },
+            query: {
+              filter: string({
+                description: "Filter expression",
+                example: "status:open",
+              }),
+            },
+            headers: {
+              "X-Trace": string({
+                description: "Trace id",
+                examples: ["trace-123"],
+              }),
+            },
+            params: [Cursor],
+          },
+          res: { 200: object({}) },
+        }),
+      },
+    })
+
+    const doc = await validate(api)
+
+    expect(doc.paths?.["/items/{id}"]?.get?.parameters).toEqual([
+      {
+        name: "id",
+        in: "path",
+        required: true,
+        description: "Item id",
+        schema: {
+          type: "string",
+          examples: ["item-123"],
+        },
+      },
+      {
+        name: "filter",
+        in: "query",
+        required: true,
+        description: "Filter expression",
+        schema: {
+          type: "string",
+          example: "status:open",
+        },
+      },
+      { $ref: "#/components/parameters/cursor" },
+      {
+        name: "X-Trace",
+        in: "header",
+        required: true,
+        description: "Trace id",
+        schema: {
+          type: "string",
+          examples: ["trace-123"],
+        },
+      },
+    ])
+    expect(doc.components?.parameters?.["cursor"]).toEqual({
+      name: "cursor",
+      in: "query",
+      example: "cursor-param-example",
+      schema: {
+        type: "string",
+        examples: ["cursor-schema-example"],
+      },
+    })
   })
 
   test("schema component registration stays order-independent across body and parameter sites", async () => {
