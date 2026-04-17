@@ -210,7 +210,9 @@ const baseError = named(
       format: "url",
       description:
         "A [ReadMe Metrics](https://readme.com/metrics/) log URL where you can see more information the request that you made. If we have metrics URLs unavailable for your request, this URL will be a URL to our API Reference.",
-      examples: ["https://docs.readme.com/logs/6883d0ee-cf79-447a-826f-a48f7d5bdf5f"],
+      examples: [
+        "https://docs.readme.com/logs/6883d0ee-cf79-447a-826f-a48f7d5bdf5f",
+      ],
     }),
     "help?": string({
       description:
@@ -219,12 +221,14 @@ const baseError = named(
     }),
     "poem?": array(string(), {
       description: "A short poem we wrote you about your error.",
-      examples: [[
-        "If you're seeing this error,",
-        "Things didn't quite go the way we hoped.",
-        "When we tried to process your request,",
-        "Maybe trying again it'll work—who knows!",
-      ]],
+      examples: [
+        [
+          "If you're seeing this error,",
+          "Things didn't quite go the way we hoped.",
+          "When we tried to process your request,",
+          "Maybe trying again it'll work—who knows!",
+        ],
+      ],
     }),
   }),
 )
@@ -511,7 +515,7 @@ const authResponses = {
 export default responsibleAPI({
   ensureResponseComponents: UNUSED_ERROR_RESPONSES.map(c => err[c].response),
   partialDoc: {
-    openapi: "3.0.2",
+    openapi: "3.1.0",
     info: {
       description:
         "Create beautiful product and API documentation with our developer friendly platform.",
