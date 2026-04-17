@@ -169,7 +169,10 @@ function isDslSchema(x: unknown): x is Schema {
   if ("type" in x) {
     const t: unknown = (x as { type?: unknown }).type
 
-    return typeof t === "string"
+    return (
+      typeof t === "string" ||
+      (Array.isArray(t) && t.every(part => typeof part === "string"))
+    )
   }
 
   if ("oneOf" in x || "anyOf" in x || "allOf" in x) {
@@ -654,6 +657,10 @@ function compileContent(
     const c: oas31.ContentObject = {}
 
     for (const [mime, sch] of Object.entries(body)) {
+      if (!isMimeValue(mime) || !isDslSchema(sch)) {
+        throw new TypeError("MIME map entries must be DSL schemas")
+      }
+
       c[mime] = mediaEntry(mime, sch)
     }
 

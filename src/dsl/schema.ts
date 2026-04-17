@@ -83,6 +83,10 @@ interface Bool extends SchemaOpts<boolean> {
   type: "boolean"
 }
 
+interface Null extends SchemaOpts<null> {
+  type: "null"
+}
+
 interface DictOpts extends SchemaOpts<Record<PropertyKey, unknown>> {}
 
 type Dict = Readonly<{
@@ -104,12 +108,33 @@ interface AllOf extends SchemaOpts<unknown> {
   allOf: readonly Schema[]
 }
 
+type NonNullSchemaType =
+  | "string"
+  | "integer"
+  | "number"
+  | "boolean"
+  | "object"
+  | "array"
+
+type Nullable = (
+  | Omit<Str, "type">
+  | Omit<Num, "type">
+  | Omit<Bool, "type">
+  | Omit<Obj, "type">
+  | Omit<Arr, "type">
+  | Omit<Dict, "type">
+) & {
+  type: readonly [NonNullSchemaType, "null"]
+}
+
 type Num = Int | Float
+type NonNullTypedSchema = Str | Num | Bool | Obj | Arr | Dict
 
 export type RawSchema =
   | Str
   | Num
   | Bool
+  | Null
   | Unknown
   | Obj
   | Arr
@@ -117,6 +142,7 @@ export type RawSchema =
   | OneOf
   | AnyOf
   | AllOf
+  | Nullable
 
 export type Schema = Nameable<RawSchema>
 
@@ -220,6 +246,34 @@ export const allOf = (
   schemas: readonly Schema[],
   opts?: SchemaOpts<unknown>,
 ): AllOf => ({ ...opts, allOf: schemas })
+
+const isNonNullTypedSchema = (
+  schema: RawSchema,
+): schema is NonNullTypedSchema =>
+  "type" in schema && typeof schema.type === "string" && schema.type !== "null"
+
+export const nullable = (schema: RawSchema): RawSchema => {
+  if (isNonNullTypedSchema(schema)) {
+    return {
+      ...schema,
+      type: [schema.type, "null"] as const,
+    }
+  }
+
+  if ("type" in schema) {
+    return schema
+  }
+
+  if ("oneOf" in schema || "anyOf" in schema || "allOf" in schema) {
+    return anyOf([schema, { type: "null" }])
+  }
+
+  if (Object.keys(schema).length === 0) {
+    return schema
+  }
+
+  return anyOf([schema, { type: "null" }])
+}
 
 export const boolean = (opts?: SchemaOpts<boolean>): Bool => ({
   type: "boolean",

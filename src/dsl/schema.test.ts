@@ -1,5 +1,6 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
+import { compileSchema, createSchemaCompileState } from "../compiler/schema.ts"
 import { normalize } from "../help/normalize.ts"
 import { validate } from "../help/validate.ts"
 import type { RawSchema } from "./schema.ts"
@@ -16,6 +17,7 @@ import {
   integer,
   int32,
   int64,
+  nullable,
   number,
   object,
   oneOf,
@@ -44,6 +46,9 @@ const expectValidSchema = async (schema: RawSchema): Promise<void> => {
   const doc = docWithSchema(schema)
   await expect(validate(doc)).resolves.toEqual(doc)
 }
+
+const compileTestSchema = (schema: RawSchema): oas31.SchemaObject =>
+  compileSchema(createSchemaCompileState(), schema) as oas31.SchemaObject
 
 describe("schema", () => {
   test("array", async () => {
@@ -422,6 +427,68 @@ describe("schema", () => {
             },
           },
           required: [],
+        },
+      ],
+    })
+
+    await expectValidSchema(schema)
+  })
+
+  test("nullable", async () => {
+    const schema = nullable(int32({ examples: [7] }))
+
+    expect(schema).toEqual({
+      type: ["integer", "null"],
+      format: "int32",
+      examples: [7],
+    })
+
+    expect(compileTestSchema(schema)).toEqual<oas31.SchemaObject>({
+      type: ["integer", "null"],
+      format: "int32",
+      examples: [7],
+    })
+
+    await expectValidSchema(schema)
+  })
+
+  test("nullable oneOf", async () => {
+    const schema = nullable(oneOf([string(), int32()]))
+
+    expect(schema).toEqual({
+      anyOf: [
+        {
+          oneOf: [
+            {
+              type: "string",
+            },
+            {
+              type: "integer",
+              format: "int32",
+            },
+          ],
+        },
+        {
+          type: "null",
+        },
+      ],
+    })
+
+    expect(compileTestSchema(schema)).toEqual<oas31.SchemaObject>({
+      anyOf: [
+        {
+          oneOf: [
+            {
+              type: "string",
+            },
+            {
+              type: "integer",
+              format: "int32",
+            },
+          ],
+        },
+        {
+          type: "null",
         },
       ],
     })
