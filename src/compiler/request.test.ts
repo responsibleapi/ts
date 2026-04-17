@@ -74,7 +74,7 @@ describe("compiler request", () => {
     ])
   })
 
-  test("lifts map-style parameter descriptions and emits query array defaults", async () => {
+  test("legacy bare-schema map params still lift descriptions and emit query array defaults", async () => {
     const api = responsibleAPI({
       partialDoc: {
         openapi: "3.1.0",
@@ -86,6 +86,7 @@ describe("compiler request", () => {
           req: {
             query: {
               page: int32({ description: "Page number" }),
+              "cursor?": string({ example: "next-cursor" }),
               "tags?": array(string(), {
                 description: "Tags to include",
               }),
@@ -109,6 +110,12 @@ describe("compiler request", () => {
         required: true,
         description: "Page number",
         schema: { type: "integer", format: "int32" },
+      },
+      {
+        name: "cursor",
+        in: "query",
+        example: "next-cursor",
+        schema: { type: "string" },
       },
       {
         name: "tags",
@@ -200,13 +207,23 @@ describe("compiler request", () => {
     ])
   })
 
-  test("lifts schema-owned examples onto map-style parameters", async () => {
+  test("inline map params keep schema metadata nested and reusable params do not lift schema metadata", async () => {
     const Cursor = named(
       "cursor",
       queryParam({
         name: "cursor",
         example: "cursor-param-example",
         schema: string({ examples: ["cursor-schema-example"] }),
+      }),
+    )
+    const CursorSchemaOnly = named(
+      "cursorSchemaOnly",
+      queryParam({
+        name: "cursor_schema_only",
+        schema: string({
+          description: "Cursor schema description",
+          examples: ["cursor-schema-only-example"],
+        }),
       }),
     )
 
@@ -220,24 +237,41 @@ describe("compiler request", () => {
         "/items/:id": GET({
           req: {
             pathParams: {
-              id: string({
-                description: "Item id",
-                examples: ["item-123"],
-              }),
+              id: {
+                description: "Item id parameter",
+                example: "item-123",
+                style: "label",
+                explode: false,
+                schema: string({
+                  description: "Item id schema",
+                  examples: ["item-123-schema"],
+                }),
+              },
             },
             query: {
-              filter: string({
-                description: "Filter expression",
+              filter: {
+                description: "Filter parameter",
                 example: "status:open",
-              }),
+                schema: string({
+                  description: "Filter schema",
+                  example: "status:closed",
+                }),
+              },
+              "tags?": {
+                schema: array(string()),
+              },
             },
             headers: {
-              "X-Trace": string({
-                description: "Trace id",
-                examples: ["trace-123"],
-              }),
+              "X-Trace": {
+                description: "Trace parameter",
+                example: "trace-123",
+                schema: string({
+                  description: "Trace schema",
+                  examples: ["trace-456"],
+                }),
+              },
             },
-            params: [Cursor],
+            params: [Cursor, CursorSchemaOnly],
           },
           res: { 200: object({}) },
         }),
@@ -251,31 +285,50 @@ describe("compiler request", () => {
         name: "id",
         in: "path",
         required: true,
-        description: "Item id",
+        description: "Item id parameter",
         example: "item-123",
+        style: "label",
+        explode: false,
         schema: {
           type: "string",
+          description: "Item id schema",
+          examples: ["item-123-schema"],
         },
       },
       {
         name: "filter",
         in: "query",
         required: true,
-        description: "Filter expression",
+        description: "Filter parameter",
         example: "status:open",
         schema: {
           type: "string",
+          description: "Filter schema",
+          example: "status:closed",
+        },
+      },
+      {
+        name: "tags",
+        in: "query",
+        style: "form",
+        explode: true,
+        schema: {
+          type: "array",
+          items: { type: "string" },
         },
       },
       { $ref: "#/components/parameters/cursor" },
+      { $ref: "#/components/parameters/cursorSchemaOnly" },
       {
         name: "X-Trace",
         in: "header",
         required: true,
-        description: "Trace id",
+        description: "Trace parameter",
         example: "trace-123",
         schema: {
           type: "string",
+          description: "Trace schema",
+          examples: ["trace-456"],
         },
       },
     ])
@@ -286,6 +339,15 @@ describe("compiler request", () => {
       schema: {
         type: "string",
         examples: ["cursor-schema-example"],
+      },
+    })
+    expect(doc.components?.parameters?.["cursorSchemaOnly"]).toEqual({
+      name: "cursor_schema_only",
+      in: "query",
+      schema: {
+        type: "string",
+        description: "Cursor schema description",
+        examples: ["cursor-schema-only-example"],
       },
     })
   })

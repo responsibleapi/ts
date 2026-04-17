@@ -2,7 +2,12 @@ import type { oas31 } from "openapi3-ts"
 import { isOptional, type NameWithOptionality } from "../dsl/dsl.ts"
 import type { Nameable } from "../dsl/nameable.ts"
 import { decodeNameable } from "../dsl/nameable.ts"
-import type { ReqAugmentation } from "../dsl/operation.ts"
+import type {
+  InlineHeaderParam,
+  InlinePathParam,
+  InlineQueryParam,
+  ReqAugmentation,
+} from "../dsl/operation.ts"
 import type { ReusableParam, ParamRaw } from "../dsl/params.ts"
 import type { Schema } from "../dsl/schema.ts"
 import type { Security } from "../dsl/security.ts"
@@ -18,6 +23,9 @@ import {
 } from "./schema-usage.ts"
 
 type ParameterSchema = EmittedSchema
+type InlineMapParameter = InlinePathParam | InlineQueryParam | InlineHeaderParam
+type InlineNonPathMapParameter = InlineQueryParam | InlineHeaderParam
+type InlineOrLegacyMapParameter = Schema | InlineNonPathMapParameter
 
 function parameterSchemaFields(
   source: Schema,
@@ -42,6 +50,37 @@ function parameterSchemaFields(
 
 function isSchemaRef(schema: ParameterSchema): schema is oas31.ReferenceObject {
   return "$ref" in schema
+}
+
+function isInlineMapParameter(value: unknown): value is InlineMapParameter {
+  return typeof value === "object" && value !== null && "schema" in value
+}
+
+function compileLegacyMapParameterFields(
+  state: ComponentRegistryState,
+  schemaSource: Schema,
+): {
+  description?: string
+  example?: unknown
+  schema: ParameterSchema
+} {
+  const emittedSchema = emitSchemaRefOrValue(state, schemaSource)
+  const example = !isSchemaRef(emittedSchema)
+    ? getSchemaUseExample(schemaSource)
+    : undefined
+  const { description, schema } = parameterSchemaFields(
+    schemaSource,
+    emittedSchema,
+    {
+      ...(example !== undefined ? { example: true } : {}),
+    },
+  )
+
+  return {
+    ...(description !== undefined ? { description } : {}),
+    ...(example !== undefined ? { example } : {}),
+    schema,
+  }
 }
 
 export function stripSecurityFields(
@@ -256,32 +295,13 @@ function paramRawToParameterObject(
     throw new Error(`Parameter "${paramName}" has no schema.`)
   }
 
-  const emittedSchema = emitSchemaRefOrValue(state, raw.schema)
-  const schemaExample =
-    raw.example === undefined && !isSchemaRef(emittedSchema)
-      ? getSchemaUseExample(raw.schema)
-      : undefined
-  const { description, schema } = parameterSchemaFields(
-    raw.schema,
-    emittedSchema,
-    {
-      ...(schemaExample !== undefined ? { example: true } : {}),
-    },
-  )
+  const schema = emitSchemaRefOrValue(state, raw.schema)
   const base: oas31.ParameterObject = {
     name: paramName,
     in: raw.in,
     schema,
-    ...(raw.description !== undefined
-      ? { description: raw.description }
-      : description !== undefined
-        ? { description }
-        : {}),
-    ...(raw.example !== undefined
-      ? { example: raw.example }
-      : schemaExample !== undefined
-        ? { example: schemaExample }
-        : {}),
+    ...(raw.description !== undefined ? { description: raw.description } : {}),
+    ...(raw.example !== undefined ? { example: raw.example } : {}),
   }
 
   if (raw.in === "path") {
@@ -344,20 +364,36 @@ export function compileParamComponent(
 function compileMapParameter(
   state: ComponentRegistryState,
   rawName: NameWithOptionality,
-  sch: Schema,
+  rawParam: InlineOrLegacyMapParameter,
   location: "query" | "header",
 ): oas31.ParameterObject {
   const name = isOptional(rawName) ? rawName.slice(0, -1) : rawName
-  const emittedSchema = emitSchemaRefOrValue(state, sch)
-  const example = !isSchemaRef(emittedSchema) ? getSchemaUseExample(sch) : undefined
-  const { description, schema } = parameterSchemaFields(
-    sch,
-    emittedSchema,
-    {
-      ...(example !== undefined ? { example: true } : {}),
-    },
-  )
-  const { value } = decodeNameable(sch)
+  let schemaSource: Schema
+  let fields: {
+    description?: string
+    example?: unknown
+    schema: ParameterSchema
+  }
+  let style: "form" | "simple" | undefined
+  let explode: boolean | undefined
+
+  if (typeof rawParam === "object" && rawParam !== null && "schema" in rawParam) {
+    schemaSource = rawParam.schema
+    fields = {
+      ...(rawParam.description !== undefined
+        ? { description: rawParam.description }
+        : {}),
+      ...(rawParam.example !== undefined ? { example: rawParam.example } : {}),
+      schema: emitSchemaRefOrValue(state, rawParam.schema),
+    }
+    style = rawParam.style
+    explode = rawParam.explode
+  } else {
+    schemaSource = rawParam
+    fields = compileLegacyMapParameterFields(state, rawParam)
+  }
+
+  const { value } = decodeNameable(schemaSource)
   const isArrayQueryParam =
     location === "query" &&
     typeof value === "object" &&
@@ -371,17 +407,26 @@ function compileMapParameter(
     name,
     in: location,
     ...(required ? { required: true } : {}),
-    ...(description !== undefined ? { description } : {}),
-    ...(example !== undefined ? { example } : {}),
-    ...(isArrayQueryParam ? { style: "form", explode: true } : {}),
-    schema,
+    ...(fields.description !== undefined ? { description: fields.description } : {}),
+    ...(fields.example !== undefined ? { example: fields.example } : {}),
+    ...(style !== undefined
+      ? { style }
+      : isArrayQueryParam
+        ? { style: "form" }
+        : {}),
+    ...(explode !== undefined
+      ? { explode }
+      : isArrayQueryParam
+        ? { explode: true }
+        : {}),
+    schema: fields.schema,
   }
 }
 
 function resolvePathParamSchemas(
   mergedReq: ReqAugmentation,
   oasPath: string,
-): Record<string, Schema> {
+): Record<string, Schema | InlinePathParam> {
   const namesInPath = openApiPathTemplateNames(oasPath)
   const pathParams = { ...(mergedReq.pathParams ?? {}) }
 
@@ -524,26 +569,40 @@ function compilePathParametersForLayer(
     if (namedPath !== undefined) {
       out.push(compileParamComponent(state, namedPath))
     } else {
-      const pathSchema = pathSchemas[name]!
-      const emittedSchema = emitSchemaRefOrValue(state, pathSchema)
-      const example = !isSchemaRef(emittedSchema)
-        ? getSchemaUseExample(pathSchema)
-        : undefined
-      const { description, schema } = parameterSchemaFields(
-        pathSchema,
-        emittedSchema,
-        {
-          ...(example !== undefined ? { example: true } : {}),
-        },
-      )
+      const pathParam = pathSchemas[name]!
+      let fields: {
+        description?: string
+        example?: unknown
+        schema: ParameterSchema
+      }
+      let style: InlinePathParam["style"] | undefined
+      let explode: boolean | undefined
+
+      if (isInlineMapParameter(pathParam)) {
+        fields = {
+          ...(pathParam.description !== undefined
+            ? { description: pathParam.description }
+            : {}),
+          ...(pathParam.example !== undefined
+            ? { example: pathParam.example }
+            : {}),
+          schema: emitSchemaRefOrValue(state, pathParam.schema),
+        }
+        style = pathParam.style
+        explode = pathParam.explode
+      } else {
+        fields = compileLegacyMapParameterFields(state, pathParam)
+      }
 
       out.push({
         name,
         in: "path",
         required: true,
-        ...(description !== undefined ? { description } : {}),
-        ...(example !== undefined ? { example } : {}),
-        schema,
+        ...(fields.description !== undefined ? { description: fields.description } : {}),
+        ...(fields.example !== undefined ? { example: fields.example } : {}),
+        ...(style !== undefined ? { style } : {}),
+        ...(explode !== undefined ? { explode } : {}),
+        schema: fields.schema,
       })
     }
   }
