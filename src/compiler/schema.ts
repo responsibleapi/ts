@@ -102,7 +102,7 @@ function emitString(
   delete out["const"]
 
   if (constVal !== undefined) {
-    out["enum"] = [constVal]
+    out["const"] = constVal
   }
 
   if (pattern instanceof RegExp) {

@@ -617,6 +617,10 @@ function isEmptyInlineSchema(
   )
 }
 
+function omitSchemaWhenEmptyUnknown(mime: string): boolean {
+  return mime === "application/octet-stream"
+}
+
 function isMimeMap(
   body: Schema | Record<Mime, Schema>,
 ): body is Record<Mime, Schema> {
@@ -638,11 +642,19 @@ function compileContent(
   body: Schema | Record<Mime, Schema>,
   defaultMime: Mime | undefined,
 ): oas31.ContentObject {
+  const mediaEntry = (mimeType: string, sch: Schema): oas31.MediaTypeObject => {
+    const compiled = compileSchema(schemaState, sch)
+
+    return isEmptyInlineSchema(compiled) && omitSchemaWhenEmptyUnknown(mimeType)
+      ? {}
+      : { schema: compiled }
+  }
+
   if (isMimeMap(body)) {
     const c: oas31.ContentObject = {}
 
     for (const [mime, sch] of Object.entries(body)) {
-      c[mime] = { schema: compileSchema(schemaState, sch) }
+      c[mime] = mediaEntry(mime, sch)
     }
 
     return c
@@ -651,7 +663,7 @@ function compileContent(
   const mime = defaultMime ?? "application/octet-stream"
 
   return {
-    [mime]: { schema: compileSchema(schemaState, body) },
+    [mime]: mediaEntry(mime, body as Schema),
   }
 }
 
