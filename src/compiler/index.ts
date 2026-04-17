@@ -489,7 +489,9 @@ function headerRawToHeaderObject(
 ): oas31.HeaderObject {
   return {
     ...(raw.description !== undefined ? { description: raw.description } : {}),
-    schema: compileSchema(state, raw.schema),
+    schema: compileSchema(state, raw.schema, {
+      collapseExamplesToExample: true,
+    }),
     ...(raw.required !== undefined ? { required: raw.required } : {}),
     ...(raw.deprecated !== undefined ? { deprecated: raw.deprecated } : {}),
     ...(raw.example !== undefined ? { example: raw.example } : {}),

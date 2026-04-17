@@ -6,6 +6,21 @@
 - we're in the midst of converting [examples](src/examples/) to OpenAPI 3.1.0
   Everything's broken
 
+## DSL design
+
+- NEVER EDIT types/signatures marked with `@dsl`. If you need to change them,
+  ASK FIRST
+- full DSL documentation is spread out in `@dsl` tagged JSDocs, you can concat
+  them to get the whole picture
+
+## Compiler design
+
+Single pass compiler design:
+
+- Each nested level inherits and extends the context, and as you return up the
+  stack, you merge the generated OpenAPI paths. No AST needed - just function
+  calls and return values
+
 ## Rules
 
 - verify changes to `src/` with `bun check`
@@ -71,23 +86,6 @@ Use `ast-grep` for:
   `rewriters` with `transform.rewrite`.
 - Use `ast-grep` for the bulk rewrite, then do a small cleanup pass for naming
   or edge cases.
-
-## DSL design
-
-- NEVER EDIT types/signatures marked with `@dsl`. If you need to change them,
-  ASK FIRST
-- full DSL documentation is spread out in `@dsl` tagged JSDocs, you can concat
-  them to get the whole picture
-
-## Compiler design
-
-Still TODO.
-
-Single pass compiler design:
-
-- Each nested level inherits and extends the context, and as you return up the
-  stack, you merge the generated OpenAPI paths. No AST needed - just function
-  calls and return values
 
 ## Docs
 

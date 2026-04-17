@@ -50,6 +50,27 @@ function schemaRef(name: string): oas31.ReferenceObject {
 
 type EmittedSchema = oas31.SchemaObject | oas31.ReferenceObject
 
+function schemaExampleFields(
+  schema: {
+  examples?: readonly unknown[]
+  },
+  opts?: { collapseExamplesToExample?: boolean },
+): { example?: unknown } | { examples?: unknown[] } {
+  if (opts?.collapseExamplesToExample) {
+    const example = schema.examples?.[0]
+
+    return example !== undefined ? { example } : {}
+  }
+
+  return schema.examples !== undefined ? { examples: [...schema.examples] } : {}
+}
+
+function schemaBaseFields(schema: object): Record<string, unknown> {
+  const out = Object.fromEntries(Object.entries(schema))
+  delete out["examples"]
+  return out
+}
+
 function schemaRefWithSiblings(
   name: string,
   siblings: {
@@ -68,12 +89,17 @@ function schemaRefWithSiblings(
 
 function emitString(
   s: Extract<RawSchema, { type: "string" }>,
+  opts?: { collapseExamplesToExample?: boolean },
 ): oas31.SchemaObject {
   const pattern = s["pattern"]
-  const { const: constVal, ...rest } = s
-  const out: Record<string, unknown> = { ...rest }
+  const constVal = s.const
+  const out: Record<string, unknown> = {
+    ...schemaBaseFields(s),
+    ...schemaExampleFields(s, opts),
+  }
 
   delete out["pattern"]
+  delete out["const"]
 
   if (constVal !== undefined) {
     out["enum"] = [constVal]
@@ -89,14 +115,22 @@ function emitString(
   return out as oas31.SchemaObject
 }
 
-function emitObject(state: SchemaCompileState, s: Obj): oas31.SchemaObject {
+function emitObject(
+  state: SchemaCompileState,
+  s: Obj,
+  opts?: { collapseExamplesToExample?: boolean },
+): oas31.SchemaObject {
   const properties: Record<string, EmittedSchema> = {}
 
   for (const [k, v] of Object.entries(s.properties)) {
     properties[k] = compileSchema(state, v)
   }
 
-  const { properties: _p, required, type: _t, ...rest } = s
+  const required = s.required
+  const rest = schemaBaseFields(s)
+  delete rest["properties"]
+  delete rest["required"]
+  delete rest["type"]
 
   if (
     Object.keys(properties).length === 0 &&
@@ -110,7 +144,8 @@ function emitObject(state: SchemaCompileState, s: Obj): oas31.SchemaObject {
   }
 
   const out: Record<string, unknown> = {
-    ...(rest as Record<string, unknown>),
+    ...rest,
+    ...schemaExampleFields(s, opts),
     type: "object",
   }
 
@@ -125,13 +160,22 @@ function emitObject(state: SchemaCompileState, s: Obj): oas31.SchemaObject {
   return out as oas31.SchemaObject
 }
 
-function emitDict(state: SchemaCompileState, s: Dict): oas31.SchemaObject {
-  const { propertyNames, additionalProperties, ...rest } = s
+function emitDict(
+  state: SchemaCompileState,
+  s: Dict,
+  opts?: { collapseExamplesToExample?: boolean },
+): oas31.SchemaObject {
+  const propertyNames = s.propertyNames
+  const additionalProperties = s.additionalProperties
+  const rest = schemaBaseFields(s)
+  delete rest["propertyNames"]
+  delete rest["additionalProperties"]
 
   const pn = compileSchema(state, propertyNames)
   const ap = compileSchema(state, additionalProperties)
   const out: Record<string, unknown> = {
-    ...(rest as Record<string, unknown>),
+    ...rest,
+    ...schemaExampleFields(s, opts),
     type: "object",
     additionalProperties: ap,
   }
@@ -158,7 +202,10 @@ function emitDict(state: SchemaCompileState, s: Dict): oas31.SchemaObject {
 export function compileSchema(
   state: SchemaCompileState,
   schema: Schema,
-  opts?: { preserveIntNumDescription?: boolean },
+  opts?: {
+    collapseExamplesToExample?: boolean
+    preserveIntNumDescription?: boolean
+  },
 ): EmittedSchema {
   const { name, value, summary, description } = decodeNameable(schema)
   const refSiblings = {
@@ -240,7 +287,10 @@ export function compileSchema(
 function compileRawSchema(
   state: SchemaCompileState,
   s: RawSchema,
-  opts?: { preserveIntNumDescription?: boolean },
+  opts?: {
+    collapseExamplesToExample?: boolean
+    preserveIntNumDescription?: boolean
+  },
 ): oas31.SchemaObject {
   if ("oneOf" in s) {
     return { oneOf: s.oneOf.map(x => compileSchema(state, x)) }
@@ -261,30 +311,36 @@ function compileRawSchema(
   switch (s.type) {
     case "object": {
       if ("propertyNames" in s) {
-        return emitDict(state, s)
+        return emitDict(state, s, opts)
       }
 
-      return emitObject(state, s)
+      return emitObject(state, s, opts)
     }
 
     case "array": {
-      const { items, ...rest } = s
+      const rest = schemaBaseFields(s)
+      delete rest["items"]
 
       return {
         ...rest,
+        ...schemaExampleFields(s, opts),
         type: "array",
-        items: compileSchema(state, items),
-      } as oas31.SchemaObject
+        items: compileSchema(state, s.items),
+      }
     }
 
     case "string":
-      return emitString(s)
+      return emitString(s, opts)
 
     default: {
       if (s.type === "number" && !opts?.preserveIntNumDescription) {
-        const { description: _desc, ...rest } = s
+        const rest = schemaBaseFields(s)
+        delete rest["description"]
 
-        return { ...rest } as oas31.SchemaObject
+        return {
+          ...rest,
+          ...schemaExampleFields(s, opts),
+        }
       }
 
       if (
@@ -292,12 +348,21 @@ function compileRawSchema(
         !opts?.preserveIntNumDescription &&
         (s as { format?: string }).format !== undefined
       ) {
-        const { description: _desc, ...rest } = s
+        const rest = schemaBaseFields(s)
+        delete rest["description"]
 
-        return { ...rest } as oas31.SchemaObject
+        return {
+          ...rest,
+          ...schemaExampleFields(s, opts),
+        }
       }
 
-      return { ...s } as oas31.SchemaObject
+      const rest = schemaBaseFields(s)
+
+      return {
+        ...rest,
+        ...schemaExampleFields(s, opts),
+      }
     }
   }
 }

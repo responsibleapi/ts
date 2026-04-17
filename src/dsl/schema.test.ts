@@ -50,7 +50,7 @@ describe("schema", () => {
     const schema = array(string(), {
       minItems: 1,
       maxItems: 3,
-      example: ["a"],
+      examples: [["a"]],
     })
 
     expect(schema).toEqual({
@@ -60,7 +60,7 @@ describe("schema", () => {
       },
       minItems: 1,
       maxItems: 3,
-      example: ["a"],
+      examples: [["a"]],
     })
 
     await expectValidSchema(schema)
@@ -70,7 +70,7 @@ describe("schema", () => {
     const schema = dict(string({ minLength: 1 }), int32({ minimum: 0 }), {
       description: "Localized values by language code",
       deprecated: true,
-      example: { en: 1 },
+      examples: [{ en: 1 }],
     })
 
     expect(schema).toEqual({
@@ -86,7 +86,7 @@ describe("schema", () => {
       },
       description: "Localized values by language code",
       deprecated: true,
-      example: { en: 1 },
+      examples: [{ en: 1 }],
     })
 
     await expectValidSchema(schema)
@@ -148,7 +148,7 @@ describe("schema", () => {
     const schema = int64({
       minimum: 1,
       maximum: 10,
-      example: 4,
+      examples: [4],
     })
 
     expect(schema).toEqual({
@@ -156,7 +156,7 @@ describe("schema", () => {
       format: "int64",
       minimum: 1,
       maximum: 10,
-      example: 4,
+      examples: [4],
     })
 
     await expectValidSchema(schema)
@@ -166,7 +166,7 @@ describe("schema", () => {
     const schema = int32({
       minimum: 1,
       maximum: 10,
-      example: 4,
+      examples: [4],
     })
 
     expect(schema).toEqual({
@@ -174,7 +174,7 @@ describe("schema", () => {
       format: "int32",
       minimum: 1,
       maximum: 10,
-      example: 4,
+      examples: [4],
     })
 
     await expectValidSchema(schema)
@@ -184,14 +184,14 @@ describe("schema", () => {
     const schema = integer({
       minimum: 1,
       maximum: 10,
-      example: 4,
+      examples: [4],
     })
 
     expect(schema).toEqual({
       type: "integer",
       minimum: 1,
       maximum: 10,
-      example: 4,
+      examples: [4],
     })
 
     await expectValidSchema(schema)
@@ -201,7 +201,7 @@ describe("schema", () => {
     const schema = uint64({
       minimum: 1,
       maximum: 10,
-      example: 4,
+      examples: [4],
     })
 
     expect(schema).toEqual({
@@ -209,7 +209,7 @@ describe("schema", () => {
       format: "uint64",
       minimum: 1,
       maximum: 10,
-      example: 4,
+      examples: [4],
     })
 
     await expectValidSchema(schema)
@@ -219,7 +219,7 @@ describe("schema", () => {
     const schema = float({
       minimum: 1.25,
       maximum: 9.5,
-      example: 4.75,
+      examples: [4.75],
     })
 
     expect(schema).toEqual({
@@ -227,7 +227,7 @@ describe("schema", () => {
       format: "float",
       minimum: 1.25,
       maximum: 9.5,
-      example: 4.75,
+      examples: [4.75],
     })
 
     await expectValidSchema(schema)
@@ -237,7 +237,7 @@ describe("schema", () => {
     const schema = double({
       minimum: 1.25,
       maximum: 9.5,
-      example: 4.75,
+      examples: [4.75],
     })
 
     expect(schema).toEqual({
@@ -245,7 +245,7 @@ describe("schema", () => {
       format: "double",
       minimum: 1.25,
       maximum: 9.5,
-      example: 4.75,
+      examples: [4.75],
     })
 
     await expectValidSchema(schema)
@@ -255,14 +255,14 @@ describe("schema", () => {
     const schema = number({
       minimum: 1.25,
       maximum: 9.5,
-      example: 4.75,
+      examples: [4.75],
     })
 
     expect(schema).toEqual({
       type: "number",
       minimum: 1.25,
       maximum: 9.5,
-      example: 4.75,
+      examples: [4.75],
     })
 
     await expectValidSchema(schema)
@@ -272,7 +272,7 @@ describe("schema", () => {
     const schema = uint32({
       minimum: 1,
       maximum: 10,
-      example: 4,
+      examples: [4],
     })
 
     expect(schema).toEqual({
@@ -280,7 +280,7 @@ describe("schema", () => {
       format: "uint32",
       minimum: 1,
       maximum: 10,
-      example: 4,
+      examples: [4],
     })
 
     await expectValidSchema(schema)
@@ -326,7 +326,7 @@ describe("schema", () => {
       maxLength: 8,
       pattern: "^[a-z]+$",
       enum: ["alpha", "beta"],
-      example: "alpha",
+      examples: ["alpha"],
     })
 
     expect(schema).toEqual({
@@ -336,7 +336,7 @@ describe("schema", () => {
       maxLength: 8,
       pattern: "^[a-z]+$",
       enum: ["alpha", "beta"],
-      example: "alpha",
+      examples: ["alpha"],
     })
 
     await expectValidSchema(schema)

@@ -60,11 +60,11 @@ const jobOpening = () =>
   object({
     "slug?": string({
       description: "A slugified version of the job opening title.",
-      example: "api-engineer",
+      examples: ["api-engineer"],
     }),
     "title?": string({
       description: "The job opening position.",
-      example: "API Engineer",
+      examples: ["API Engineer"],
     }),
     "description?": string({
       description:
@@ -72,15 +72,15 @@ const jobOpening = () =>
     }),
     "pullquote?": string({
       description: "A short pullquote for the open position.",
-      example: "Deeply knowledgeable of the web, HTTP, and the API space.",
+      examples: ["Deeply knowledgeable of the web, HTTP, and the API space."],
     }),
     "location?": string({
       description: "Where this position is located at.",
-      example: "Remote",
+      examples: ["Remote"],
     }),
     "department?": string({
       description: "The internal organization you'll be working in.",
-      example: "Engineering",
+      examples: ["Engineering"],
     }),
     "url?": string({
       format: "url",
@@ -108,7 +108,7 @@ const apiSpecificationID = string({
 const categorySlug = string({
   description:
     'A URL-safe representation of the category title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the category "Getting Started", enter the slug "getting-started".',
-  example: "getting-started",
+  examples: ["getting-started"],
 })
 
 const changelogSlug = string({
@@ -124,7 +124,7 @@ const customPageSlug = string({
 const docSlug = string({
   description:
     'A URL-safe representation of the doc title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the doc "New Features", enter the slug "new-features".',
-  example: "new-features",
+  examples: ["new-features"],
 })
 
 const pageQuery = named(
@@ -210,22 +210,21 @@ const baseError = named(
       format: "url",
       description:
         "A [ReadMe Metrics](https://readme.com/metrics/) log URL where you can see more information the request that you made. If we have metrics URLs unavailable for your request, this URL will be a URL to our API Reference.",
-      example:
-        "https://docs.readme.com/logs/6883d0ee-cf79-447a-826f-a48f7d5bdf5f",
+      examples: ["https://docs.readme.com/logs/6883d0ee-cf79-447a-826f-a48f7d5bdf5f"],
     }),
     "help?": string({
       description:
         "Information on where you can receive additional assistance from our wonderful support team.",
-      example: "If you need help, email support@readme.io",
+      examples: ["If you need help, email support@readme.io"],
     }),
     "poem?": array(string(), {
       description: "A short poem we wrote you about your error.",
-      example: [
+      examples: [[
         "If you're seeing this error,",
         "Things didn't quite go the way we hoped.",
         "When we tried to process your request,",
         "Maybe trying again it'll work—who knows!",
-      ],
+      ]],
     }),
   }),
 )
