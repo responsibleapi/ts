@@ -29,7 +29,7 @@ function operationRequestMime(
   return rb.content[mime]
 }
 
-describe("compiler request", () => {
+describe("request", () => {
   test("compiles query and header params", async () => {
     const api = responsibleAPI({
       partialDoc: {
@@ -319,22 +319,10 @@ describe("compiler request", () => {
         },
       },
       {
-        name: "cursor",
-        in: "query",
-        example: "cursor-param-example",
-        schema: {
-          type: "string",
-          examples: ["cursor-schema-example"],
-        },
+        $ref: "#/components/parameters/cursor",
       },
       {
-        name: "cursor_schema_only",
-        in: "query",
-        schema: {
-          type: "string",
-          description: "Cursor schema description",
-          examples: ["cursor-schema-only-example"],
-        },
+        $ref: "#/components/parameters/cursorSchemaOnly",
       },
       {
         name: "X-Trace",
@@ -349,7 +337,6 @@ describe("compiler request", () => {
         },
       },
     ])
-    expect(doc.components?.parameters).toBeUndefined()
   })
 
   test("schema component registration stays order-independent across body and parameter sites", async () => {
@@ -440,12 +427,10 @@ describe("compiler request", () => {
     const doc = await validateDoc(api)
 
     expect(doc).toEqual(api)
-    expect(doc.components?.parameters).toBeUndefined()
+
     expect(doc.paths!["/items"]?.get?.parameters).toEqual([
       {
-        name: "page_token",
-        in: "query",
-        schema: { type: "string" },
+        $ref: "#/components/parameters/pageToken",
       },
     ])
   })
@@ -556,30 +541,14 @@ describe("compiler request", () => {
 
     expect(doc).toEqual(api)
     expect(pathItem?.parameters).toEqual([
-      {
-        name: "X-Version",
-        in: "header",
-        schema: { type: "string" },
-      },
-      {
-        name: "locale",
-        in: "query",
-        schema: { type: "string" },
-      },
+      { $ref: "#/components/parameters/version" },
+      { $ref: "#/components/parameters/locale" },
     ])
     expect(pathItem?.get?.parameters).toEqual([
-      {
-        name: "page",
-        in: "query",
-        schema: { type: "string" },
-      },
+      { $ref: "#/components/parameters/page" },
     ])
     expect(pathItem?.post?.parameters).toEqual([
-      {
-        name: "limit",
-        in: "query",
-        schema: { type: "string" },
-      },
+      { $ref: "#/components/parameters/limit" },
     ])
   })
 
