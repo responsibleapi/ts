@@ -36,7 +36,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Req API", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/search": GET({
           req: {
@@ -80,7 +80,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Req API", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/search": GET({
           req: {
@@ -158,7 +158,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Shared schema contexts", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/items/:id": POST({
           req: {
@@ -235,7 +235,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Parameter schema examples", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/items/:id": GET({
           req: {
@@ -354,7 +354,7 @@ describe("request", () => {
           openapi: "3.1.0",
           info: { title: "Param first", version: "1" },
         },
-        forAll: { req: { mime: "application/json" } },
+        forEachOp: { req: { mime: "application/json" } },
         routes: {
           "/items/:id": POST({
             req: {
@@ -375,7 +375,7 @@ describe("request", () => {
           openapi: "3.1.0",
           info: { title: "Body first", version: "1" },
         },
-        forAll: { req: { mime: "application/json" } },
+        forEachOp: { req: { mime: "application/json" } },
         routes: {
           "/body": POST({
             req: Shared,
@@ -415,7 +415,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Req API", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/items": GET({
           req: { params: [PageToken] },
@@ -441,7 +441,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Req API", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/items/:id": GET({
           req: {
@@ -492,7 +492,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Req API", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/items": GET({
           req: {
@@ -560,7 +560,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Req API", version: "1" },
       },
-      forAll: {
+      forEachOp: {
         req: {
           mime: "application/json",
           params: [Version],
@@ -608,7 +608,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Req API", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/x": POST({
           req: object({ name: string() }),
@@ -631,7 +631,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Req API", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/x": POST({
           req: {
@@ -661,7 +661,7 @@ describe("request", () => {
           openapi: "3.1.0",
           info: { title: "t", version: "1" },
         },
-        forAll: { req: { mime: "application/json" } },
+        forEachOp: { req: { mime: "application/json" } },
         routes: {
           "/a/:id": {
             method: "GET",
@@ -682,7 +682,7 @@ describe("request", () => {
           openapi: "3.1.0",
           info: { title: "t", version: "1" },
         },
-        forAll: { req: { mime: "application/json" } },
+        forEachOp: { req: { mime: "application/json" } },
         routes: {
           "/a/:id": GET({
             req: { pathParams: { id: string(), extra: string() } },
@@ -700,7 +700,7 @@ describe("request", () => {
           openapi: "3.1.0",
           info: { title: "t", version: "1" },
         },
-        forAll: { req: { mime: "application/json" } },
+        forEachOp: { req: { mime: "application/json" } },
         routes: {
           "/a/:id": GET({
             req: { pathParams: {} },
@@ -720,7 +720,7 @@ describe("request", () => {
           openapi: "3.1.0",
           info: { title: "t", version: "1" },
         },
-        forAll: { req: { mime: "application/json" } },
+        forEachOp: { req: { mime: "application/json" } },
         routes: {
           "/search": GET({
             req: {
@@ -744,7 +744,7 @@ describe("request", () => {
           openapi: "3.1.0",
           info: { title: "t", version: "1" },
         },
-        forAll: {
+        forEachOp: {
           req: {
             mime: "application/json",
             params: [ScopeQ],
@@ -778,7 +778,7 @@ describe("request", () => {
           openapi: "3.1.0",
           info: { title: "t", version: "1" },
         },
-        forAll: { req: { mime: "application/json" } },
+        forEachOp: { req: { mime: "application/json" } },
         routes: {
           "/a": GET({
             req: { params: [A, B] },
@@ -799,7 +799,7 @@ describe("request", () => {
           openapi: "3.1.0",
           info: { title: "t", version: "1" },
         },
-        forAll: { req: { mime: "application/json", security: A } },
+        forEachOp: { req: { mime: "application/json", security: A } },
         routes: {
           "/x": GET({
             req: { security: B },
@@ -820,7 +820,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Sec API", version: "1" },
       },
-      forAll: {
+      forEachOp: {
         req: {
           mime: "application/json",
           security: Bearer,
@@ -895,7 +895,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Sec API", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/x": GET({
           req: {
@@ -921,7 +921,7 @@ describe("request", () => {
         openapi: "3.1.0",
         info: { title: "Req API", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/items": GET({
           res: { 200: object({}) },

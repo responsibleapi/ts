@@ -54,7 +54,7 @@ export default responsibleAPI({
       description: "Sentry.io clone",
     },
   },
-  forAll: {
+  forEachOp: {
     req: {
       mime: "application/json",
     },

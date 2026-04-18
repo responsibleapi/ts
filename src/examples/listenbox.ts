@@ -583,7 +583,7 @@ export default responsibleAPI({
       { url: "http://localhost:8080" },
     ],
   },
-  forAll: {
+  forEachOp: {
     res: {
       add: {
         400: {

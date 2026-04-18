@@ -20,7 +20,7 @@ describe("compiler scope and path", () => {
         openapi: "3.1.0",
         info: { title: "Scoped API", version: "1" },
       },
-      forAll: {
+      forEachOp: {
         req: { mime: "application/json" },
         res: {
           defaults: {
@@ -129,7 +129,7 @@ describe("compiler scope and path", () => {
           openapi: "3.1.0",
           info: { title: "t", version: "1" },
         },
-        forAll: { req: { mime: "application/json" } },
+        forEachOp: { req: { mime: "application/json" } },
         routes: {
           "/a/:id": GET({
             req: { pathParams: { id: string() } },
@@ -158,7 +158,7 @@ describe("compiler scope and path", () => {
         openapi: "3.1.0",
         info: { title: "Scoped Params API", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/users/:userId": scope({
           pathParams: { userId: int32() },

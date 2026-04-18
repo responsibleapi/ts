@@ -3804,7 +3804,7 @@ export default responsibleAPI({
     tags: Object.values(tags),
   },
   security: BearerAuth,
-  forAll: {
+  forEachOp: {
     req: { mime: "application/json" },
     res: { mime: "application/json" },
   },

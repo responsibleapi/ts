@@ -54,10 +54,14 @@ export type PathRoutes<TTags extends DeclaredTags = DeclaredTags> = Record<
 type ScopeRoutes<TTags extends DeclaredTags = DeclaredTags> =
   MethodRoutes<TTags> & Partial<PathRoutes<TTags>>
 
-type ScopeInput<TTags extends DeclaredTags = DeclaredTags> = {
-  readonly forAll?: ScopeOpts<TTags>
+export interface ForEachPath {
   readonly params?: readonly ReusableParam[]
   readonly pathParams?: PathParams
+}
+
+type ScopeInput<TTags extends DeclaredTags = DeclaredTags> = {
+  readonly forEachOp?: ScopeOpts<TTags>
+  readonly forEachPath?: ForEachPath
 } & ScopeRoutes<TTags>
 
 export interface ScopeOpts<TTags extends DeclaredTags = DeclaredTags> {
@@ -124,16 +128,16 @@ type ValidScopeArg<T extends ScopeInput> =
  * @dsl
  */
 export function scope<T extends ScopeInput>(arg: ValidScopeArg<T>): Scope {
-  const { forAll, ...routes }: ScopeInput = arg
+  const { forEachOp, ...routes }: ScopeInput = arg
 
-  if (forAll === undefined) {
+  if (forEachOp === undefined) {
     return {
       routes,
     }
   }
 
   return {
-    forAll,
+    forAll: forEachOp,
     routes,
   }
 }

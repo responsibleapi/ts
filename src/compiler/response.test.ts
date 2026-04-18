@@ -16,7 +16,7 @@ describe("response", () => {
         openapi: "3.1.0",
         info: { title: "Wildcard mime", version: "1" },
       },
-      forAll: {
+      forEachOp: {
         res: {
           mime: "application/json",
           add: {
@@ -62,7 +62,7 @@ describe("response", () => {
         openapi: "3.1.0",
         info: { title: "Add precedence", version: "1" },
       },
-      forAll: {
+      forEachOp: {
         res: {
           mime: "application/json",
           add: {
@@ -105,7 +105,7 @@ describe("response", () => {
         openapi: "3.1.0",
         info: { title: "Unknown response body", version: "1" },
       },
-      forAll: {
+      forEachOp: {
         res: { mime: "application/json" },
       },
       routes: {
@@ -150,7 +150,7 @@ describe("response", () => {
         openapi: "3.1.0",
         info: { title: "Head synthesis", version: "1" },
       },
-      forAll: {
+      forEachOp: {
         res: { mime: "application/json" },
       },
       routes: {
@@ -182,7 +182,7 @@ describe("response", () => {
         openapi: "3.1.0",
         info: { title: "Explicit head", version: "1" },
       },
-      forAll: {
+      forEachOp: {
         res: { mime: "application/json" },
       },
       routes: {
@@ -210,7 +210,7 @@ describe("response", () => {
         openapi: "3.1.0",
         info: { title: "Explicit head wins", version: "1" },
       },
-      forAll: { res: { mime: "application/json" } },
+      forEachOp: { res: { mime: "application/json" } },
       routes: {
         "/p": scope({
           HEAD: {
@@ -239,7 +239,7 @@ describe("response", () => {
         openapi: "3.1.0",
         info: { title: "Cookie pattern", version: "1" },
       },
-      forAll: { req: { mime: "application/json" } },
+      forEachOp: { req: { mime: "application/json" } },
       routes: {
         "/c": GET({
           res: {
@@ -269,7 +269,7 @@ describe("response", () => {
           openapi: "3.1.0",
           info: { title: "Multi cookie", version: "1" },
         },
-        forAll: { req: { mime: "application/json" } },
+        forEachOp: { req: { mime: "application/json" } },
         routes: {
           "/c": GET({
             res: {
@@ -290,7 +290,7 @@ describe("response", () => {
           openapi: "3.1.0",
           info: { title: "Merged cookies", version: "1" },
         },
-        forAll: {
+        forEachOp: {
           req: { mime: "application/json" },
           res: {
             defaults: {
@@ -328,7 +328,7 @@ describe("response", () => {
         openapi: "3.1.0",
         info: { title: "Reused response header", version: "1" },
       },
-      forAll: { res: { mime: "application/json" } },
+      forEachOp: { res: { mime: "application/json" } },
       routes: {
         "/x": GET({
           res: {
@@ -370,7 +370,7 @@ describe("response", () => {
         openapi: "3.1.0",
         info: { title: "headerParams", version: "1" },
       },
-      forAll: { res: { mime: "application/json" } },
+      forEachOp: { res: { mime: "application/json" } },
       routes: {
         "/p": GET({
           res: {
@@ -409,7 +409,7 @@ describe("response", () => {
         openapi: "3.1.0",
         info: { title: "Location header", version: "1" },
       },
-      forAll: { res: { mime: "application/json" } },
+      forEachOp: { res: { mime: "application/json" } },
       routes: {
         "/download": GET({
           res: {
@@ -434,7 +434,7 @@ describe("response", () => {
         openapi: "3.1.0",
         info: { title: "Shared header component", version: "1" },
       },
-      forAll: { res: { mime: "application/json" } },
+      forEachOp: { res: { mime: "application/json" } },
       routes: {
         "/a": GET({
           res: {
@@ -484,7 +484,7 @@ describe("response", () => {
         openapi: "3.1.0",
         info: { title: "Shared body and header schema", version: "1" },
       },
-      forAll: {
+      forEachOp: {
         req: { mime: "application/json" },
         res: { mime: "application/json" },
       },
@@ -537,7 +537,7 @@ describe("response", () => {
           openapi: "3.1.0",
           info: { title: "Header clash", version: "1" },
         },
-        forAll: { res: { mime: "application/json" } },
+        forEachOp: { res: { mime: "application/json" } },
         routes: {
           "/c": GET({
             res: {

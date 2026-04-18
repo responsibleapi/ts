@@ -40,7 +40,7 @@ export default responsibleAPI({
       version: "1",
     },
   },
-  forAll: {
+  forEachOp: {
     req: {
       mime: "application/json",
     },

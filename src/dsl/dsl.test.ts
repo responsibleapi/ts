@@ -19,7 +19,7 @@ describe("dsl", () => {
           version: "1",
         },
       },
-      forAll: {
+      forEachOp: {
         req: { mime: "application/json" },
         res: {
           defaults: {

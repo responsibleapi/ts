@@ -2,7 +2,7 @@ import type { oas31 } from "openapi3-ts"
 import { compileResponsibleAPI } from "../compiler/index.ts"
 import type { Resp } from "./operation.ts"
 import type { Schema } from "./schema.ts"
-import type { PathRoutes, ScopeOpts } from "./scope.ts"
+import type { ForEachPath, PathRoutes, ScopeOpts } from "./scope.ts"
 import type { Security } from "./security.ts"
 
 export type OptionalKey = `${string}?`
@@ -30,9 +30,9 @@ export type PartialDoc = Partial<
 
 export interface ResponsibleApiInput {
   partialDoc: PartialDoc
-  forAll?: ScopeOpts
+  forEachOp?: ScopeOpts
+  forEachPath?: ForEachPath
   routes: PathRoutes
-
   /**
    * Doc level security
    *

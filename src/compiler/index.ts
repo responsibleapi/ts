@@ -1240,7 +1240,7 @@ export function compileResponsibleAPI(
   }
 
   const schemaState = createComponentRegistryState()
-  const rootCtx = compileScopeContextFromForAll(api.forAll ?? {})
+  const rootCtx = compileScopeContextFromForAll(api.forEachOp ?? {})
   const paths: oas31.PathsObject = {
     ...(api.partialDoc.paths ?? {}),
   }
