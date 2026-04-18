@@ -5,6 +5,10 @@ import { deepEqual } from "../help/deep-equal.ts"
 import type { ComponentRegistryState } from "./components.ts"
 
 type Dict = Extract<RawSchema, { type: "object"; additionalProperties: Schema }>
+type AnyOfSchema = Extract<RawSchema, { anyOf: readonly Schema[] }>
+type AllOfSchema = Extract<RawSchema, { allOf: readonly Schema[] }>
+type ArraySchema = Extract<RawSchema, { type: "array"; items: Schema }>
+type ObjectSchema = Extract<RawSchema, { type: "object"; properties: Record<string, Schema> }>
 
 export type EmittedSchema = oas31.SchemaObject | oas31.ReferenceObject
 
@@ -106,6 +110,18 @@ const emitDict = (
   return out
 }
 
+const isAnyOfSchema = (schema: RawSchema): schema is AnyOfSchema => "anyOf" in schema
+
+const isAllOfSchema = (schema: RawSchema): schema is AllOfSchema => "allOf" in schema
+
+const isDictSchema = (schema: RawSchema): schema is Dict =>
+  "additionalProperties" in schema
+
+const isObjectSchema = (schema: RawSchema): schema is ObjectSchema =>
+  "properties" in schema
+
+const isArraySchema = (schema: RawSchema): schema is ArraySchema => "items" in schema
+
 const getStructuralType = (schema: RawSchema): string | undefined => {
   if (!("type" in schema)) {
     return undefined
@@ -150,8 +166,8 @@ const emitNullableLeafExamples = (
   nullableLeafNeedsNullExample(schema) ? { ...out, examples: [null] } : out
 
 const getNullableAllOfInnerSchema = (
-  schema: Extract<RawSchema, { anyOf: readonly Schema[] }>,
-): Extract<RawSchema, { allOf: readonly Schema[] }> | undefined => {
+  schema: AnyOfSchema,
+): AllOfSchema | undefined => {
   if (schema.anyOf.length !== 2) {
     return undefined
   }
@@ -173,7 +189,7 @@ const getNullableAllOfInnerSchema = (
 
   const decoded = decodeNameable(nonNull).value
 
-  return "allOf" in decoded ? decoded : undefined
+  return isAllOfSchema(decoded) ? decoded : undefined
 }
 
 const emitRawSchemaValue = (
@@ -189,7 +205,7 @@ const emitRawSchemaValue = (
     return out
   }
 
-  if ("anyOf" in schema) {
+  if (isAnyOfSchema(schema)) {
     const nullableAllOf = getNullableAllOfInnerSchema(schema)
 
     if (nullableAllOf !== undefined) {
@@ -208,7 +224,7 @@ const emitRawSchemaValue = (
     return out
   }
 
-  if ("allOf" in schema) {
+  if (isAllOfSchema(schema)) {
     const out: oas31.SchemaObject = {
       ...schemaBaseFields(schema),
       allOf: schema.allOf.map(item => emitSchemaRefOrValue(state, item)),
@@ -227,13 +243,21 @@ const emitRawSchemaValue = (
 
   switch (structuralType) {
     case "object":
-      if ("additionalProperties" in schema) {
+      if (isDictSchema(schema)) {
         return emitNullableLeafExamples(schema, emitDict(state, schema))
       }
 
-      return emitNullableLeafExamples(schema, emitObject(state, schema))
+      if (isObjectSchema(schema)) {
+        return emitNullableLeafExamples(schema, emitObject(state, schema))
+      }
+
+      throw new Error('Schema with type "object" must define properties or additionalProperties')
 
     case "array":
+      if (!isArraySchema(schema)) {
+        throw new Error('Schema with type "array" must define items')
+      }
+
       return emitNullableLeafExamples(schema, {
         ...schemaBaseFields(schema),
         items: emitSchemaRefOrValue(state, schema.items),

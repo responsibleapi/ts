@@ -20,10 +20,10 @@ type SchemaOpts<T> = Readonly<{
   description?: string
   deprecated?: boolean
 
-  examples?: readonly T[]
+  examples?: readonly T[] | null
 
   /** @deprecated Use {@link examples} instead */
-  example?: T
+  example?: T | null
 }> &
   SchemaExtensions
 

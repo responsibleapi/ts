@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { named } from "../dsl/nameable.ts"
-import { allOf, array, nullable, object, string } from "../dsl/schema.ts"
+import { allOf, array, nullable, object, string, type Schema } from "../dsl/schema.ts"
 import { validateSchema } from "../help/validate-schema.ts"
 import { createComponentRegistryState } from "./components.ts"
 import { emitSchemaRefOrValue } from "./emit-schema.ts"
@@ -69,12 +69,14 @@ describe("emitSchemaRefOrValue", () => {
     const description =
       "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив."
 
-    const dsl = nullable(
-      array(array(Button), {
-        description,
-        examples,
-      }),
-    )
+    const dsl = {
+      ...nullable(
+        array(array(Button), {
+          description,
+        }),
+      ),
+      examples,
+    } as Schema
 
     expect(
       validateSchema(emitSchemaRefOrValue(createComponentRegistryState(), dsl)),
