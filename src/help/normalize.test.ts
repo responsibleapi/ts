@@ -258,8 +258,8 @@ describe("normalize", () => {
     expect(normalize(withEmpty)).toEqual(normalize(withoutEmpty))
   })
 
-  test("treats component parameter refs as equivalent to inline parameters", () => {
-    const withRefs: oas31.OpenAPIObject = {
+  test("preserves component parameter refs and parameter components", () => {
+    const doc: oas31.OpenAPIObject = {
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {
@@ -284,27 +284,124 @@ describe("normalize", () => {
       },
     }
 
-    const inline: oas31.OpenAPIObject = {
+    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {
         "/items": {
           get: {
+            parameters: [{ $ref: "#/components/parameters/page" }],
+            responses: { 200: { description: "ok" } },
+          },
+        },
+      },
+      components: {
+        parameters: {
+          page: {
+            name: "page",
+            in: "query",
+            style: "form",
+            explode: true,
+            schema: { type: "integer", format: "int32" },
+          },
+        },
+      },
+    })
+  })
+
+  test("operation parameters override same name and location from path item", () => {
+    const doc: oas31.OpenAPIObject = {
+      openapi: "3.1.0",
+      info: { title: "Example", version: "1.0.0" },
+      paths: {
+        "/items/{id}": {
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+            },
+            {
+              name: "expand",
+              in: "query",
+              schema: { type: "string" },
+            },
+          ],
+          get: {
             parameters: [
               {
-                name: "page",
+                name: "expand",
                 in: "query",
-                schema: { type: "integer", format: "int32" },
+                schema: { type: "integer" },
               },
             ],
             responses: { 200: { description: "ok" } },
           },
         },
       },
-      components: {},
     }
 
-    expect(normalize(withRefs)).toEqual(normalize(inline))
+    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+      openapi: "3.1.0",
+      info: { title: "Example", version: "1.0.0" },
+      paths: {
+        "/items/{id}": {
+          get: {
+            parameters: [
+              {
+                name: "expand",
+                in: "query",
+                schema: { type: "integer" },
+              },
+              {
+                name: "id",
+                in: "path",
+                required: true,
+                schema: { type: "string" },
+              },
+            ],
+            responses: { 200: { description: "ok" } },
+          },
+        },
+      },
+    })
+  })
+
+  test("preserves path-item parameters when no operations inherit them", () => {
+    const doc: oas31.OpenAPIObject = {
+      openapi: "3.1.0",
+      info: { title: "Example", version: "1.0.0" },
+      paths: {
+        "/items/{id}": {
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+            },
+          ],
+        },
+      },
+    }
+
+    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+      openapi: "3.1.0",
+      info: { title: "Example", version: "1.0.0" },
+      paths: {
+        "/items/{id}": {
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+            },
+          ],
+        },
+      },
+    })
   })
 
   test("fixes the known YouTube description typo", () => {
@@ -417,6 +514,8 @@ describe("normalize", () => {
       "x-optional-param": {
         in: "query",
         name: "q",
+        style: "form",
+        explode: true,
         schema: { type: "string" },
       },
       "x-deprecated-op": {
@@ -490,7 +589,7 @@ describe("normalize", () => {
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {},
-      "x-security": [
+      security: [
         { b: ["z", "a"], a: [] },
         {},
         { oauth2: ["read", "write"] },
@@ -501,11 +600,27 @@ describe("normalize", () => {
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {},
-      "x-security": [
+      security: [
         { a: [], b: ["a", "z"] },
         { oauth2: ["read", "write"] },
         {},
       ],
+    })
+  })
+
+  test("does not treat vendor extension arrays as security requirements", () => {
+    const doc: oas31.OpenAPIObject = {
+      openapi: "3.1.0",
+      info: { title: "Example", version: "1.0.0" },
+      paths: {},
+      "x-security": [{ b: ["z", "a"], a: [] }, {}, { oauth2: ["write", "read"] }],
+    }
+
+    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+      openapi: "3.1.0",
+      info: { title: "Example", version: "1.0.0" },
+      paths: {},
+      "x-security": [{ b: ["a", "z"], a: [] }, {}, { oauth2: ["read", "write"] }],
     })
   })
 

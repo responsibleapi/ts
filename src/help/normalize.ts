@@ -55,6 +55,22 @@ function securityRequirementSortKey(obj: Record<string, unknown>): string {
   return JSON.stringify(canonicalizeSecurityRequirementObject(obj))
 }
 
+function normalizeSecurityRequirements(value: unknown[]): unknown[] {
+  const normalized = value.map(item => normVal(item))
+
+  if (!normalized.every(isSecurityRequirementObjectNorm)) {
+    return normalized
+  }
+
+  return [...normalized]
+    .map(item => canonicalizeSecurityRequirementObject(item))
+    .sort((left, right) =>
+      securityRequirementSortKey(left).localeCompare(
+        securityRequirementSortKey(right),
+      ),
+    )
+}
+
 function normalizeDescriptionString(s: string): string {
   if (
     s ===
@@ -81,6 +97,42 @@ const OPERATION_KEYS = [
   "trace",
 ] as const
 
+function parameterIdentity(value: unknown): string | undefined {
+  if (!isObject(value)) {
+    return undefined
+  }
+
+  if (typeof value["$ref"] === "string") {
+    return `$ref:${value["$ref"]}`
+  }
+
+  if (typeof value["name"] === "string" && typeof value["in"] === "string") {
+    return `${value["in"]}:${value["name"]}`
+  }
+
+  return undefined
+}
+
+function mergePathItemParameters(
+  pathItemParameters: unknown[],
+  operationParameters: unknown[],
+): unknown[] {
+  const operationParameterIds = new Set(
+    operationParameters
+      .map(parameter => parameterIdentity(parameter))
+      .filter((parameter): parameter is string => parameter !== undefined),
+  )
+
+  return [
+    ...pathItemParameters.filter(parameter => {
+      const id = parameterIdentity(parameter)
+
+      return id === undefined || !operationParameterIds.has(id)
+    }),
+    ...operationParameters,
+  ]
+}
+
 /**
  * The compiler now emits inherited scope params on the path item, which is the
  * correct OpenAPI shape, but several golden example fixtures are frozen with
@@ -90,8 +142,9 @@ const OPERATION_KEYS = [
  *
  * **Merge order:** for each HTTP operation on a path item that has a
  * `parameters` array, merged operation parameters are built as path-item
- * parameters first, then existing operation parameters
- * (`[...pathItemParameters, ...operationParameters]`).
+ * parameters first, then existing operation parameters, with operation-level
+ * params overriding path-item params that share same `(name, in)` pair or same
+ * `$ref`.
  *
  * **Final order:** after {@linkcode normalize} runs, any `parameters` array is
  * normalized as an array of objects and sorted by each object’s `name` (see
@@ -113,8 +166,7 @@ function normalizePathItemParameters<T extends oas31.OpenAPIObject>(doc: T): T {
 
     const nextPathItem: Record<string, unknown> = { ...pathItem }
     const pathItemParameters = pathItem["parameters"]
-
-    delete nextPathItem["parameters"]
+    let hasOperation = false
 
     for (const key of OPERATION_KEYS) {
       const operation = nextPathItem[key]
@@ -123,12 +175,17 @@ function normalizePathItemParameters<T extends oas31.OpenAPIObject>(doc: T): T {
         continue
       }
 
+      hasOperation = true
       nextPathItem[key] = {
         ...operation,
         parameters: Array.isArray(operation["parameters"])
-          ? [...pathItemParameters, ...operation["parameters"]]
-          : pathItemParameters,
+          ? mergePathItemParameters(pathItemParameters, operation["parameters"])
+          : [...pathItemParameters],
       }
+    }
+
+    if (hasOperation) {
+      delete nextPathItem["parameters"]
     }
 
     paths[path] = nextPathItem as oas31.PathItemObject
@@ -272,16 +329,6 @@ function normVal(value: unknown): unknown {
     return arr
   }
 
-  if (arr.every(isSecurityRequirementObjectNorm)) {
-    return [...arr]
-      .map(item => canonicalizeSecurityRequirementObject(item))
-      .sort((left, right) =>
-        securityRequirementSortKey(left).localeCompare(
-          securityRequirementSortKey(right),
-        ),
-      )
-  }
-
   if (arr.every((item): item is Record<string, unknown> => isObject(item))) {
     return [...arr].sort((left, right) => {
       const leftName = typeof left["name"] === "string" ? left["name"] : ""
@@ -300,7 +347,12 @@ const normObj = <T extends object>(obj: T): T => {
   for (const k in obj) {
     const raw = obj[k]
 
-    if (k === "description" && typeof raw === "string") {
+    if (k === "security" && Array.isArray(raw)) {
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+      normalizedObject[k as keyof T] = normalizeSecurityRequirements(
+        raw,
+      ) as T[keyof T]
+    } else if (k === "description" && typeof raw === "string") {
       // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       normalizedObject[k as keyof T] = normalizeDescriptionString(
         raw,
