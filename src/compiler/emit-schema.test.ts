@@ -1,0 +1,53 @@
+import { describe, expect, test } from "vitest"
+import { array, object, string } from "../dsl/schema.ts"
+import { validateSchema } from "../help/validate-schema.ts"
+import { createComponentRegistryState } from "./components.ts"
+import { emitSchemaRefOrValue } from "./emit-schema.ts"
+
+describe("emitSchemaRefOrValue", () => {
+  test("compiles nested array examples with named item schema", () => {
+    const Button = () =>
+      object({
+        text: string(),
+        "url?": string({ format: "uri" }),
+      })
+
+    const dsl = array(array(Button), {
+      description:
+        "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.",
+      examples: [
+        [
+          [
+            {
+              text: "Подробнее",
+              url: "https://example.com/details",
+            },
+          ],
+        ],
+      ],
+    })
+    const state = createComponentRegistryState()
+
+    expect(validateSchema(emitSchemaRefOrValue(state, dsl))).toEqual({
+      type: "array",
+      items: {
+        type: "array",
+        items: {
+          $ref: "#/components/schemas/Button",
+        },
+      },
+      description:
+        "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.",
+      examples: [
+        [
+          [
+            {
+              text: "Подробнее",
+              url: "https://example.com/details",
+            },
+          ],
+        ],
+      ],
+    })
+  })
+})

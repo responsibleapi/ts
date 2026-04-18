@@ -46,65 +46,6 @@ describe("schema", () => {
     expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("nested array examples", () => {
-    const schema = array(
-      array(
-        object({
-          text: string(),
-          "url?": string({ format: "uri" }),
-        }),
-      ),
-      {
-        description:
-          "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.",
-        examples: [
-          [
-            [
-              {
-                text: "Подробнее",
-                url: "https://example.com/details",
-              },
-            ],
-          ],
-        ],
-      },
-    )
-
-    expect(schema).toEqual({
-      type: "array",
-      items: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            text: {
-              type: "string",
-            },
-            url: {
-              type: "string",
-              format: "uri",
-            },
-          },
-          required: ["text"],
-        },
-      },
-      description:
-        "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.",
-      examples: [
-        [
-          [
-            {
-              text: "Подробнее",
-              url: "https://example.com/details",
-            },
-          ],
-        ],
-      ],
-    })
-
-    expect(validateSchema(schema)).toEqual(schema)
-  })
-
   test("dict", () => {
     const schema = dict(string({ minLength: 1 }), int32({ minimum: 0 }), {
       description: "Localized values by language code",
@@ -112,7 +53,7 @@ describe("schema", () => {
       examples: [{ en: 1 }],
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "object",
       propertyNames: {
         type: "string",
@@ -127,8 +68,6 @@ describe("schema", () => {
       deprecated: true,
       examples: [{ en: 1 }],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("dict omits default string propertyNames", () => {
