@@ -380,7 +380,11 @@ function compileMapParameter(
   let style: "form" | "simple" | undefined
   let explode: boolean | undefined
 
-  if (typeof rawParam === "object" && rawParam !== null && "schema" in rawParam) {
+  if (
+    typeof rawParam === "object" &&
+    rawParam !== null &&
+    "schema" in rawParam
+  ) {
     const schema = emitSchemaRefOrValue(state, rawParam.schema)
 
     fields = {
@@ -405,7 +409,9 @@ function compileMapParameter(
     name,
     in: location,
     ...(required ? { required: true } : {}),
-    ...(fields.description !== undefined ? { description: fields.description } : {}),
+    ...(fields.description !== undefined
+      ? { description: fields.description }
+      : {}),
     ...(fields.example !== undefined ? { example: fields.example } : {}),
     ...(style !== undefined ? { style } : {}),
     ...(explode !== undefined ? { explode } : {}),
@@ -588,7 +594,9 @@ function compilePathParametersForLayer(
         name,
         in: "path",
         required: true,
-        ...(fields.description !== undefined ? { description: fields.description } : {}),
+        ...(fields.description !== undefined
+          ? { description: fields.description }
+          : {}),
         ...(fields.example !== undefined ? { example: fields.example } : {}),
         ...(style !== undefined ? { style } : {}),
         ...(explode !== undefined ? { explode } : {}),
