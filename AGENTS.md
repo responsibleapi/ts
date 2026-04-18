@@ -4,6 +4,10 @@
 - Scope of the compiler: OpenAPI 3.1+. If any work touches OpenAPI 3.0.x and
   lower, stop and tell the human
 
+## Vocabulary
+
+- never refer to https://readme.com as "README". Use "readme.com"
+
 ## DSL design
 
 - NEVER EDIT types/signatures marked with `@dsl`. If you need to change them,
@@ -36,6 +40,18 @@ Single pass compiler design:
 
 ## CLI tools
 
+### Available
+
+- `rg`
+- `jq`
+- `xq`
+- `ast-grep`
+- `scc`
+- `bun`
+- `pkgx` for calling any CLI in existence
+
+### Rules
+
 - never call `rg --files`, call `rg --files --hidden -g '!.git'` instead
 - never call `node`, call `bun` instead
 - never call `npx` or `bunx`:
@@ -43,51 +59,12 @@ Single pass compiler design:
   - if a package is present, call through `bun`
 - never run code formatting unless explicitly asked
 - [never call `vitest`](docs/package.jsonc), `bun test` instead
-- `rg`, `ast-grep`, `jq` are available for calling
 - never call `wc`, call `scc` instead (both on files and folders)
-- never pass multiple paths to `scc`. A single dir or a single file only.
-
-### Code search
-
-Use `ripgrep` for:
-
-- exact strings
-- symbol/file discovery
-- comments/docs/config text
-- first-pass broad narrowing
-
-Use `ast-grep` for:
-
-- “find X inside Y”
-- syntax/context constraints
-- refactoring/codemod search
-- “find behavior pattern, not exact text”
-
-### `git`
-
-- never run `git commit` without running `git add` first
-
-### Refactoring with `ast-grep`
-
-- Use `scc <path>` first when a large-file or large-folder refactor needs a
-  quick size estimate.
-- Prefer `ast-grep` for large repetitive syntax-preserving refactors instead of
-  writing an ad hoc TypeScript codemod.
-- Start with `ast-grep run` without `-U` to preview the rewrite and inspect the
-  diff. Rerun with `-U` only after the preview looks correct.
-- Use plain `--rewrite` only when replacing matched node text is enough. If the
-  edit must also move or remove commas, brackets, or other separators, switch to
-  a YAML rule with `fix`.
-- When removing a list/object item plus its trailing comma, use `fix` with
-  `expandStart` and/or `expandEnd`.
-- When one match needs coordinated rewrites across multiple child nodes, prefer
-  `rewriters` with `transform.rewrite`.
-- Use `ast-grep` for the bulk rewrite, then do a small cleanup pass for naming
-  or edge cases.
+- never pass multiple paths to `scc`. A single dir or a single file only
 
 ## Docs
 
-- field-by-field `package.json` rationale lives in `docs/package.jsonc`
+- Field-by-field rationale for `package.json` lives in `docs/package.jsonc`
 
 ## Custom commands
 

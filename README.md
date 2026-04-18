@@ -3,7 +3,9 @@
 Small Typescript [DSL](src/dsl/) that [compiles](src/compiler/) to OpenAPI
 3.1.0.
 
-## CLI tools
+## Development
+
+### CLI
 
 To work on this repo, keep these CLI tools available:
 
