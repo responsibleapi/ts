@@ -26,6 +26,7 @@ function canonObj<T extends Record<string, unknown>>(value: T): T {
     isEmpty(o["properties"])
   ) {
     const { properties: _omitEmptyProperties, ...rest } = o
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     o = rest as T
   }
 
@@ -34,21 +35,25 @@ function canonObj<T extends Record<string, unknown>>(value: T): T {
     isEmpty(o["additionalProperties"])
   ) {
     const { additionalProperties: _omitEmptyAdditionalProperties, ...rest } = o
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     o = rest as T
   }
 
   if (Array.isArray(o["required"]) && o["required"].length === 0) {
     const { required: _omitEmptyRequired, ...rest } = o
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     o = rest as T
   }
 
   if (Array.isArray(o["parameters"]) && o["parameters"].length === 0) {
     const { parameters: _omitEmptyParameters, ...rest } = o
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     o = rest as T
   }
 
   if ("responses" in o && o["deprecated"] === false) {
     const { deprecated: _omitFalseDeprecated, ...rest } = o
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     o = rest as T
   }
 
@@ -58,7 +63,8 @@ function canonObj<T extends Record<string, unknown>>(value: T): T {
     o["required"] === false
   ) {
     const { required: _omitOptionalRequired, ...rest } = o
-    return normObj(rest as T)
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    o = rest as T
   }
 
   return normObj(o)
@@ -90,6 +96,7 @@ const normObj = <T extends object>(obj: T): T => {
       // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       ret[k as keyof T] = normalizePatternString(raw) as T[keyof T]
     } else {
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       ret[k as keyof T] = normVal(raw) as T[keyof T]
     }
   }
