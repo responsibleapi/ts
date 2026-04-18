@@ -1,5 +1,7 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
+
+import { object, string, unknown } from "../dsl/schema.ts"
 import { normalize } from "./normalize.ts"
 
 describe("normalize", () => {
@@ -338,6 +340,44 @@ describe("normalize", () => {
         },
       },
     })
+  })
+
+  test("normalizes required-only allOf shards to explicit objects", () => {
+    const category = object({ slug: string() })
+    const compilerShard = object({ title: unknown() })
+
+    const docCompiler: oas31.OpenAPIObject = {
+      openapi: "3.1.0",
+      info: { title: "normalize shard", version: "1" },
+      paths: {},
+      components: {
+        schemas: {
+          category: category as oas31.SchemaObject,
+          UnderTest: {
+            allOf: [{ $ref: "#/components/schemas/category" }, compilerShard],
+          } as oas31.SchemaObject,
+        },
+      },
+    }
+
+    const docFixture: oas31.OpenAPIObject = {
+      openapi: "3.1.0",
+      info: { title: "normalize shard", version: "1" },
+      paths: {},
+      components: {
+        schemas: {
+          category: category as oas31.SchemaObject,
+          UnderTest: {
+            allOf: [
+              { $ref: "#/components/schemas/category" },
+              { required: ["title"] },
+            ],
+          } as oas31.SchemaObject,
+        },
+      },
+    }
+
+    expect(normalize(docCompiler)).toEqual(normalize(docFixture))
   })
 
   test("sorts security requirement arrays and canonicalizes scopes", () => {
