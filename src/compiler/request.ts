@@ -334,6 +334,10 @@ export function compileParamComponent(
     return obj
   }
 
+  const ref: oas31.ReferenceObject = {
+    $ref: `#/components/parameters/${resolvedName}`,
+  }
+
   const existingParam = state.components.parameters[resolvedName]
 
   if (existingParam !== undefined) {
@@ -343,11 +347,11 @@ export function compileParamComponent(
       )
     }
 
-    return obj
+    return ref
   }
 
   if (state.inProgress.parameters.has(resolvedName)) {
-    return obj
+    return ref
   }
 
   state.inProgress.parameters.add(resolvedName)
@@ -358,7 +362,7 @@ export function compileParamComponent(
     state.inProgress.parameters.delete(resolvedName)
   }
 
-  return obj
+  return ref
 }
 
 function compileMapParameter(

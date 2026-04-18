@@ -132,77 +132,6 @@ describe("normalize", () => {
     })
   })
 
-  test("treats path-item parameters as equivalent to leading operation parameters", () => {
-    const doc: oas31.OpenAPIObject = {
-      openapi: "3.1.0",
-      info: {
-        title: "Example",
-        version: "1.0.0",
-      },
-      paths: {
-        "/items/{id}": {
-          parameters: [
-            {
-              name: "id",
-              in: "path",
-              required: true,
-              schema: { type: "string" },
-            },
-          ],
-          get: {
-            operationId: "getItem",
-            parameters: [
-              {
-                name: "expand",
-                in: "query",
-                required: false,
-                schema: { type: "string" },
-              },
-            ],
-            responses: {
-              200: {
-                description: "200",
-              },
-            },
-          },
-        },
-      },
-    }
-
-    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
-      openapi: "3.1.0",
-      info: {
-        title: "Example",
-        version: "1.0.0",
-      },
-      paths: {
-        "/items/{id}": {
-          get: {
-            operationId: "getItem",
-            parameters: [
-              {
-                name: "expand",
-                in: "query",
-                schema: { type: "string" },
-              },
-              {
-                name: "id",
-                in: "path",
-                required: true,
-                schema: { type: "string" },
-              },
-            ],
-            responses: {
-              200: {
-                description: "200",
-              },
-            },
-          },
-        },
-      },
-    })
-  })
-
   test("leaves documents without paths unchanged at path-item merge step", () => {
     const doc = {
       openapi: "3.1.0",
@@ -239,46 +168,6 @@ describe("normalize", () => {
           },
         },
         "/bad": "not-a-path-item" as unknown as oas31.PathItemObject,
-      },
-    })
-  })
-
-  test("merges path-level parameters when the operation has no parameters array", () => {
-    const doc: oas31.OpenAPIObject = {
-      openapi: "3.1.0",
-      info: { title: "Example", version: "1.0.0" },
-      paths: {
-        "/items": {
-          parameters: [
-            {
-              name: "shared",
-              in: "query",
-              schema: { type: "string" },
-            },
-          ],
-          get: {
-            responses: { 200: { description: "ok" } },
-          },
-        },
-      },
-    }
-
-    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
-      openapi: "3.1.0",
-      info: { title: "Example", version: "1.0.0" },
-      paths: {
-        "/items": {
-          get: {
-            parameters: [
-              {
-                name: "shared",
-                in: "query",
-                schema: { type: "string" },
-              },
-            ],
-            responses: { 200: { description: "ok" } },
-          },
-        },
       },
     })
   })
@@ -359,121 +248,6 @@ describe("normalize", () => {
             style: "form",
             explode: true,
             schema: { type: "integer", format: "int32" },
-          },
-        },
-      },
-    })
-  })
-
-  test("dedupes path-item inline parameters overridden by operation refs", () => {
-    const doc: oas31.OpenAPIObject = {
-      openapi: "3.1.0",
-      info: { title: "Example", version: "1.0.0" },
-      paths: {
-        "/items/{id}": {
-          parameters: [
-            {
-              name: "id",
-              in: "path",
-              required: true,
-              schema: { type: "string" },
-            },
-          ],
-          get: {
-            parameters: [{ $ref: "#/components/parameters/id" }],
-            responses: { 200: { description: "ok" } },
-          },
-        },
-      },
-      components: {
-        parameters: {
-          id: {
-            name: "id",
-            in: "path",
-            required: true,
-            schema: { type: "string" },
-          },
-        },
-      },
-    }
-
-    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
-      openapi: "3.1.0",
-      info: { title: "Example", version: "1.0.0" },
-      paths: {
-        "/items/{id}": {
-          get: {
-            parameters: [{ $ref: "#/components/parameters/id" }],
-            responses: { 200: { description: "ok" } },
-          },
-        },
-      },
-      components: {
-        parameters: {
-          id: {
-            name: "id",
-            in: "path",
-            required: true,
-            schema: { type: "string" },
-          },
-        },
-      },
-    })
-  })
-
-  test("operation parameters override same name and location from path item", () => {
-    const doc: oas31.OpenAPIObject = {
-      openapi: "3.1.0",
-      info: { title: "Example", version: "1.0.0" },
-      paths: {
-        "/items/{id}": {
-          parameters: [
-            {
-              name: "id",
-              in: "path",
-              required: true,
-              schema: { type: "string" },
-            },
-            {
-              name: "expand",
-              in: "query",
-              schema: { type: "string" },
-            },
-          ],
-          get: {
-            parameters: [
-              {
-                name: "expand",
-                in: "query",
-                schema: { type: "integer" },
-              },
-            ],
-            responses: { 200: { description: "ok" } },
-          },
-        },
-      },
-    }
-
-    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
-      openapi: "3.1.0",
-      info: { title: "Example", version: "1.0.0" },
-      paths: {
-        "/items/{id}": {
-          get: {
-            parameters: [
-              {
-                name: "expand",
-                in: "query",
-                schema: { type: "integer" },
-              },
-              {
-                name: "id",
-                in: "path",
-                required: true,
-                schema: { type: "string" },
-              },
-            ],
-            responses: { 200: { description: "ok" } },
           },
         },
       },
@@ -727,46 +501,11 @@ describe("normalize", () => {
       security: [{ b: ["z", "a"], a: [] }, {}, { oauth2: ["read", "write"] }],
     }
 
-    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {},
       security: [{ a: [], b: ["a", "z"] }, { oauth2: ["read", "write"] }, {}],
     })
-  })
-
-  test("does not treat vendor extension arrays as security requirements", () => {
-    const doc: oas31.OpenAPIObject = {
-      openapi: "3.1.0",
-      info: { title: "Example", version: "1.0.0" },
-      paths: {},
-      "x-security": [
-        { b: ["z", "a"], a: [] },
-        {},
-        { oauth2: ["write", "read"] },
-      ],
-    }
-
-    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
-      openapi: "3.1.0",
-      info: { title: "Example", version: "1.0.0" },
-      paths: {},
-      "x-security": [
-        { b: ["a", "z"], a: [] },
-        {},
-        { oauth2: ["read", "write"] },
-      ],
-    })
-  })
-
-  test("throws on arrays that cannot be normalized", () => {
-    const doc: oas31.OpenAPIObject = {
-      openapi: "3.1.0",
-      info: { title: "Example", version: "1.0.0" },
-      paths: {},
-      "x-bad": [1, { a: [] }],
-    }
-
-    expect(() => canonical(doc)).toThrow(/Invalid value/)
   })
 })

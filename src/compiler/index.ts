@@ -510,7 +510,7 @@ function headerRawToHeaderObject(
 function compileHeaderComponent(
   state: ComponentRegistryState,
   header: ReusableHeader,
-): oas31.HeaderObject {
+): oas31.HeaderObject | oas31.ReferenceObject {
   const { name: thunkName, value } = decodeNameable(header)
   const resolvedName =
     thunkName !== undefined && thunkName !== "" ? thunkName : undefined
@@ -522,6 +522,10 @@ function compileHeaderComponent(
     )
   }
 
+  const ref: oas31.ReferenceObject = {
+    $ref: `#/components/headers/${resolvedName}`,
+  }
+
   const existing = state.components.headers[resolvedName]
 
   if (existing !== undefined) {
@@ -531,11 +535,11 @@ function compileHeaderComponent(
       )
     }
 
-    return obj
+    return ref
   }
 
   if (state.inProgress.headers.has(resolvedName)) {
-    return obj
+    return ref
   }
 
   state.inProgress.headers.add(resolvedName)
@@ -546,7 +550,7 @@ function compileHeaderComponent(
     state.inProgress.headers.delete(resolvedName)
   }
 
-  return obj
+  return ref
 }
 
 function compileHeaderMap(
@@ -1211,16 +1215,28 @@ export function compileResponsibleAPI(
       : undefined
 
   const schemaKeys = Object.keys(schemaState.components.schemas)
+  const parameterKeys = Object.keys(schemaState.components.parameters)
+  const headerKeys = Object.keys(schemaState.components.headers)
   const responseKeys = Object.keys(schemaState.components.responses)
   const secKeys = Object.keys(schemaState.components.securitySchemes)
   const components: oas31.ComponentsObject | undefined =
-    schemaKeys.length > 0 || responseKeys.length > 0 || secKeys.length > 0
+    schemaKeys.length > 0 ||
+    parameterKeys.length > 0 ||
+    headerKeys.length > 0 ||
+    responseKeys.length > 0 ||
+    secKeys.length > 0
       ? {
           ...(secKeys.length > 0
             ? { securitySchemes: schemaState.components.securitySchemes }
             : {}),
           ...(responseKeys.length > 0
             ? { responses: schemaState.components.responses }
+            : {}),
+          ...(parameterKeys.length > 0
+            ? { parameters: schemaState.components.parameters }
+            : {}),
+          ...(headerKeys.length > 0
+            ? { headers: schemaState.components.headers }
             : {}),
           ...(schemaKeys.length > 0
             ? { schemas: schemaState.components.schemas }
