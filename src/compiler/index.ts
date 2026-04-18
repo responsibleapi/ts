@@ -293,6 +293,47 @@ function mergeInheritedReq(
   return mergeReqAugmentations(parent, normalizeReqAugmentation(op.req)) ?? {}
 }
 
+function scopePathLevelReqFromRoutes(
+  routes: Record<string, unknown>,
+): ReqAugmentation | undefined {
+  const params = routes["params"]
+  const pathParams = routes["pathParams"]
+
+  if (params === undefined && pathParams === undefined) {
+    return undefined
+  }
+
+  const req: {
+    params?: ReqAugmentation["params"]
+    pathParams?: ReqAugmentation["pathParams"]
+  } = {}
+
+  if (Array.isArray(params)) {
+    req.params = params as ReqAugmentation["params"]
+  }
+
+  if (isRecord(pathParams)) {
+    req.pathParams = pathParams as ReqAugmentation["pathParams"]
+  }
+
+  if ("params" in req && "pathParams" in req) {
+    return {
+      params: req.params!,
+      pathParams: req.pathParams!,
+    }
+  }
+
+  if ("params" in req) {
+    return { params: req.params! }
+  }
+
+  if ("pathParams" in req) {
+    return { pathParams: req.pathParams! }
+  }
+
+  return undefined
+}
+
 function normalizeReqAugmentation(
   raw: Op["req"] | GetOp["req"] | undefined,
 ): ReqAugmentation {
@@ -967,6 +1008,7 @@ function compileDirectOp(
   op: RouteMethodOp,
   ctx: CompileScopeContext,
   oasPath: string,
+  pathLevelReq: ReqAugmentation | undefined,
   opts?: {
     stripResponseBodies?: boolean | "explicit-head"
     omitRequestBody?: boolean
@@ -977,14 +1019,18 @@ function compileDirectOp(
     | (oas31.ParameterObject | oas31.ReferenceObject)[]
     | undefined
 } {
+  const inheritedReq = mergeReqAugmentations(ctx.mergedReq, pathLevelReq)
   const { opReq, mergedReq, securityReqs } = mergedReqAndSecurityForOp(
     schemaState,
-    ctx,
+    {
+      ...ctx,
+      mergedReq: inheritedReq,
+    },
     op,
   )
   const { pathItemParameters, operationParameters } = compileParameterLayers(
     schemaState,
-    ctx.mergedReq,
+    inheritedReq,
     opReq,
     mergedReq,
     oasPath,
@@ -1040,6 +1086,7 @@ function placeOperation(
   dslPath: string,
   ctx: CompileScopeContext,
   op: RouteMethodOp,
+  pathLevelReq: ReqAugmentation | undefined,
 ): void {
   const oasPath = dslPathToOpenApiPath(dslPath)
   const oasMethod = OAS_METHOD[op.method]
@@ -1056,6 +1103,7 @@ function placeOperation(
     op,
     ctx,
     oasPath,
+    pathLevelReq,
     {
       stripResponseBodies:
         op.method === "HEAD" ? ("explicit-head" as const) : false,
@@ -1081,10 +1129,17 @@ function placeOperation(
 
   if (isGetWithHeadID(op) && !("head" in pathItem)) {
     const headOp = synthesizeHeadOpFromGet(op)
-    pathItem.head = compileDirectOp(schemaState, headOp, ctx, oasPath, {
-      stripResponseBodies: true,
-      omitRequestBody: true,
-    }).operation
+    pathItem.head = compileDirectOp(
+      schemaState,
+      headOp,
+      ctx,
+      oasPath,
+      pathLevelReq,
+      {
+        stripResponseBodies: true,
+        omitRequestBody: true,
+      },
+    ).operation
   }
 
   paths[oasPath] = pathItem
@@ -1096,8 +1151,13 @@ function compileRoutes(
   ctx: CompileScopeContext,
   pathPrefix: string,
   paths: oas31.PathsObject,
+  pathLevelReq: ReqAugmentation | undefined,
 ): void {
   for (const routeKey of Object.keys(routes)) {
+    if (routeKey === "params" || routeKey === "pathParams") {
+      continue
+    }
+
     const node = routes[routeKey]
 
     if (node === undefined) {
@@ -1123,7 +1183,7 @@ function compileRoutes(
           ? (assertRouteMethodOp(node), node)
           : ({ ...(node as OpBase), method } satisfies RouteMethodOp)
 
-      placeOperation(schemaState, paths, pathPrefix, ctx, op)
+      placeOperation(schemaState, paths, pathPrefix, ctx, op, pathLevelReq)
       continue
     }
 
@@ -1137,16 +1197,20 @@ function compileRoutes(
 
     if (isScope(node)) {
       const nextCtx = mergeCompileScope(ctx, node.forAll)
+      const nextPathLevelReq = scopePathLevelReqFromRoutes(
+        node.routes as Record<string, unknown>,
+      )
       compileRoutes(
         schemaState,
         node.routes as Record<string, unknown>,
         nextCtx,
         fullDslPath,
         paths,
+        nextPathLevelReq,
       )
     } else {
       assertRouteMethodOp(node)
-      placeOperation(schemaState, paths, fullDslPath, ctx, node)
+      placeOperation(schemaState, paths, fullDslPath, ctx, node, undefined)
     }
   }
 }
@@ -1175,6 +1239,7 @@ export function compileResponsibleAPI(
     rootCtx,
     "",
     paths,
+    undefined,
   )
 
   const dummyOpForComponents = { method: "GET" } as RouteMethodOp

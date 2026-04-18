@@ -6,6 +6,10 @@ import theJSON from "./exceptions.json"
 import theAPI from "./exceptions.ts"
 
 describe("exceptions", () => {
+  test("json", async () => {
+    expect(await validateDoc(theJSON)).toEqual(theJSON)
+  })
+
   test("fixture", async () => {
     expect(canonical(await validateDoc(theAPI))).toEqual(
       canonical(theJSON as oas31.OpenAPIObject),

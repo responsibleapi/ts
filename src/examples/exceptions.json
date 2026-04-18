@@ -7,18 +7,18 @@
   },
   "paths": {
     "/app_errors/{appID}": {
+      "parameters": [
+        {
+          "name": "appID",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/AppID"
+          }
+        }
+      ],
       "post": {
         "operationId": "newError",
-        "parameters": [
-          {
-            "name": "appID",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/AppID"
-            }
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -40,16 +40,6 @@
       },
       "get": {
         "operationId": "appErrors",
-        "parameters": [
-          {
-            "name": "appID",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/AppID"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "200",
