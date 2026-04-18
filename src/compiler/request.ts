@@ -692,7 +692,7 @@ export function compileParameterLayers(
     | undefined
 } {
   const seen = new Set<string>()
-  const pathItemParameters = compileParametersForLayer(
+  const inheritedParameters = compileParametersForLayer(
     state,
     inheritedReq,
     mergedReq,
@@ -708,7 +708,12 @@ export function compileParameterLayers(
   )
 
   return {
-    pathItemParameters,
-    operationParameters,
+    pathItemParameters: undefined,
+    operationParameters:
+      inheritedParameters === undefined
+        ? operationParameters
+        : operationParameters === undefined
+          ? inheritedParameters
+          : [...inheritedParameters, ...operationParameters],
   }
 }

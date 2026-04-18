@@ -1098,7 +1098,7 @@ function placeOperation(
     )
   }
 
-  const { operation, pathItemParameters } = compileDirectOp(
+  const { operation } = compileDirectOp(
     schemaState,
     op,
     ctx,
@@ -1111,19 +1111,8 @@ function placeOperation(
     },
   )
 
-  if (
-    pathItemParameters !== undefined &&
-    existing?.parameters !== undefined &&
-    !deepEqual(existing.parameters, pathItemParameters)
-  ) {
-    throw new Error(`Conflicting inherited parameters for path "${oasPath}".`)
-  }
-
   const pathItem: oas31.PathItemObject = {
     ...(typeof existing === "object" && existing !== null ? existing : {}),
-    ...(pathItemParameters !== undefined
-      ? { parameters: pathItemParameters }
-      : {}),
     [oasMethod]: operation,
   }
 
