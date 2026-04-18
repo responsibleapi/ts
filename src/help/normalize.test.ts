@@ -309,6 +309,62 @@ describe("normalize", () => {
     })
   })
 
+  test("dedupes path-item inline parameters overridden by operation refs", () => {
+    const doc: oas31.OpenAPIObject = {
+      openapi: "3.1.0",
+      info: { title: "Example", version: "1.0.0" },
+      paths: {
+        "/items/{id}": {
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+            },
+          ],
+          get: {
+            parameters: [{ $ref: "#/components/parameters/id" }],
+            responses: { 200: { description: "ok" } },
+          },
+        },
+      },
+      components: {
+        parameters: {
+          id: {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        },
+      },
+    }
+
+    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+      openapi: "3.1.0",
+      info: { title: "Example", version: "1.0.0" },
+      paths: {
+        "/items/{id}": {
+          get: {
+            parameters: [{ $ref: "#/components/parameters/id" }],
+            responses: { 200: { description: "ok" } },
+          },
+        },
+      },
+      components: {
+        parameters: {
+          id: {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        },
+      },
+    })
+  })
+
   test("operation parameters override same name and location from path item", () => {
     const doc: oas31.OpenAPIObject = {
       openapi: "3.1.0",
@@ -404,7 +460,7 @@ describe("normalize", () => {
     })
   })
 
-  test("fixes the known YouTube description typo", () => {
+  test("preserves description strings verbatim", () => {
     const doc: oas31.OpenAPIObject = {
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
@@ -421,12 +477,12 @@ describe("normalize", () => {
       paths: {},
       "x-desc": {
         description:
-          "ID of the Google+ Page for the channel that the request is on behalf of.",
+          "ID of the Google+ Page for the channel that the request is be on behalf of",
       },
     })
   })
 
-  test("normalizes schema shapes used in fixture comparisons", () => {
+  test("normalizes syntax-only schema shapes without semantic loss", () => {
     const doc: oas31.OpenAPIObject = {
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
@@ -493,6 +549,7 @@ describe("normalize", () => {
       paths: {},
       "x-primitive": {
         type: "integer",
+        description: "strip me",
       },
       "x-pattern": {
         type: "string",
@@ -510,6 +567,7 @@ describe("normalize", () => {
             schema: { type: "string" },
           },
         },
+        required: true,
       },
       "x-optional-param": {
         in: "query",
@@ -526,11 +584,6 @@ describe("normalize", () => {
         },
       },
       "x-required-only": {
-        type: "object",
-        properties: {
-          a: {},
-          b: {},
-        },
         required: ["a", "b"],
       },
       "x-empty-required": {
@@ -546,42 +599,40 @@ describe("normalize", () => {
     })
   })
 
-  test("normalizes required-only allOf shards to explicit objects", () => {
-    const category = object({ slug: string() })
-    const compilerShard = object({ title: unknown() })
-
-    const docCompiler: oas31.OpenAPIObject = {
+  test("sorts required-only allOf shards without inventing object structure", () => {
+    const doc: oas31.OpenAPIObject = {
       openapi: "3.1.0",
       info: { title: "normalize shard", version: "1" },
       paths: {},
       components: {
         schemas: {
-          category: category as oas31.SchemaObject,
-          UnderTest: {
-            allOf: [{ $ref: "#/components/schemas/category" }, compilerShard],
-          } as oas31.SchemaObject,
-        },
-      },
-    }
-
-    const docFixture: oas31.OpenAPIObject = {
-      openapi: "3.1.0",
-      info: { title: "normalize shard", version: "1" },
-      paths: {},
-      components: {
-        schemas: {
-          category: category as oas31.SchemaObject,
           UnderTest: {
             allOf: [
               { $ref: "#/components/schemas/category" },
-              { required: ["title"] },
+              { required: ["title", "slug"] },
             ],
           } as oas31.SchemaObject,
+          category: object({ slug: string(), title: unknown() }) as oas31.SchemaObject,
         },
       },
     }
 
-    expect(normalize(docCompiler)).toEqual(normalize(docFixture))
+    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+      openapi: "3.1.0",
+      info: { title: "normalize shard", version: "1" },
+      paths: {},
+      components: {
+        schemas: {
+          UnderTest: {
+            allOf: [
+              { $ref: "#/components/schemas/category" },
+              { required: ["slug", "title"] },
+            ],
+          } as oas31.SchemaObject,
+          category: object({ slug: string(), title: unknown() }) as oas31.SchemaObject,
+        },
+      },
+    })
   })
 
   test("sorts security requirement arrays and canonicalizes scopes", () => {

@@ -71,17 +71,6 @@ function normalizeSecurityRequirements(value: unknown[]): unknown[] {
     )
 }
 
-function normalizeDescriptionString(s: string): string {
-  if (
-    s ===
-    "ID of the Google+ Page for the channel that the request is be on behalf of"
-  ) {
-    return "ID of the Google+ Page for the channel that the request is on behalf of."
-  }
-
-  return s
-}
-
 function normalizePatternString(s: string): string {
   return s.replaceAll("\\/", "/")
 }
@@ -97,13 +86,31 @@ const OPERATION_KEYS = [
   "trace",
 ] as const
 
-function parameterIdentity(value: unknown): string | undefined {
+function parameterIdentity(
+  value: unknown,
+  components?: oas31.ComponentsObject,
+): string | undefined {
   if (!isObject(value)) {
     return undefined
   }
 
   if (typeof value["$ref"] === "string") {
-    return `$ref:${value["$ref"]}`
+    const ref = value["$ref"]
+    const match = /^#\/components\/parameters\/(.+)$/.exec(ref)
+
+    if (match !== null) {
+      const parameter = components?.parameters?.[match[1]]
+
+      if (
+        isObject(parameter) &&
+        typeof parameter["name"] === "string" &&
+        typeof parameter["in"] === "string"
+      ) {
+        return `${parameter["in"]}:${parameter["name"]}`
+      }
+    }
+
+    return `$ref:${ref}`
   }
 
   if (typeof value["name"] === "string" && typeof value["in"] === "string") {
@@ -116,16 +123,17 @@ function parameterIdentity(value: unknown): string | undefined {
 function mergePathItemParameters(
   pathItemParameters: unknown[],
   operationParameters: unknown[],
+  components?: oas31.ComponentsObject,
 ): unknown[] {
   const operationParameterIds = new Set(
     operationParameters
-      .map(parameter => parameterIdentity(parameter))
+      .map(parameter => parameterIdentity(parameter, components))
       .filter((parameter): parameter is string => parameter !== undefined),
   )
 
   return [
     ...pathItemParameters.filter(parameter => {
-      const id = parameterIdentity(parameter)
+      const id = parameterIdentity(parameter, components)
 
       return id === undefined || !operationParameterIds.has(id)
     }),
@@ -179,7 +187,11 @@ function normalizePathItemParameters<T extends oas31.OpenAPIObject>(doc: T): T {
       nextPathItem[key] = {
         ...operation,
         parameters: Array.isArray(operation["parameters"])
-          ? mergePathItemParameters(pathItemParameters, operation["parameters"])
+          ? mergePathItemParameters(
+              pathItemParameters,
+              operation["parameters"],
+              doc.components,
+            )
           : [...pathItemParameters],
       }
     }
@@ -203,15 +215,6 @@ function normVal(value: unknown): unknown {
       let o = value
 
       if (
-        (o["type"] === "integer" || o["type"] === "number") &&
-        "description" in o
-      ) {
-        const { description: _omitPrimitiveDescription, ...rest } = o
-
-        o = rest as Record<string, unknown>
-      }
-
-      if (
         o["type"] === "object" &&
         isObject(o["properties"]) &&
         isEmpty(o["properties"])
@@ -229,12 +232,6 @@ function normVal(value: unknown): unknown {
           additionalProperties: _omitEmptyAdditionalProperties,
           ...rest
         } = o
-
-        o = rest as Record<string, unknown>
-      }
-
-      if (isObject(o["content"]) && o["required"] === true) {
-        const { required: _omitRequestBodyRequired, ...rest } = o
 
         o = rest as Record<string, unknown>
       }
@@ -265,41 +262,6 @@ function normVal(value: unknown): unknown {
         const { required: _omitOptionalRequired, ...rest } = o
 
         return normObj(rest as object)
-      }
-
-      if (
-        !("type" in o) &&
-        !("properties" in o) &&
-        !("$ref" in o) &&
-        !("allOf" in o) &&
-        !("oneOf" in o) &&
-        !("anyOf" in o)
-      ) {
-        const req = o["required"]
-
-        if (
-          Array.isArray(req) &&
-          req.length > 0 &&
-          req.every((x): x is string => typeof x === "string")
-        ) {
-          const sortedRequired = [...req].sort((left, right) =>
-            left.localeCompare(right),
-          )
-          const properties: Record<string, unknown> = {}
-
-          for (const k of sortedRequired) {
-            properties[k] = {}
-          }
-
-          const { required: _omitRequired, ...rest } = o
-
-          o = {
-            ...rest,
-            type: "object",
-            properties,
-            required: sortedRequired,
-          }
-        }
       }
 
       return normObj(o)
@@ -350,11 +312,6 @@ const normObj = <T extends object>(obj: T): T => {
     if (k === "security" && Array.isArray(raw)) {
       // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       normalizedObject[k as keyof T] = normalizeSecurityRequirements(
-        raw,
-      ) as T[keyof T]
-    } else if (k === "description" && typeof raw === "string") {
-      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-      normalizedObject[k as keyof T] = normalizeDescriptionString(
         raw,
       ) as T[keyof T]
     } else if (k === "pattern" && typeof raw === "string") {
