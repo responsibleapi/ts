@@ -6,6 +6,7 @@ import type {
   Op,
   OpBase,
   OpResponses,
+  PathParams,
   ReqAugmentation,
   RespAugmentation,
 } from "./operation.ts"
@@ -56,6 +57,7 @@ type ScopeRoutes<TTags extends DeclaredTags = DeclaredTags> =
 type ScopeInput<TTags extends DeclaredTags = DeclaredTags> = {
   readonly forAll?: ScopeOpts<TTags>
   readonly params?: readonly ReusableParam[]
+  readonly pathParams?: PathParams
 } & ScopeRoutes<TTags>
 
 export interface ScopeOpts<TTags extends DeclaredTags = DeclaredTags> {
