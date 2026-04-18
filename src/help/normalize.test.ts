@@ -294,6 +294,10 @@ describe("normalize", () => {
         },
         required: [],
       },
+      "x-null-examples": {
+        type: ["string", "null"],
+        examples: [null],
+      },
     }
 
     expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
@@ -338,6 +342,10 @@ describe("normalize", () => {
         properties: {
           maybe: { type: "string" },
         },
+      },
+      "x-null-examples": {
+        type: ["string", "null"],
+        examples: [null],
       },
     })
   })

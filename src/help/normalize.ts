@@ -252,6 +252,10 @@ function normVal(value: unknown): unknown {
     return [...arr].sort((left, right) => Number(left) - Number(right))
   }
 
+  if (arr.every((item): item is null => item === null)) {
+    return arr
+  }
+
   if (arr.every(Array.isArray)) {
     return arr
   }

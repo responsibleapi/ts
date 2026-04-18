@@ -106,6 +106,18 @@ const emitDict = (
   return out
 }
 
+const getStructuralType = (schema: RawSchema): string | undefined => {
+  if (!("type" in schema)) {
+    return undefined
+  }
+
+  if (typeof schema.type === "string") {
+    return schema.type
+  }
+
+  return schema.type.find(item => item !== "null")
+}
+
 const emitRawSchemaValue = (
   state: ComponentRegistryState,
   schema: RawSchema,
@@ -137,13 +149,15 @@ const emitRawSchemaValue = (
     return out
   }
 
-  if (!("type" in schema) || typeof schema.type !== "string") {
+  const structuralType = getStructuralType(schema)
+
+  if (structuralType === undefined) {
     const out: oas31.SchemaObject = schemaBaseFields(schema)
 
     return out
   }
 
-  switch (schema.type) {
+  switch (structuralType) {
     case "object":
       if ("additionalProperties" in schema) {
         return emitDict(state, schema)

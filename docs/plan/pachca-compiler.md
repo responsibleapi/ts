@@ -3,9 +3,10 @@
 ## Goal
 
 - fix `bun check`
-- Do `normalize()` work first.
-- Do compiler work second.
-- Do not edit golden files in `src/examples/*.json` or `src/examples/*.yaml`.
+- compiler output must match Pachca goldens
+- do not edit `src/examples/`
+- do not edit golden files in `src/examples/*.json` or `src/examples/*.yaml`
+- do not add normalize-only workarounds for compiler drift
 
 ## Files Studied
 
@@ -14,80 +15,112 @@
 - `src/compiler/index.ts`
 - `src/compiler/emit-schema.ts`
 - `src/compiler/request.ts`
+- `src/dsl/operation.ts`
+- `src/examples/pachca.ts`
+- `src/examples/pachca.test.ts`
 
-## Findings
+## Updated Findings
 
 - `pachca.test.ts` compares `normalize(validateDoc(theAPI))` against
   `normalize(theJSON)`.
-- Because both sides pass through `normalize()`, `normalize()` must accept
-  Pachca golden shapes before compiler parity work can finish.
-- `normalize()` currently throws on arrays like `[null]`.
-- Pachca goldens already contain `[null]` in schema `examples`.
-- Root `responsibleAPI({ security })` already emits top-level OpenAPI
-  `security`.
-- Root `security` already registers `components.securitySchemes`.
-- `security` is not current Pachca blocker.
-- Compiler still has separate defect in schema emission for nullable typed
-  schemas.
+- Normalize blocker and nullable typed-schema recursion blocker were enough to
+  get past OpenAPI validation and expose real parity drift.
+- Remaining problem is not fixture normalization anymore. Remaining problem is
+  compiler output shape.
+- Compiler currently drops operation-level `x-*` extensions even though
+  `OpBase` accepts them.
+- Pachca source uses named reusable params and named reusable response headers.
+- Current compiler emits those as `components.parameters` /
+  `components.headers` plus `$ref` use-sites.
+- Pachca goldens inline those parameter and header objects instead of using
+  `$ref` under `components.parameters` or `components.headers`.
+- Current compiler emits `nullable(allOf([X], siblings))` as `anyOf` with
+  explicit `{ type: "null" }`.
+- Pachca goldens instead keep nullable typed top-level shapes such as
+  `type: ["object", "null"]` while still preserving `allOf`, `description`,
+  and other siblings on same schema object.
+- Pachca goldens contain `examples: [null]` on several nullable fields whose
+  DSL source does not currently declare `examples`.
+- Example parity gap is therefore broader than one nested-schema bug.
 
-## Actual Normalize Bug
+## Concrete Drift Seen After Validation Passed
 
-- `normVal()` supports arrays of strings, numbers, booleans, arrays, security
-  requirement objects, and plain objects.
-- Homogeneous null arrays do not match any supported branch.
-- Result: `normalize()` throws `Invalid value for [null]`.
-- Pachca repro:
-  `components.schemas.AccessTokenInfo.properties.revoked_at.examples` in golden
-  JSON contains `[null]`.
-
-## Actual Compiler Bug
-
-- `nullable(array(...))`, `nullable(object(...))`, and nullable dict-like
-  schemas keep tuple `type` values such as `["array", "null"]`.
-- `emitRawSchemaValue()` only recurses when `schema.type` is plain string.
-- Result: nested named thunks can leak into final document instead of being
-  lowered to `$ref`.
-- Pachca repro: `components.schemas.Message.properties.buttons.items.items`
-  becomes function `Button`, which makes OpenAPI validation fail.
+- `x-requirements` and `x-paginated` missing from compiled operations.
+- `components.parameters` emitted by compiler, but Pachca golden keeps inline
+  operation/path parameters.
+- `components.headers.LocationHeader` emitted by compiler, but Pachca golden
+  keeps inline response header object.
+- Nullable composed schemas like `forwarding`, `thread`, and nullable
+  `dataOf(nullable(allOf([UserStatus])))` do not match golden shape.
+- Several nullable fields like `revoked_at`, `expires_in`, `payload`,
+  `original_thread_id`, `display_name`, and `deleted_at` miss golden
+  `examples: [null]`.
 
 ## Why This Matters
 
-- Current Pachca path has two blockers, not one.
-- `normalize()` failure masks fixture parity work even after compiler fix.
-- Pachca output must be pure OpenAPI data, no function values.
-- Both fixes belong in code, not in example source and not in goldens.
-- Same defect can affect any nullable typed schema with nested named refs, not
-  just Pachca.
+- Pachca now validates as OpenAPI, so next failures are real semantic/output
+  mismatches.
+- Example fixtures are contract tests for compiler output.
+- Fixing this in normalize would hide wrong compiler behavior instead of fixing
+  it.
+- Parameter/header reuse behavior and nullable composition behavior are now
+  primary blockers, not security.
 
 ## Scope Boundaries
 
-- `src/help/normalize.ts` and `src/help/normalize.test.ts` first.
-- `src/compiler/*` second.
+- Focus on `src/compiler/*` first.
+- Keep existing normalize work only as already-needed comparison support.
 - No edits in `src/examples/`.
 - No edits in golden `src/examples/*.json` or `src/examples/*.yaml`.
 - No DSL signature changes.
 
-## Suggested Implementation
+## Best Path Forward
 
-1. Add regression in `src/help/normalize.test.ts` for schema `examples: [null]`
-   and assert `normalize()` preserves it.
-2. Update `normVal()` to accept homogeneous null arrays without reordering them.
-3. Run `bun test src/help/normalize.test.ts`.
-4. Add regression in `src/compiler/emit-schema.test.ts` for
-   `nullable(array(array(Button), { examples }))`.
-5. Update `emitRawSchemaValue()` to derive effective non-null structural type
-   when `schema.type` is tuple containing `"null"`.
-6. Preserve existing emitted `type` array in output, but recurse into nested
-   `items`, `properties`, and `additionalProperties`.
-7. Re-run Pachca validation to confirm final document contains no function
-   values and fixture normalization no longer throws.
+1. Add focused Pachca regression tests under `src/compiler/` for current drift
+   instead of relying only on full-example diff.
+   Repros:
+   `x-*` operation extensions, named reusable params staying inline, named
+   reusable response headers staying inline, nullable `allOf` preserving typed
+   nullability, nullable fields synthesizing `examples: [null]` when required by
+   current example contract.
+2. Preserve operation-level vendor extensions in `compileDirectOp()`.
+   Best implementation:
+   copy every `x-*` own property from `op` into emitted
+   `oas31.OperationObject`.
+3. Revisit reusable param/header emission strategy.
+   Best implementation for Pachca contract:
+   keep named schemas and security schemes reusable, but inline parameter/header
+   objects at use-sites instead of materializing `components.parameters` /
+   `components.headers`.
+   This likely means changing `compileParamComponent()` and
+   `compileHeaderComponent()` behavior, then updating unit tests that currently
+   encode `$ref` behavior.
+4. Rework nullable composed-schema emission.
+   Best implementation:
+   when schema carries `type: [T, "null"]`, preserve that top-level `type`
+   array and also emit structural siblings like `allOf`, `oneOf`, `anyOf`,
+   `items`, `properties`, and `additionalProperties` on same schema object
+   instead of wrapping in outer `anyOf`.
+5. Derive explicit compiler rule for golden `examples: [null]`.
+   Best implementation:
+   inspect nullable-field corpus in Pachca and codify minimal rule in compiler,
+   not in examples and not in normalize.
+   If rule turns out inconsistent, stop and ask human before widening behavior.
+6. After targeted regressions pass, rerun:
+   `bun test src/examples/pachca.test.ts`
+   then `bun check`
 
 ## Validation
 
-`bun check`
+- `bun test src/compiler/emit-schema.test.ts`
+- add new targeted compiler tests for Pachca parity
+- `bun test src/examples/pachca.test.ts`
+- `bun check`
 
 ## Explicit Non-Goals
 
 - No edits to Pachca golden JSON or YAML.
+- No edits to Pachca TypeScript example source.
+- No normalize-only masking of compiler mismatches.
 - No new raw-schema escape hatch.
 - No DSL API changes.
