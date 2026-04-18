@@ -12,23 +12,28 @@ describe("emitSchemaRefOrValue", () => {
         "url?": string({ format: "uri" }),
       })
 
-    const dsl = array(array(Button), {
-      description:
-        "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.",
-      examples: [
+    const examples = [
+      [
         [
-          [
-            {
-              text: "Подробнее",
-              url: "https://example.com/details",
-            },
-          ],
+          {
+            text: "Подробнее",
+            url: "https://example.com/details",
+          },
         ],
       ],
-    })
-    const state = createComponentRegistryState()
+    ] as const
 
-    expect(validateSchema(emitSchemaRefOrValue(state, dsl))).toEqual({
+    const description =
+      "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив."
+
+    const dsl = array(array(Button), {
+      description,
+      examples,
+    })
+
+    expect(
+      validateSchema(emitSchemaRefOrValue(createComponentRegistryState(), dsl)),
+    ).toEqual({
       type: "array",
       items: {
         type: "array",
@@ -36,18 +41,8 @@ describe("emitSchemaRefOrValue", () => {
           $ref: "#/components/schemas/Button",
         },
       },
-      description:
-        "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.",
-      examples: [
-        [
-          [
-            {
-              text: "Подробнее",
-              url: "https://example.com/details",
-            },
-          ],
-        ],
-      ],
+      description,
+      examples,
     })
   })
 })

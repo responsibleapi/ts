@@ -17,6 +17,11 @@ export interface ComponentRegistryState {
     headers: Set<string>
     securitySchemes: Set<string>
   }
+
+  /**
+   * Generates unique component names for unnamed security schemes so compiler
+   * can materialize them in `components.securitySchemes` during single pass.
+   */
   anonymousSecuritySeq: number
 }
 
