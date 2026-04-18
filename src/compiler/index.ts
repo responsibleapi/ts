@@ -18,8 +18,8 @@ import type {
 import type { HeaderRaw, ReusableHeader } from "../dsl/response-headers.ts"
 import type { RawSchema, Schema } from "../dsl/schema.ts"
 import type { HttpPath, Mime, ScopeOpts, ScopeRes } from "../dsl/scope.ts"
-import { equal } from "../help/equal.ts"
 import { isScope } from "../dsl/scope.ts"
+import { deepEqual } from "../help/deep-equal.ts"
 import {
   createComponentRegistryState,
   type ComponentRegistryState,
@@ -525,7 +525,7 @@ function compileHeaderComponent(
   const existing = state.components.headers[resolvedName]
 
   if (existing !== undefined) {
-    if (!equal(existing, obj)) {
+    if (!deepEqual(existing, obj)) {
       throw new Error(
         `components.headers: name "${resolvedName}" is already used by a different header`,
       )
@@ -790,7 +790,7 @@ function recordResponseComponent(
   const existing = state.components.responses[name]
 
   if (existing !== undefined) {
-    if (!equal(existing, obj)) {
+    if (!deepEqual(existing, obj)) {
       throw new Error(
         `components.responses: name "${name}" is already used by a different response`,
       )
@@ -1066,7 +1066,7 @@ function placeOperation(
   if (
     pathItemParameters !== undefined &&
     existing?.parameters !== undefined &&
-    !equal(existing.parameters, pathItemParameters)
+    !deepEqual(existing.parameters, pathItemParameters)
   ) {
     throw new Error(`Conflicting inherited parameters for path "${oasPath}".`)
   }
@@ -1214,9 +1214,7 @@ export function compileResponsibleAPI(
   const responseKeys = Object.keys(schemaState.components.responses)
   const secKeys = Object.keys(schemaState.components.securitySchemes)
   const components: oas31.ComponentsObject | undefined =
-    schemaKeys.length > 0 ||
-    responseKeys.length > 0 ||
-    secKeys.length > 0
+    schemaKeys.length > 0 || responseKeys.length > 0 || secKeys.length > 0
       ? {
           ...(secKeys.length > 0
             ? { securitySchemes: schemaState.components.securitySchemes }

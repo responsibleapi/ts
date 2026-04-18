@@ -1,4 +1,4 @@
-import { equal } from "../help/equal.ts"
+import { deepEqual } from "../help/deep-equal.ts"
 import { isOptional, type NameWithOptionality } from "./dsl.ts"
 import type { Nameable } from "./nameable.ts"
 import type { Mime } from "./scope.ts"
@@ -175,7 +175,7 @@ export const dict = (k: DictKeySchema, v: Schema, opts?: DictOpts): Dict => {
     type: "object",
     additionalProperties: v,
   }
-  if (!equal(k, DEFAULT_DICT_KEY_SCHEMA)) {
+  if (!deepEqual(k, DEFAULT_DICT_KEY_SCHEMA)) {
     Object.assign(ret, { propertyNames: k })
   }
   return ret

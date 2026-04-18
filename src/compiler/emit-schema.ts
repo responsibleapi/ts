@@ -1,7 +1,7 @@
 import type { oas31 } from "openapi3-ts"
 import { decodeNameable } from "../dsl/nameable.ts"
 import type { Obj, RawSchema, Schema } from "../dsl/schema.ts"
-import { equal } from "../help/equal.ts"
+import { deepEqual } from "../help/deep-equal.ts"
 import type { ComponentRegistryState } from "./components.ts"
 
 type Dict = Extract<RawSchema, { type: "object"; additionalProperties: Schema }>
@@ -279,7 +279,7 @@ export function emitSchemaRefOrValue(
         emitRawSchemaValue(state, value),
       )
 
-      if (!equal(existing, candidate)) {
+      if (!deepEqual(existing, candidate)) {
         throw new Error(
           `components.schemas: name "${name}" is already used by a different schema definition`,
         )
