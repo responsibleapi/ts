@@ -5,28 +5,50 @@ import { object, string, unknown } from "../dsl/schema.ts"
 import { normalize } from "./normalize.ts"
 
 describe("normalize", () => {
-  test("sorts supported arrays without mutating the original document", () => {
+  test("sorts validation-relevant arrays without mutating the original document", () => {
     const doc: oas31.OpenAPIObject = {
       openapi: "3.1.0",
       info: {
         title: "Example",
         version: "1.0.0",
       },
-      paths: {},
-      "x-strings": ["beta", "alpha", "gamma"],
-      "x-numbers": [4, 1, 3, 2],
-      "x-bools": [true, false, true, false],
-      "x-objects": [
-        { name: "beta", tags: ["zeta", "alpha"] },
-        { name: "alpha", tags: ["gamma", "beta"] },
-      ],
-      "x-arrays": [
-        ["beta", "alpha"],
-        ["delta", "charlie"],
-      ],
-      // "x-mixed": ["beta", 1, false],
-      "x-nested": {
-        "x-strings": ["delta", "alpha", "charlie"],
+      paths: {
+        "/items": {
+          get: {
+            parameters: [
+              {
+                name: "beta",
+                in: "query",
+                required: false,
+                schema: {
+                  enum: ["zeta", "alpha"],
+                  type: ["string", "null"],
+                },
+              },
+              {
+                name: "alpha",
+                in: "query",
+                required: false,
+                schema: {
+                  enum: ["gamma", "beta"],
+                  type: ["integer", "null"],
+                },
+              },
+            ],
+            responses: {
+              200: {
+                description: "ok",
+              },
+            },
+          },
+        },
+      },
+      components: {
+        schemas: {
+          Example: {
+            required: ["delta", "alpha", "charlie"],
+          },
+        },
       },
     }
 
@@ -34,44 +56,78 @@ describe("normalize", () => {
 
     expect(normalized).not.toBe(doc)
     expect(normalized.info).not.toBe(doc.info)
-    expect(normalized["x-strings"]).not.toBe(doc["x-strings"])
-    expect(normalized["x-objects"]).not.toBe(doc["x-objects"])
-    expect(normalized["x-arrays"]).not.toBe(doc["x-arrays"])
-    expect(normalized["x-nested"]).not.toBe(doc["x-nested"])
+    expect(normalized.paths).not.toBe(doc.paths)
+    expect(normalized.paths["/items"]).not.toBe(doc.paths["/items"])
+    expect(normalized.components).not.toBe(doc.components)
+    expect(normalized.components?.schemas).not.toBe(doc.components?.schemas)
 
     expect(normalized).toMatchObject({
-      "x-strings": ["alpha", "beta", "gamma"],
-      "x-numbers": [1, 2, 3, 4],
-      "x-bools": [false, false, true, true],
-      "x-objects": [
-        { name: "alpha", tags: ["beta", "gamma"] },
-        { name: "beta", tags: ["alpha", "zeta"] },
-      ],
-      "x-arrays": [
-        ["alpha", "beta"],
-        ["charlie", "delta"],
-      ],
-      // "x-mixed": ["beta", 1, false],
-      "x-nested": {
-        "x-strings": ["alpha", "charlie", "delta"],
+      paths: {
+        "/items": {
+          get: {
+            parameters: [
+              {
+                name: "alpha",
+                in: "query",
+                schema: {
+                  enum: ["beta", "gamma"],
+                  type: ["integer", "null"],
+                },
+              },
+              {
+                name: "beta",
+                in: "query",
+                schema: {
+                  enum: ["alpha", "zeta"],
+                  type: ["null", "string"],
+                },
+              },
+            ],
+          },
+        },
+      },
+      components: {
+        schemas: {
+          Example: {
+            required: ["alpha", "charlie", "delta"],
+          },
+        },
       },
     })
 
     expect(doc).toMatchObject({
-      "x-strings": ["beta", "alpha", "gamma"],
-      "x-numbers": [4, 1, 3, 2],
-      "x-bools": [true, false, true, false],
-      "x-objects": [
-        { name: "beta", tags: ["zeta", "alpha"] },
-        { name: "alpha", tags: ["gamma", "beta"] },
-      ],
-      "x-arrays": [
-        ["beta", "alpha"],
-        ["delta", "charlie"],
-      ],
-      // "x-mixed": ["beta", 1, false],
-      "x-nested": {
-        "x-strings": ["delta", "alpha", "charlie"],
+      paths: {
+        "/items": {
+          get: {
+            parameters: [
+              {
+                name: "beta",
+                in: "query",
+                required: false,
+                schema: {
+                  enum: ["zeta", "alpha"],
+                  type: ["string", "null"],
+                },
+              },
+              {
+                name: "alpha",
+                in: "query",
+                required: false,
+                schema: {
+                  enum: ["gamma", "beta"],
+                  type: ["integer", "null"],
+                },
+              },
+            ],
+          },
+        },
+      },
+      components: {
+        schemas: {
+          Example: {
+            required: ["delta", "alpha", "charlie"],
+          },
+        },
       },
     })
   })
@@ -482,119 +538,141 @@ describe("normalize", () => {
     })
   })
 
-  test("normalizes syntax-only schema shapes without semantic loss", () => {
+  test("normalizes validation-equivalent shapes when no unevaluatedProperties depends on them", () => {
     const doc: oas31.OpenAPIObject = {
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
-      paths: {},
-      "x-primitive": {
-        type: "integer",
-        description: "strip me",
+      paths: {
+        "/items": {
+          get: {
+            deprecated: false,
+            responses: {
+              200: {
+                description: "ok",
+              },
+            },
+          },
+        },
       },
-      "x-pattern": {
-        type: "string",
-        pattern: "^https?:\\/\\/\\S+$",
-      },
-      "x-empty-props": {
-        type: "object",
-        properties: {},
-      },
-      "x-empty-additional-props": {
-        type: "object",
-        additionalProperties: {},
-      },
-      "x-body": {
-        content: {
-          "application/json": {
+      components: {
+        schemas: {
+          Primitive: {
+            type: "integer",
+            description: "strip me",
+          },
+          Pattern: {
+            type: "string",
+            pattern: "^https?:\\/\\/\\S+$",
+          },
+          EmptyProps: {
+            type: "object",
+            properties: {},
+          },
+          EmptyAdditionalPropsWithoutUnevaluated: {
+            type: "object",
+            additionalProperties: {},
+          },
+          RequiredOnly: {
+            required: ["b", "a"],
+          },
+          EmptyRequired: {
+            type: "object",
+            properties: {
+              maybe: { type: "string" },
+            },
+            required: [],
+          },
+          NullExamples: {
+            type: ["string", "null"],
+            examples: [null],
+          },
+        },
+        requestBodies: {
+          Body: {
+            content: {
+              "application/json": {
+                schema: { type: "string" },
+              },
+            },
+            required: true,
+          },
+        },
+        parameters: {
+          OptionalQuery: {
+            in: "query",
+            name: "q",
+            required: false,
+            style: "form",
+            explode: true,
             schema: { type: "string" },
           },
         },
-        required: true,
-      },
-      "x-optional-param": {
-        in: "query",
-        name: "q",
-        required: false,
-        style: "form",
-        explode: true,
-        schema: { type: "string" },
-      },
-      "x-deprecated-op": {
-        deprecated: false,
-        responses: {
-          200: {
-            description: "ok",
-          },
-        },
-      },
-      "x-required-only": {
-        required: ["b", "a"],
-      },
-      "x-empty-required": {
-        type: "object",
-        properties: {
-          maybe: { type: "string" },
-        },
-        required: [],
-      },
-      "x-null-examples": {
-        type: ["string", "null"],
-        examples: [null],
       },
     }
 
     expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
-      paths: {},
-      "x-primitive": {
-        type: "integer",
-        description: "strip me",
+      paths: {
+        "/items": {
+          get: {
+            responses: {
+              200: {
+                description: "ok",
+              },
+            },
+          },
+        },
       },
-      "x-pattern": {
-        type: "string",
-        pattern: "^https?://\\S+$",
-      },
-      "x-empty-props": {
-        type: "object",
-      },
-      "x-empty-additional-props": {
-        type: "object",
-      },
-      "x-body": {
-        content: {
-          "application/json": {
+      components: {
+        schemas: {
+          Primitive: {
+            type: "integer",
+            description: "strip me",
+          },
+          Pattern: {
+            type: "string",
+            pattern: "^https?://\\S+$",
+          },
+          EmptyProps: {
+            type: "object",
+          },
+          EmptyAdditionalPropsWithoutUnevaluated: {
+            type: "object",
+          },
+          RequiredOnly: {
+            required: ["a", "b"],
+          },
+          EmptyRequired: {
+            type: "object",
+            properties: {
+              maybe: { type: "string" },
+            },
+          },
+          NullExamples: {
+            type: ["null", "string"],
+            examples: [null],
+          },
+        },
+        requestBodies: {
+          Body: {
+            content: {
+              "application/json": {
+                schema: { type: "string" },
+              },
+            },
+            required: true,
+          },
+        },
+        parameters: {
+          OptionalQuery: {
+            in: "query",
+            name: "q",
+            style: "form",
+            explode: true,
             schema: { type: "string" },
           },
         },
-        required: true,
-      },
-      "x-optional-param": {
-        in: "query",
-        name: "q",
-        style: "form",
-        explode: true,
-        schema: { type: "string" },
-      },
-      "x-deprecated-op": {
-        responses: {
-          200: {
-            description: "ok",
-          },
-        },
-      },
-      "x-required-only": {
-        required: ["a", "b"],
-      },
-      "x-empty-required": {
-        type: "object",
-        properties: {
-          maybe: { type: "string" },
-        },
-      },
-      "x-null-examples": {
-        type: ["null", "string"],
-        examples: [null],
       },
     })
   })
