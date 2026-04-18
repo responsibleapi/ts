@@ -12,7 +12,7 @@ import type { ReusableParam, ParamRaw } from "../dsl/params.ts"
 import type { Schema } from "../dsl/schema.ts"
 import type { Security } from "../dsl/security.ts"
 import { getAttachedSecuritySchemes } from "../dsl/security.ts"
-import { deepEqual } from "../help/deep-equal.ts"
+import { equal } from "../help/equal.ts"
 import type { ComponentRegistryState } from "./components.ts"
 import { emitSchemaRefOrValue, type EmittedSchema } from "./emit-schema.ts"
 import { openApiPathTemplateNames } from "./path.ts"
@@ -174,7 +174,7 @@ function compileSecurityScheme(
     const existingScheme = state.components.securitySchemes[name]
 
     if (existingScheme !== undefined) {
-      if (!deepEqual(existingScheme, value)) {
+      if (!equal(existingScheme, value)) {
         throw new Error(
           `components.securitySchemes: name "${name}" is already used by a different security scheme`,
         )
@@ -337,7 +337,7 @@ export function compileParamComponent(
   const existingParam = state.components.parameters[resolvedName]
 
   if (existingParam !== undefined) {
-    if (!deepEqual(existingParam, obj)) {
+    if (!equal(existingParam, obj)) {
       throw new Error(
         `components.parameters: name "${resolvedName}" is already used by a different parameter`,
       )

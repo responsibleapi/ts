@@ -319,5 +319,5 @@ const normObj = <T extends object>(obj: T): T => {
  * operation so older operation-level fixtures compare equal to newer compiler
  * output.
  */
-export const normalize = <T extends oas31.OpenAPIObject>(doc: T): T =>
+export const canonical = <T extends oas31.OpenAPIObject>(doc: T): T =>
   normObj(normalizePathItemParameters(doc))

@@ -2,7 +2,7 @@ import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
 
 import { object, string, unknown } from "../dsl/schema.ts"
-import { normalize } from "./normalize.ts"
+import { canonical } from "./canonical.ts"
 
 describe("normalize", () => {
   test("sorts validation-relevant arrays without mutating the original document", () => {
@@ -52,7 +52,7 @@ describe("normalize", () => {
       },
     }
 
-    const normalized = normalize(doc)
+    const normalized = canonical(doc)
 
     expect(normalized).not.toBe(doc)
     expect(normalized.info).not.toBe(doc.info)
@@ -169,7 +169,7 @@ describe("normalize", () => {
       },
     }
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: {
         title: "Example",
@@ -209,7 +209,7 @@ describe("normalize", () => {
       info: { title: "Example", version: "1.0.0" },
     } as oas31.OpenAPIObject
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
     })
@@ -229,7 +229,7 @@ describe("normalize", () => {
       },
     } as oas31.OpenAPIObject
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {
@@ -263,7 +263,7 @@ describe("normalize", () => {
       },
     }
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {
@@ -311,7 +311,7 @@ describe("normalize", () => {
       },
     }
 
-    expect(normalize(withEmpty)).toEqual(normalize(withoutEmpty))
+    expect(canonical(withEmpty)).toEqual(canonical(withoutEmpty))
   })
 
   test("preserves component parameter refs and parameter components", () => {
@@ -340,7 +340,7 @@ describe("normalize", () => {
       },
     }
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {
@@ -397,7 +397,7 @@ describe("normalize", () => {
       },
     }
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {
@@ -454,7 +454,7 @@ describe("normalize", () => {
       },
     }
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {
@@ -498,7 +498,7 @@ describe("normalize", () => {
       },
     }
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {
@@ -527,7 +527,7 @@ describe("normalize", () => {
       },
     }
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {},
@@ -610,7 +610,7 @@ describe("normalize", () => {
       },
     }
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {
@@ -698,7 +698,7 @@ describe("normalize", () => {
       },
     }
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "normalize shard", version: "1" },
       paths: {},
@@ -727,7 +727,7 @@ describe("normalize", () => {
       security: [{ b: ["z", "a"], a: [] }, {}, { oauth2: ["read", "write"] }],
     }
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {},
@@ -747,7 +747,7 @@ describe("normalize", () => {
       ],
     }
 
-    expect(normalize(doc)).toEqual<oas31.OpenAPIObject>({
+    expect(canonical(doc)).toEqual<oas31.OpenAPIObject>({
       openapi: "3.1.0",
       info: { title: "Example", version: "1.0.0" },
       paths: {},
@@ -767,6 +767,6 @@ describe("normalize", () => {
       "x-bad": [1, { a: [] }],
     }
 
-    expect(() => normalize(doc)).toThrow(/Invalid value/)
+    expect(() => canonical(doc)).toThrow(/Invalid value/)
   })
 })
