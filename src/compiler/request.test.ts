@@ -9,7 +9,7 @@ import { array, int32, object, string } from "../dsl/schema.ts"
 import type { PathRoutes } from "../dsl/scope.ts"
 import { scope } from "../dsl/scope.ts"
 import { headerSecurity, httpSecurity } from "../dsl/security.ts"
-import { validate } from "../help/validate.ts"
+import { validateDoc } from "../help/validate-doc.ts"
 
 function operationRequestMime(
   op: oas31.OperationObject | undefined,
@@ -48,7 +48,7 @@ describe("compiler request", () => {
       },
     })
 
-    const doc = await validate(api)
+    const doc = await validateDoc(api)
 
     expect(doc).toEqual(api)
     const get = doc.paths!["/search"]?.get
@@ -100,7 +100,7 @@ describe("compiler request", () => {
       },
     })
 
-    const doc = await validate(api)
+    const doc = await validateDoc(api)
 
     expect(doc).toEqual(api)
     expect(doc.paths!["/search"]?.get?.parameters).toEqual([
@@ -166,7 +166,7 @@ describe("compiler request", () => {
       },
     })
 
-    const doc = await validate(api)
+    const doc = await validateDoc(api)
 
     expect(doc.components?.schemas?.["SharedToken"]).toEqual({
       type: "string",
@@ -278,7 +278,7 @@ describe("compiler request", () => {
       },
     })
 
-    const doc = await validate(api)
+    const doc = await validateDoc(api)
 
     expect(doc.paths?.["/items/{id}"]?.get?.parameters).toEqual([
       {
@@ -361,7 +361,7 @@ describe("compiler request", () => {
       }),
     )
 
-    const paramFirst = await validate(
+    const paramFirst = await validateDoc(
       responsibleAPI({
         partialDoc: {
           openapi: "3.1.0",
@@ -382,7 +382,7 @@ describe("compiler request", () => {
         },
       }),
     )
-    const bodyFirst = await validate(
+    const bodyFirst = await validateDoc(
       responsibleAPI({
         partialDoc: {
           openapi: "3.1.0",
@@ -437,7 +437,7 @@ describe("compiler request", () => {
       },
     })
 
-    const doc = await validate(api)
+    const doc = await validateDoc(api)
 
     expect(doc).toEqual(api)
     expect(doc.components?.parameters?.["pageToken"]).toEqual({
@@ -510,7 +510,7 @@ describe("compiler request", () => {
       },
     })
 
-    const doc = await validate(api)
+    const doc = await validateDoc(api)
     const pathItem = doc.paths?.["/v1/items"]
 
     expect(doc).toEqual(api)
@@ -541,7 +541,7 @@ describe("compiler request", () => {
       },
     })
 
-    const doc = await validate(api)
+    const doc = await validateDoc(api)
 
     expect(doc).toEqual(api)
     expect(
@@ -567,7 +567,7 @@ describe("compiler request", () => {
       },
     })
 
-    const doc = await validate(api)
+    const doc = await validateDoc(api)
 
     expect(doc).toEqual(api)
     expect(
@@ -765,7 +765,7 @@ describe("compiler request", () => {
       },
     })
 
-    const doc = await validate(api)
+    const doc = await validateDoc(api)
 
     expect(doc).toEqual(api)
     expect(doc.components?.securitySchemes?.["bearerAuth"]).toMatchObject({
@@ -802,7 +802,7 @@ describe("compiler request", () => {
       },
     })
 
-    const doc = await validate(api)
+    const doc = await validateDoc(api)
 
     expect(doc).toEqual(api)
     expect(doc.paths!["/x"]?.get?.security).toEqual([

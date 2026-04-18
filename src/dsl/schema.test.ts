@@ -1,8 +1,9 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
+
 import { normalize } from "../help/normalize.ts"
-import { validate } from "../help/validate.ts"
-import type { RawSchema } from "./schema.ts"
+import { validateDoc } from "../help/validate-doc.ts"
+import { validateSchema } from "../help/validate-schema.ts"
 import {
   allOf,
   anyOf,
@@ -13,44 +14,22 @@ import {
   email,
   float,
   httpURL,
-  integer,
   int32,
   int64,
+  integer,
   nullable,
   number,
   object,
   oneOf,
   string,
-  unixMillis,
-  unknown,
   uint32,
   uint64,
+  unixMillis,
+  unknown,
 } from "./schema.ts"
 
-const docWithSchema = (schema: RawSchema): Partial<oas31.OpenAPIObject> => ({
-  openapi: "3.1.0",
-  info: {
-    title: "Schema test",
-    version: "1",
-  },
-  paths: {},
-  components: {
-    schemas: {
-      UnderTest: schema as oas31.SchemaObject,
-    },
-  },
-})
-
-const expectValidSchema = async (schema: RawSchema): Promise<void> => {
-  const doc = docWithSchema(schema)
-  await expect(validate(doc)).resolves.toEqual(doc)
-}
-
-const compileTestSchema = (schema: RawSchema): oas31.SchemaObject =>
-  schema as oas31.SchemaObject
-
 describe("schema", () => {
-  test("array", async () => {
+  test("array", () => {
     const schema = array(string(), {
       minItems: 1,
       maxItems: 3,
@@ -67,10 +46,10 @@ describe("schema", () => {
       examples: [["a"]],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("dict", async () => {
+  test("dict", () => {
     const schema = dict(string({ minLength: 1 }), int32({ minimum: 0 }), {
       description: "Localized values by language code",
       deprecated: true,
@@ -93,10 +72,10 @@ describe("schema", () => {
       examples: [{ en: 1 }],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("dict omits default string propertyNames", async () => {
+  test("dict omits default string propertyNames", () => {
     const schema = dict(string(), int32({ minimum: 0 }))
 
     expect(schema).toEqual({
@@ -108,10 +87,10 @@ describe("schema", () => {
       },
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("object", async () => {
+  test("object", () => {
     const schema = object(
       {
         title: string(),
@@ -138,10 +117,10 @@ describe("schema", () => {
       required: ["title"],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("object with optional property names omits required", async () => {
+  test("object with optional property names omits required", () => {
     const schema = object({
       "title?": string(),
       "subtitle?": string(),
@@ -159,10 +138,10 @@ describe("schema", () => {
       },
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("int64", async () => {
+  test("int64", () => {
     const schema = int64({
       minimum: 1,
       maximum: 10,
@@ -177,10 +156,10 @@ describe("schema", () => {
       examples: [4],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("int32", async () => {
+  test("int32", () => {
     const schema = int32({
       minimum: 1,
       maximum: 10,
@@ -195,10 +174,10 @@ describe("schema", () => {
       examples: [4],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("integer", async () => {
+  test("integer", () => {
     const schema = integer({
       minimum: 1,
       maximum: 10,
@@ -212,10 +191,10 @@ describe("schema", () => {
       examples: [4],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("uint64", async () => {
+  test("uint64", () => {
     const schema = uint64({
       minimum: 1,
       maximum: 10,
@@ -230,10 +209,10 @@ describe("schema", () => {
       examples: [4],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("float", async () => {
+  test("float", () => {
     const schema = float({
       minimum: 1.25,
       maximum: 9.5,
@@ -248,10 +227,10 @@ describe("schema", () => {
       examples: [4.75],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("double", async () => {
+  test("double", () => {
     const schema = double({
       minimum: 1.25,
       maximum: 9.5,
@@ -266,10 +245,10 @@ describe("schema", () => {
       examples: [4.75],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("number", async () => {
+  test("number", () => {
     const schema = number({
       minimum: 1.25,
       maximum: 9.5,
@@ -283,10 +262,10 @@ describe("schema", () => {
       examples: [4.75],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("uint32", async () => {
+  test("uint32", () => {
     const schema = uint32({
       minimum: 1,
       maximum: 10,
@@ -301,10 +280,10 @@ describe("schema", () => {
       examples: [4],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("httpURL", async () => {
+  test("httpURL", () => {
     const schema = httpURL()
 
     expect(schema).toEqual({
@@ -322,10 +301,10 @@ describe("schema", () => {
     expect("htps://www.google.com").not.toMatch(re)
     expect("https://www. google.com/").not.toMatch(re)
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("unixMillis", async () => {
+  test("unixMillis", () => {
     const schema = unixMillis()
 
     expect(schema).toEqual({
@@ -334,10 +313,10 @@ describe("schema", () => {
       description: "UNIX epoch milliseconds",
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("string", async () => {
+  test("string", () => {
     const schema = string({
       format: "byte",
       minLength: 1,
@@ -357,10 +336,10 @@ describe("schema", () => {
       examples: ["alpha"],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("string stringifies RegExp pattern", async () => {
+  test("string stringifies RegExp pattern", () => {
     const schema = string({
       minLength: 1,
       pattern: /^[a-z]+$/i,
@@ -374,17 +353,10 @@ describe("schema", () => {
       examples: ["alpha"],
     })
 
-    expect(compileTestSchema(schema)).toEqual<oas31.SchemaObject>({
-      type: "string",
-      minLength: 1,
-      pattern: "^[a-z]+$",
-      examples: ["alpha"],
-    })
-
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("string with contentMediaType", async () => {
+  test("string with contentMediaType", () => {
     const schema = string({
       description: "OpenAPI/Swagger file. We accept JSON or YAML.",
       contentMediaType: "application/octet-stream",
@@ -396,10 +368,10 @@ describe("schema", () => {
       contentMediaType: "application/octet-stream",
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("string with vendor extensions", async () => {
+  test("string with vendor extensions", () => {
     const schema = string({
       description: "Тип события webhook для пользователей",
       enum: ["invite", "confirm", "update", "suspend", "activate", "delete"],
@@ -427,24 +399,10 @@ describe("schema", () => {
       },
     })
 
-    expect(compileTestSchema(schema)).toEqual<oas31.SchemaObject>({
-      type: "string",
-      description: "Тип события webhook для пользователей",
-      enum: ["invite", "confirm", "update", "suspend", "activate", "delete"],
-      "x-enum-descriptions": {
-        invite: "Приглашение",
-        confirm: "Подтверждение",
-        update: "Обновление",
-        suspend: "Приостановка",
-        activate: "Активация",
-        delete: "Удаление",
-      },
-    })
-
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("oneOf", async () => {
+  test("oneOf", () => {
     const schema = oneOf([string(), int32()])
 
     expect(schema).toEqual({
@@ -459,10 +417,10 @@ describe("schema", () => {
       ],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("anyOf", async () => {
+  test("anyOf", () => {
     const schema = anyOf([string(), int32()])
 
     expect(schema).toEqual({
@@ -477,10 +435,10 @@ describe("schema", () => {
       ],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("allOf", async () => {
+  test("allOf", () => {
     const schema = allOf([
       object({
         name: string(),
@@ -512,10 +470,10 @@ describe("schema", () => {
       ],
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("nullable", async () => {
+  test("nullable", () => {
     const schema = nullable(int32({ examples: [7] }))
 
     expect(schema).toEqual({
@@ -524,16 +482,10 @@ describe("schema", () => {
       examples: [7],
     })
 
-    expect(compileTestSchema(schema)).toEqual<oas31.SchemaObject>({
-      type: ["integer", "null"],
-      format: "int32",
-      examples: [7],
-    })
-
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("nullable oneOf", async () => {
+  test("nullable oneOf", () => {
     const schema = nullable(oneOf([string(), int32()]))
 
     expect(schema).toEqual({
@@ -555,39 +507,18 @@ describe("schema", () => {
       ],
     })
 
-    expect(compileTestSchema(schema)).toEqual<oas31.SchemaObject>({
-      anyOf: [
-        {
-          oneOf: [
-            {
-              type: "string",
-            },
-            {
-              type: "integer",
-              format: "int32",
-            },
-          ],
-        },
-        {
-          type: "null",
-        },
-      ],
-    })
-
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("nullable unknown", async () => {
+  test("nullable unknown", () => {
     const schema = nullable(unknown())
 
     expect(schema).toEqual({})
 
-    expect(compileTestSchema(schema)).toEqual<oas31.SchemaObject>({})
-
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("nullable anyOf", async () => {
+  test("nullable anyOf", () => {
     const schema = nullable(anyOf([string(), int32()]))
 
     expect(schema).toEqual({
@@ -609,29 +540,10 @@ describe("schema", () => {
       ],
     })
 
-    expect(compileTestSchema(schema)).toEqual<oas31.SchemaObject>({
-      anyOf: [
-        {
-          anyOf: [
-            {
-              type: "string",
-            },
-            {
-              type: "integer",
-              format: "int32",
-            },
-          ],
-        },
-        {
-          type: "null",
-        },
-      ],
-    })
-
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("boolean", async () => {
+  test("boolean", () => {
     const schema = boolean({
       description: "Whether the feature is enabled",
       deprecated: true,
@@ -645,18 +557,18 @@ describe("schema", () => {
       default: false,
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("unknown", async () => {
+  test("unknown", () => {
     const schema = unknown()
 
     expect(schema).toEqual({})
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
-  test("email", async () => {
+  test("email", () => {
     const schema = email()
 
     expect(schema).toEqual({
@@ -664,7 +576,7 @@ describe("schema", () => {
       format: "email",
     })
 
-    await expectValidSchema(schema)
+    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("readme createCategory body allOf second shard: required-only normalizes to explicit object", async () => {
@@ -702,8 +614,8 @@ describe("schema", () => {
       },
     }
 
-    const normCompiler = normalize(await validate(docCompiler))
-    const normFixture = normalize(await validate(docFixture))
+    const normCompiler = normalize(await validateDoc(docCompiler))
+    const normFixture = normalize(await validateDoc(docFixture))
 
     expect(normCompiler).toEqual(normFixture)
   })

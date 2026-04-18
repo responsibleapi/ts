@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest"
-import { validate } from "../help/validate"
+import { validateDoc } from "../help/validate-doc.ts"
 import theJSON from "./pachca.json"
 
 describe("pachca", () => {
   test("pachca.json is valid", async () => {
-    expect(await validate(theJSON)).toEqual(theJSON)
+    expect(await validateDoc(theJSON)).toEqual(theJSON)
   })
 })

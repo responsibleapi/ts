@@ -134,8 +134,6 @@
   - current DSL naturally emits per-operation security via `forAll.req.security`
   - `partialDoc.security` is copied through, but security schemes are only
     registered when the DSL security path is exercised
-- Object-level example richness
-  - the schema DSL is narrower than raw OpenAPI objects in a few places
 
 ## What This Means For `pachca.ts`
 

@@ -7,7 +7,7 @@ import { resp } from "../dsl/operation.ts"
 import { responseHeader } from "../dsl/response-headers.ts"
 import { int32, object, string, unknown } from "../dsl/schema.ts"
 import { scope } from "../dsl/scope.ts"
-import { validate } from "../help/validate.ts"
+import { validateDoc } from "../help/validate-doc.ts"
 
 describe("compiler response defaults and HEAD", () => {
   test("scope-level res.mime is a wildcard default mime", async () => {
@@ -33,7 +33,7 @@ describe("compiler response defaults and HEAD", () => {
       },
     })
 
-    expect(await validate(rapi)).toEqual(rapi)
+    expect(await validateDoc(rapi)).toEqual(rapi)
 
     const paths = rapi.paths ?? {}
 
@@ -80,7 +80,7 @@ describe("compiler response defaults and HEAD", () => {
       },
     })
 
-    expect(await validate(rapi)).toEqual(rapi)
+    expect(await validateDoc(rapi)).toEqual(rapi)
 
     const paths = rapi.paths ?? {}
 
@@ -122,7 +122,7 @@ describe("compiler response defaults and HEAD", () => {
       },
     })
 
-    expect(await validate(rapi)).toEqual(rapi)
+    expect(await validateDoc(rapi)).toEqual(rapi)
 
     const paths = rapi.paths ?? {}
 
@@ -162,7 +162,7 @@ describe("compiler response defaults and HEAD", () => {
       },
     })
 
-    expect(await validate(rapi)).toEqual(rapi)
+    expect(await validateDoc(rapi)).toEqual(rapi)
 
     const paths = rapi.paths ?? {}
 
@@ -193,7 +193,7 @@ describe("compiler response defaults and HEAD", () => {
       },
     })
 
-    expect(await validate(rapi)).toEqual(rapi)
+    expect(await validateDoc(rapi)).toEqual(rapi)
 
     const paths = rapi.paths ?? {}
 
@@ -226,7 +226,7 @@ describe("compiler response defaults and HEAD", () => {
       },
     })
 
-    expect(await validate(rapi)).toEqual(rapi)
+    expect(await validateDoc(rapi)).toEqual(rapi)
 
     const paths = rapi.paths ?? {}
 
@@ -252,7 +252,7 @@ describe("compiler response defaults and HEAD", () => {
       },
     })
 
-    expect(await validate(rapi)).toEqual(rapi)
+    expect(await validateDoc(rapi)).toEqual(rapi)
 
     expect(
       rapi.paths?.["/c"]?.get?.responses?.["200"]?.headers?.["set-cookie"],
@@ -344,7 +344,7 @@ describe("reusable response headers", () => {
       },
     })
 
-    expect(await validate(rapi)).toEqual(rapi)
+    expect(await validateDoc(rapi)).toEqual(rapi)
 
     expect(rapi.components?.headers?.["trace-id"]).toEqual({
       description: "Correlation id",
@@ -394,7 +394,7 @@ describe("reusable response headers", () => {
       },
     })
 
-    expect(await validate(rapi)).toEqual(rapi)
+    expect(await validateDoc(rapi)).toEqual(rapi)
 
     expect(rapi.paths?.["/p"]?.get?.responses?.["200"]?.headers).toEqual({
       Link: { $ref: "#/components/headers/link" },
@@ -429,7 +429,7 @@ describe("reusable response headers", () => {
       },
     })
 
-    expect(await validate(rapi)).toEqual(rapi)
+    expect(await validateDoc(rapi)).toEqual(rapi)
 
     expect(Object.keys(rapi.components?.headers ?? {})).toEqual(["trace-id"])
     expect(
@@ -478,7 +478,7 @@ describe("reusable response headers", () => {
       },
     })
 
-    expect(await validate(rapi)).toEqual(rapi)
+    expect(await validateDoc(rapi)).toEqual(rapi)
 
     expect(rapi.components?.schemas?.["SharedHeaderValue"]).toEqual({
       type: "string",

@@ -1,6 +1,6 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
-import { validate } from "../help/validate.ts"
+import { validateDoc } from "../help/validate-doc.ts"
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET } from "../dsl/methods.ts"
 import { int32, object, string } from "../dsl/schema.ts"
@@ -54,7 +54,7 @@ describe("compiler scope and path", () => {
       },
     })
 
-    expect(await validate(rapi)).toEqual(rapi)
+    expect(await validateDoc(rapi)).toEqual(rapi)
 
     expect(rapi).toEqual({
       openapi: "3.1.0",
