@@ -334,6 +334,62 @@ function scopePathLevelReqFromRoutes(
   return undefined
 }
 
+function scopeForEachPathFromRoutes(
+  routes: Record<string, unknown>,
+): ReqAugmentation | undefined {
+  const forEachPath = routes["forEachPath"]
+
+  return isRecord(forEachPath)
+    ? scopePathLevelReqFromRoutes(forEachPath)
+    : undefined
+}
+
+function scopeForEachOpFromScopeNode(
+  scopeNode: Record<string, unknown>,
+): ScopeOpts | undefined {
+  const forEachOp = scopeNode["forEachOp"]
+
+  if (isRecord(forEachOp)) {
+    return forEachOp as ScopeOpts
+  }
+
+  const forAll = scopeNode["forAll"]
+
+  if (isRecord(forAll)) {
+    return forAll as ScopeOpts
+  }
+
+  const routes = scopeNode["routes"]
+
+  if (!isRecord(routes)) {
+    return undefined
+  }
+
+  const routeForEachOp = routes["forEachOp"]
+
+  if (isRecord(routeForEachOp)) {
+    return routeForEachOp as ScopeOpts
+  }
+
+  const routeForAll = routes["forAll"]
+
+  return isRecord(routeForAll) ? (routeForAll as ScopeOpts) : undefined
+}
+
+function scopeForEachPathFromScopeNode(
+  scopeNode: Record<string, unknown>,
+): ReqAugmentation | undefined {
+  const forEachPath = scopeNode["forEachPath"]
+
+  if (isRecord(forEachPath)) {
+    return scopePathLevelReqFromRoutes(forEachPath)
+  }
+
+  const routes = scopeNode["routes"]
+
+  return isRecord(routes) ? scopeForEachPathFromRoutes(routes) : undefined
+}
+
 function normalizeReqAugmentation(
   raw: Op["req"] | GetOp["req"] | undefined,
 ): ReqAugmentation {
@@ -367,6 +423,7 @@ function mergedReqAndSecurityForOp(
 
 interface CompileScopeContext {
   mergedReq: ReqAugmentation | undefined
+  pathReq: ReqAugmentation | undefined
   securityLayers: Pick<ReqAugmentation, "security" | "security?">[]
   resWildcardLayers: RespAugmentation[]
   resDefaultsLayers: Partial<Record<MatchStatus, RespAugmentation>>[]
@@ -380,6 +437,7 @@ function compileScopeContextFromForAll(forAll: ScopeOpts): CompileScopeContext {
   return {
     mergedReq:
       forAll.req !== undefined ? stripSecurityFields(forAll.req) : undefined,
+    pathReq: undefined,
     securityLayers: securityLayerFromScopeReq(forAll.req),
     resWildcardLayers: Object.keys(wildcard).length > 0 ? [wildcard] : [],
     resDefaultsLayers: Object.keys(defaults).length > 0 ? [defaults] : [],
@@ -390,19 +448,21 @@ function compileScopeContextFromForAll(forAll: ScopeOpts): CompileScopeContext {
 
 function mergeCompileScope(
   parent: CompileScopeContext,
-  childForAll: ScopeOpts | undefined,
+  childForEachOp: ScopeOpts | undefined,
+  childForEachPath: ReqAugmentation | undefined,
 ): CompileScopeContext {
-  if (childForAll === undefined) {
+  if (childForEachOp === undefined && childForEachPath === undefined) {
     return parent
   }
 
-  const { defaults, add, wildcard } = parseScopeRes(childForAll.res)
+  const { defaults, add, wildcard } = parseScopeRes(childForEachOp?.res)
 
   return {
-    mergedReq: mergeReqAugmentations(parent.mergedReq, childForAll.req),
+    mergedReq: mergeReqAugmentations(parent.mergedReq, childForEachOp?.req),
+    pathReq: mergeReqAugmentations(parent.pathReq, childForEachPath),
     securityLayers: [
       ...parent.securityLayers,
-      ...securityLayerFromScopeReq(childForAll.req),
+      ...securityLayerFromScopeReq(childForEachOp?.req),
     ],
     resWildcardLayers: [
       ...parent.resWildcardLayers,
@@ -414,7 +474,9 @@ function mergeCompileScope(
     ],
     resAdd: { ...parent.resAdd, ...add },
     mergedTags:
-      childForAll.tags !== undefined ? childForAll.tags : parent.mergedTags,
+      childForEachOp?.tags !== undefined
+        ? childForEachOp.tags
+        : parent.mergedTags,
   }
 }
 
@@ -770,7 +832,7 @@ function concreteResponse(
 
   if (fromAdd === undefined) {
     throw new Error(
-      `Missing response for HTTP status ${code}: declare it on the operation or under forAll.res.add.`,
+      `Missing response for HTTP status ${code}: declare it on the operation or under forEachOp.res.add.`,
     )
   }
 
@@ -1020,7 +1082,11 @@ function compileDirectOp(
     | undefined
 } {
   const inheritedReq = ctx.mergedReq
-  const mergedInheritedReq = mergeReqAugmentations(ctx.mergedReq, pathLevelReq)
+  const mergedPathLevelReq = mergeReqAugmentations(ctx.pathReq, pathLevelReq)
+  const mergedInheritedReq = mergeReqAugmentations(
+    ctx.mergedReq,
+    mergedPathLevelReq,
+  )
   const { opReq, mergedReq, securityReqs } = mergedReqAndSecurityForOp(
     schemaState,
     {
@@ -1032,7 +1098,7 @@ function compileDirectOp(
   const { pathItemParameters, operationParameters } = compileParameterLayers(
     schemaState,
     inheritedReq,
-    pathLevelReq,
+    mergedPathLevelReq,
     opReq,
     mergedReq,
     oasPath,
@@ -1166,7 +1232,13 @@ function compileRoutes(
   pathLevelReq: ReqAugmentation | undefined,
 ): void {
   for (const routeKey of Object.keys(routes)) {
-    if (routeKey === "params" || routeKey === "pathParams") {
+    if (
+      routeKey === "params" ||
+      routeKey === "pathParams" ||
+      routeKey === "forEachPath" ||
+      routeKey === "forEachOp" ||
+      routeKey === "forAll"
+    ) {
       continue
     }
 
@@ -1208,7 +1280,11 @@ function compileRoutes(
     const fullDslPath = joinHttpPaths(pathPrefix, routeKey)
 
     if (isScope(node)) {
-      const nextCtx = mergeCompileScope(ctx, node.forAll)
+      const nextCtx = mergeCompileScope(
+        ctx,
+        scopeForEachOpFromScopeNode(node),
+        scopeForEachPathFromScopeNode(node),
+      )
       const nextPathLevelReq = scopePathLevelReqFromRoutes(
         node.routes as Record<string, unknown>,
       )
@@ -1241,6 +1317,9 @@ export function compileResponsibleAPI(
 
   const schemaState = createComponentRegistryState()
   const rootCtx = compileScopeContextFromForAll(api.forEachOp ?? {})
+  rootCtx.pathReq = scopePathLevelReqFromRoutes(
+    (api.forEachPath ?? {}) as Record<string, unknown>,
+  )
   const paths: oas31.PathsObject = {
     ...(api.partialDoc.paths ?? {}),
   }

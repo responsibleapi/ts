@@ -525,7 +525,7 @@ describe("request", () => {
     ])
   })
 
-  test("inherited forAll params stay on operations and local params append after them", async () => {
+  test("inherited forEachOp params stay on operations and local params append after them", async () => {
     const Version = named(
       "version",
       headerParam({
@@ -568,7 +568,7 @@ describe("request", () => {
       },
       routes: {
         "/v1": scope({
-          forAll: {
+          forEachOp: {
             req: { params: [Locale] },
           },
           "/items": scope({
@@ -602,7 +602,7 @@ describe("request", () => {
     ])
   })
 
-  test("inherits default mime for shorthand body from forAll", async () => {
+  test("inherits default mime for shorthand body from forEachOp", async () => {
     const api = responsibleAPI({
       partialDoc: {
         openapi: "3.1.0",
@@ -828,7 +828,7 @@ describe("request", () => {
       },
       routes: {
         "/v1": scope({
-          forAll: {
+          forEachOp: {
             req: { security: ApiKey },
           },
           "/r": GET({

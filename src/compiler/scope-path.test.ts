@@ -33,7 +33,7 @@ describe("compiler scope and path", () => {
       },
       routes: {
         "/v1": scope({
-          forAll: {
+          forEachOp: {
             tags: [tags.users],
             res: {
               defaults: {
@@ -194,5 +194,64 @@ describe("compiler scope and path", () => {
         schema: { type: "integer", format: "int32" },
       },
     ])
+  })
+
+  test("inherits forEachPath onto every nested path item", async () => {
+    const Version = named(
+      "version",
+      headerParam({
+        name: "X-Version",
+        schema: string(),
+      }),
+    )
+
+    const api = responsibleAPI({
+      partialDoc: {
+        openapi: "3.1.0",
+        info: { title: "Scoped Path Defaults API", version: "1" },
+      },
+      forEachOp: { req: { mime: "application/json" } },
+      forEachPath: {
+        params: [Version],
+      },
+      routes: {
+        "/users": scope({
+          "/:userId": scope({
+            forEachPath: {
+              pathParams: { userId: int32() },
+            },
+            GET: {
+              res: { 200: object({}) },
+            },
+            "/logs": GET({
+              res: { 200: object({}) },
+            }),
+          }),
+        }),
+      },
+    })
+
+    const doc = await validateDoc(api)
+
+    expect(doc.paths?.["/users/{userId}"]?.parameters).toEqual([
+      {
+        name: "userId",
+        in: "path",
+        required: true,
+        schema: { type: "integer", format: "int32" },
+      },
+      { $ref: "#/components/parameters/version" },
+    ])
+    expect(doc.paths?.["/users/{userId}"]?.get?.parameters).toBeUndefined()
+    expect(doc.paths?.["/users/{userId}/logs"]?.parameters).toEqual([
+      {
+        name: "userId",
+        in: "path",
+        required: true,
+        schema: { type: "integer", format: "int32" },
+      },
+      { $ref: "#/components/parameters/version" },
+    ])
+    expect(doc.paths?.["/users/{userId}/logs"]?.get?.parameters).toBeUndefined()
   })
 })
