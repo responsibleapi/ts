@@ -33,14 +33,50 @@ export interface GetOpReq {
   readonly params?: readonly ReusableParam[]
 }
 
-export interface OpReq extends GetOpReq {
-  readonly body?: Schema | Record<Mime, Schema>
-  readonly "body?"?: Schema | Record<Mime, Schema>
+type RequestBody = Schema | Record<Mime, Schema>
+
+interface OpReqWithBody {
+  /**
+   * **DSL**
+   *
+   * Required request body
+   *
+   * **Compiler**
+   *
+   * Emits `required: true`
+   *
+   * @dsl
+   */
+  readonly body?: RequestBody
+  readonly "body?"?: never
 }
 
-export interface ReqAugmentation extends OpReq {
+interface OpReqWithOptionalBody {
+  readonly body?: never
+
+  /**
+   * **DSL**
+   *
+   * Optional request body
+   *
+   * **Compiler**
+   *
+   * Does not emit anything
+   *
+   * @dsl
+   */
+  readonly "body?"?: RequestBody
+}
+
+type ExclusiveBody = OpReqWithBody | OpReqWithOptionalBody
+
+export type OpReq = GetOpReq & ExclusiveBody
+
+interface ReqMimeAugmentation {
   readonly mime?: Mime
 }
+
+export type ReqAugmentation = OpReq & ReqMimeAugmentation
 
 /** Shared response-shape fields for {@link OpResp} and {@link RespAugmentation}. */
 interface RespBase {

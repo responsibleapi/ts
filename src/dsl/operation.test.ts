@@ -5,7 +5,7 @@ import type {
   IsNever,
   OneExtendsTwo,
 } from "../type-assertions.ts"
-import type { GetOp, GetOpReq, Op } from "./operation.ts"
+import type { GetOp, GetOpReq, Op, OpReq, ReqAugmentation } from "./operation.ts"
 import type { PathParams } from "./params.ts"
 import { declareTags } from "./tags.ts"
 
@@ -77,6 +77,34 @@ describe("operation", () => {
       OneExtendsTwo<
         { filter: { type: "string" } },
         NonNullable<GetOpReq["query"]>
+      >
+    >
+  })
+
+  test('makes `body` and `"body?"` mutually exclusive', () => {
+    type _BodyAllowed = Assert<
+      OneExtendsTwo<{ body: { type: "string" } }, OpReq>
+    >
+    type _OptionalBodyAllowed = Assert<
+      OneExtendsTwo<{ "body?": { type: "string" } }, OpReq>
+    >
+    type _NeitherAllowed = Assert<OneExtendsTwo<{}, OpReq>>
+    type _ReqWithBothBodyKinds = {
+      body: { type: "string" }
+      "body?": { type: "string" }
+    }
+    type _ReqAugmentationWithBothBodyKinds = {
+      mime: "application/json"
+      body: { type: "string" }
+      "body?": { type: "string" }
+    }
+    type _BothRejected = Assert<
+      IsEqual<OneExtendsTwo<_ReqWithBothBodyKinds, OpReq>, false>
+    >
+    type _ReqAugmentationAlsoRejectsBoth = Assert<
+      IsEqual<
+        OneExtendsTwo<_ReqAugmentationWithBothBodyKinds, ReqAugmentation>,
+        false
       >
     >
   })

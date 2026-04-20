@@ -6353,7 +6353,7 @@ export default responsibleAPI({
                 "Extra parameter to allow automatically syncing the uploaded caption/transcript with the audio.",
             }),
           },
-          body: {
+          "body?": {
             "application/octet-stream": unknown(),
             "text/xml": Caption,
           },
