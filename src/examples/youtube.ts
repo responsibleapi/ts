@@ -6245,7 +6245,7 @@ export default responsibleAPI({
           "https://www.googleapis.com/auth/youtube",
           "https://www.googleapis.com/auth/youtube.force-ssl",
         ),
-        body: AbuseReport,
+        "body?": AbuseReport,
       },
       res: {
         200: resp({
@@ -6434,7 +6434,7 @@ export default responsibleAPI({
           "https://www.googleapis.com/auth/youtube.force-ssl",
           "https://www.googleapis.com/auth/youtube.upload",
         ),
-        body: {
+        "body?": {
           "application/octet-stream": unknown(),
           "image/jpeg": ChannelBannerResource,
           "image/png": ChannelBannerResource,
@@ -7031,7 +7031,7 @@ export default responsibleAPI({
           security: oauthScope(
             "https://www.googleapis.com/auth/youtubepartner",
           ),
-          body: Cuepoint,
+          "body?": Cuepoint,
         },
         res: {
           200: cuepointResponse(),
@@ -7844,7 +7844,7 @@ export default responsibleAPI({
         security: oauthScope(
           "https://www.googleapis.com/auth/youtube.readonly",
         ),
-        body: TestItem,
+        "body?": TestItem,
       },
       res: {
         200: resp({
@@ -8311,7 +8311,7 @@ export default responsibleAPI({
         id: "youtube.videos.reportAbuse",
         req: {
           params: [onBehalfOfContentOwnerSchemaCms],
-          body: VideoAbuseReport,
+          "body?": VideoAbuseReport,
         },
       }),
     }),
@@ -8339,7 +8339,7 @@ export default responsibleAPI({
             oauthScope("https://www.googleapis.com/auth/youtube.upload"),
             oauthScope("https://www.googleapis.com/auth/youtubepartner"),
           ),
-          body: {
+          "body?": {
             "application/octet-stream": unknown(),
             "image/jpeg": InvideoBranding,
             "image/png": InvideoBranding,
