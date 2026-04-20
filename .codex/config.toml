@@ -23,3 +23,9 @@ approval_mode = "approve"
 
 [mcp_servers.code-review-graph.tools.detect_changes_tool]
 approval_mode = "approve"
+
+[mcp_servers.code-review-graph.tools.refactor_tool]
+approval_mode = "approve"
+
+[mcp_servers.code-review-graph.tools.find_large_functions_tool]
+approval_mode = "approve"
