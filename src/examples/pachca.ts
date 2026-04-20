@@ -102,7 +102,6 @@ const PathIdParam1 = () =>
   pathParam({
     name: "id",
     description: "Идентификатор чата",
-    required: true,
     schema: int32({
       examples: [334],
     }),
@@ -112,7 +111,6 @@ const PathUser_idParam1 = () =>
   pathParam({
     name: "user_id",
     description: "Идентификатор пользователя",
-    required: true,
     schema: int32({
       examples: [186],
     }),
@@ -134,7 +132,6 @@ const PathIdParam2 = () =>
   pathParam({
     name: "id",
     description: "Идентификатор тега",
-    required: true,
     schema: int32({
       examples: [9111],
     }),
@@ -144,7 +141,6 @@ const PathIdParam3 = () =>
   pathParam({
     name: "id",
     description: "Идентификатор сообщения",
-    required: true,
     schema: int32({
       examples: [194275],
     }),
@@ -154,7 +150,6 @@ const PathIdParam4 = () =>
   pathParam({
     name: "id",
     description: "Идентификатор сообщения",
-    required: true,
     schema: int32({
       examples: [7231942],
     }),
@@ -224,7 +219,6 @@ const PathIdParam5 = () =>
   pathParam({
     name: "id",
     description: "Идентификатор напоминания",
-    required: true,
     schema: int32({ examples: [22283] }),
   })
 
@@ -232,7 +226,6 @@ const PathIdParam6 = () =>
   pathParam({
     name: "id",
     description: "Идентификатор пользователя",
-    required: true,
     schema: int32({ examples: [12] }),
   })
 
@@ -240,7 +233,6 @@ const PathUser_idParam2 = () =>
   pathParam({
     name: "user_id",
     description: "Идентификатор пользователя",
-    required: true,
     schema: int32({ examples: [12] }),
   })
 
@@ -3814,7 +3806,7 @@ export default responsibleAPI({
       id: "SecurityOperations_getAuditEvents",
       description:
         "Журнал аудита событий\n\nМетод для получения логов событий на основе указанных фильтров.",
-      tags: [tags["Security"]],
+      tags: [tags.Security],
       req: {
         query: {
           "start_time?": {

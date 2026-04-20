@@ -149,7 +149,6 @@ const versionIdParam = named(
     description:
       "Semver identifier for the project version. For best results, use the formatted `version_clean` value listed in the response from the [Get Versions endpoint](/reference/getversions).",
     example: "v1.0.0",
-    required: true,
     schema: string(),
   }),
 )
