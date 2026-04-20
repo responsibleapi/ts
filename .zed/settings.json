@@ -37,6 +37,18 @@
         }
       ]
     },
+    "TOML": {
+      "prettier": {
+        "allowed": false
+      },
+      "formatter": [
+        {
+          "language_server": {
+            "name": "oxfmt"
+          }
+        }
+      ]
+    },
     "JavaScript": {
       "prettier": {
         "allowed": false

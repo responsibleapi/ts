@@ -29,3 +29,6 @@ approval_mode = "approve"
 
 [mcp_servers.code-review-graph.tools.find_large_functions_tool]
 approval_mode = "approve"
+
+[mcp_servers.code-review-graph.tools.get_architecture_overview_tool]
+approval_mode = "approve"
