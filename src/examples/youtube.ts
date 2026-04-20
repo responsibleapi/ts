@@ -6052,30 +6052,35 @@ const onBehalfOfContentOwnerSchemaCms = queryParam({
   schema: string(),
 })
 
-const onBehalfOfContentOwnerSchemaShort = string({
+const onBehalfOfContentOwnerSchemaShort = {
   description:
     "The *onBehalfOfContentOwner* parameter indicates that the authenticated user is acting on behalf of the content owner specified in the parameter value. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and get access to all their video and channel data, without having to provide authentication credentials for each individual channel. The actual CMS account that the user authenticates with needs to be linked to the specified YouTube content owner.",
-})
+  schema: string(),
+}
 
-const onBehalfOfContentOwnerChannelSchema = string({
+const onBehalfOfContentOwnerChannelSchema = {
   description:
     "This parameter can only be used in a properly authorized request. *Note:* This parameter is intended exclusively for YouTube content partners. The *onBehalfOfContentOwnerChannel* parameter specifies the YouTube channel ID of the channel to which a video is being added. This parameter is required when a request specifies a value for the onBehalfOfContentOwner parameter, and it can only be used in conjunction with that parameter. In addition, the request must be authorized using a CMS account that is linked to the content owner that the onBehalfOfContentOwner parameter specifies. Finally, the channel that the onBehalfOfContentOwnerChannel parameter value specifies must be linked to the content owner that the onBehalfOfContentOwner parameter specifies. This parameter is intended for YouTube content partners that own and manage many different YouTube channels. It allows content owners to authenticate once and perform actions on behalf of the channel specified in the parameter value, without having to provide authentication credentials for each separate channel.",
-})
+  schema: string(),
+}
 
-const pageTokenSchema = string({
+const pageTokenSchema = {
   description:
     "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved.",
-})
+  schema: string(),
+}
 
-const liveChatMessagesPageTokenSchema = string({
+const liveChatMessagesPageTokenSchema = {
   description:
     "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken property identify other pages that could be retrieved.",
-})
+  schema: string(),
+}
 
-const videosListPageTokenSchema = string({
+const videosListPageTokenSchema = {
   description:
     "The *pageToken* parameter identifies a specific page in the result set that should be returned. In an API response, the nextPageToken and prevPageToken properties identify other pages that could be retrieved. *Note:* This parameter is supported for use in conjunction with the myRating and chart parameters, but it is not supported for use in conjunction with the id parameter.",
-})
+  schema: string(),
+}
 
 const videoPartnerSecurity = oauthScopes(
   "https://www.googleapis.com/auth/youtube",
@@ -6088,12 +6093,15 @@ const youtubeForceSslSecurity = oauthScopes(
   "https://www.googleapis.com/auth/youtube.force-ssl",
 )
 
-const watermarkChannelIdSchema = string()
+const watermarkChannelIdSchema = {
+  schema: string(),
+}
 
-const onBehalfOfPage = string({
+const onBehalfOfPage = {
   description:
     "ID of the Google+ Page for the channel that the request is on behalf of.",
-})
+  schema: string(),
+}
 
 function liveBroadcastResponse() {
   return resp({
@@ -6122,52 +6130,64 @@ const partArray = (description?: string): InlineQueryParam => ({
   style: "form",
 })
 
-const hlQuery = (description?: string) =>
-  description !== undefined && description !== ""
-    ? string({ description })
-    : string()
-
-const listMaxResultsSchema = integer({
-  description:
-    "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-  maximum: 50,
-  minimum: 0,
+const hlQuery = (description?: string): InlineQueryParam => ({
+  description,
+  schema: string(),
 })
 
-const requiredListMaxResultsSchema = integer({
+const listMaxResultsSchema: InlineQueryParam = {
   description:
     "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-  maximum: 50,
-  minimum: 1,
-})
+  schema: integer({
+    maximum: 50,
+    minimum: 0,
+  }),
+}
 
-const commentMaxResultsSchema = integer({
+const requiredListMaxResultsSchema: InlineQueryParam = {
   description:
     "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-  maximum: 100,
-  minimum: 1,
-})
+  schema: integer({
+    maximum: 50,
+    minimum: 1,
+  }),
+}
 
-const liveChatListMaxResultsSchema = integer({
+const commentMaxResultsSchema: InlineQueryParam = {
   description:
     "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-  maximum: 2000,
-  minimum: 200,
-})
+  schema: integer({
+    maximum: 100,
+    minimum: 1,
+  }),
+}
 
-const membersListMaxResultsSchema = integer({
+const liveChatListMaxResultsSchema: InlineQueryParam = {
   description:
     "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
-  maximum: 1000,
-  minimum: 0,
-})
+  schema: integer({
+    maximum: 2000,
+    minimum: 200,
+  }),
+}
 
-const videosListMaxResultsSchema = integer({
+const membersListMaxResultsSchema: InlineQueryParam = {
+  description:
+    "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set.",
+  schema: integer({
+    maximum: 1000,
+    minimum: 0,
+  }),
+}
+
+const videosListMaxResultsSchema: InlineQueryParam = {
   description:
     "The *maxResults* parameter specifies the maximum number of items that should be returned in the result set. *Note:* This parameter is supported for use in conjunction with the myRating and chart parameters, but it is not supported for use in conjunction with the id parameter.",
-  maximum: 50,
-  minimum: 1,
-})
+  schema: integer({
+    maximum: 50,
+    minimum: 1,
+  }),
+}
 
 export default responsibleAPI({
   partialDoc: {
@@ -6271,12 +6291,24 @@ export default responsibleAPI({
           ),
           "maxResults?": listMaxResultsSchema,
           "pageToken?": pageTokenSchema,
-          "channelId?": string(),
-          "home?": boolean(),
-          "mine?": boolean(),
-          "publishedAfter?": string(),
-          "publishedBefore?": string(),
-          "regionCode?": string(),
+          "channelId?": {
+            schema: string(),
+          },
+          "home?": {
+            schema: boolean(),
+          },
+          "mine?": {
+            schema: boolean(),
+          },
+          "publishedAfter?": {
+            schema: string(),
+          },
+          "publishedBefore?": {
+            schema: string(),
+          },
+          "regionCode?": {
+            schema: string(),
+          },
         },
         security: oauthScopes(
           "https://www.googleapis.com/auth/youtube",
@@ -6313,7 +6345,9 @@ export default responsibleAPI({
         req: {
           params: [onBehalfOfContentOwner],
           query: {
-            id: string(),
+            id: {
+              schema: string(),
+            },
             "onBehalfOf?": onBehalfOfPage,
           },
         },
@@ -6327,13 +6361,16 @@ export default responsibleAPI({
             part: partArray(
               "The *part* parameter specifies a comma-separated list of one or more caption resource parts that the API response will include. The part names that you can include in the parameter value are id and snippet.",
             ),
-            videoId: string({
+            videoId: {
               description: "Returns the captions for the specified video.",
-            }),
-            "id?": array(string(), {
-              description:
-                "Returns the captions with the given IDs for Stubby or Apiary.",
-            }),
+              schema: string(),
+            },
+            "id?": {
+              description: "Returns the captions with the given IDs for Stubby or Apiary.",
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
             "onBehalfOf?": onBehalfOfPage,
           },
         },
@@ -6354,10 +6391,10 @@ export default responsibleAPI({
               "The *part* parameter specifies the caption resource parts that the API response will include. Set the parameter value to snippet.",
             ),
             "onBehalfOf?": onBehalfOfPage,
-            "sync?": boolean({
-              description:
-                "Extra parameter to allow automatically syncing the uploaded caption/transcript with the audio.",
-            }),
+            "sync?": {
+              description: "Extra parameter to allow automatically syncing the uploaded caption/transcript with the audio.",
+              schema: boolean(),
+            },
           },
           "body?": {
             "application/octet-stream": unknown(),
@@ -6381,10 +6418,10 @@ export default responsibleAPI({
               "The *part* parameter specifies a comma-separated list of one or more caption resource parts that the API response will include. The part names that you can include in the parameter value are id and snippet.",
             ),
             "onBehalfOf?": onBehalfOfPage,
-            "sync?": boolean({
-              description:
-                "Extra parameter to allow automatically syncing the uploaded caption/transcript with the audio.",
-            }),
+            "sync?": {
+              description: "Extra parameter to allow automatically syncing the uploaded caption/transcript with the audio.",
+              schema: boolean(),
+            },
           },
           body: {
             "application/octet-stream": unknown(),
@@ -6403,22 +6440,22 @@ export default responsibleAPI({
         id: "youtube.captions.download",
         req: {
           pathParams: {
-            id: string({
-              description:
-                "The ID of the caption track to download, required for One Platform.",
-            }),
+            id: {
+              description: "The ID of the caption track to download, required for One Platform.",
+              schema: string(),
+            },
           },
           params: [onBehalfOfContentOwner],
           query: {
             "onBehalfOf?": onBehalfOfPage,
-            "tfmt?": string({
-              description:
-                "Convert the captions into this format. Supported options are sbv, srt, and vtt.",
-            }),
-            "tlang?": string({
-              description:
-                "tlang is the language code; machine translate the captions into this language.",
-            }),
+            "tfmt?": {
+              description: "Convert the captions into this format. Supported options are sbv, srt, and vtt.",
+              schema: string(),
+            },
+            "tlang?": {
+              description: "tlang is the language code; machine translate the captions into this language.",
+              schema: string(),
+            },
           },
         },
       }),
@@ -6430,10 +6467,10 @@ export default responsibleAPI({
         params: [onBehalfOfContentOwner],
         query: {
           "onBehalfOfContentOwnerChannel?": onBehalfOfContentOwnerChannelSchema,
-          "channelId?": string({
-            description:
-              "Unused, channel_id is currently derived from the security context of the requestor.",
-          }),
+          "channelId?": {
+            description: "Unused, channel_id is currently derived from the security context of the requestor.",
+            schema: string(),
+          },
         },
         security: oauthScopes(
           "https://www.googleapis.com/auth/youtube",
@@ -6474,7 +6511,9 @@ export default responsibleAPI({
         id: "youtube.channelSections.delete",
         req: {
           params: [onBehalfOfContentOwnerSchemaCms],
-          query: { id: string() },
+          query: { id: {
+            schema: string(),
+          } },
         },
         res: {
           200: successfulResponse,
@@ -6490,18 +6529,20 @@ export default responsibleAPI({
               "The *part* parameter specifies a comma-separated list of one or more channelSection resource properties that the API response will include. The part names that you can include in the parameter value are id, snippet, and contentDetails. If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channelSection resource, the snippet property contains other properties, such as a display title for the channelSection. If you set *part=snippet*, the API response will also contain all of those nested properties.",
             ),
             "hl?": hlQuery("Return content in specified language"),
-            "channelId?": string({
-              description:
-                "Return the ChannelSections owned by the specified channel ID.",
-            }),
-            "id?": array(string(), {
-              description:
-                "Return the ChannelSections with the given IDs for Stubby or Apiary.",
-            }),
-            "mine?": boolean({
-              description:
-                "Return the ChannelSections owned by the authenticated user.",
-            }),
+            "channelId?": {
+              description: "Return the ChannelSections owned by the specified channel ID.",
+              schema: string(),
+            },
+            "id?": {
+              description: "Return the ChannelSections with the given IDs for Stubby or Apiary.",
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
+            "mine?": {
+              description: "Return the ChannelSections owned by the authenticated user.",
+              schema: boolean(),
+            },
           },
           security: oauthScope(
             "https://www.googleapis.com/auth/youtube.readonly",
@@ -6564,29 +6605,32 @@ export default responsibleAPI({
             ),
             "maxResults?": listMaxResultsSchema,
             "pageToken?": pageTokenSchema,
-            "categoryId?": string({
-              description:
-                "Return the channels within the specified guide category ID.",
-            }),
-            "forUsername?": string({
-              description:
-                "Return the channel associated with a YouTube username.",
-            }),
-            "id?": array(string(), {
+            "categoryId?": {
+              description: "Return the channels within the specified guide category ID.",
+              schema: string(),
+            },
+            "forUsername?": {
+              description: "Return the channel associated with a YouTube username.",
+              schema: string(),
+            },
+            "id?": {
               description: "Return the channels with the specified IDs.",
-            }),
-            "managedByMe?": boolean({
-              description:
-                "Return the channels managed by the authenticated user.",
-            }),
-            "mine?": boolean({
-              description:
-                "Return the ids of channels owned by the authenticated user.",
-            }),
-            "mySubscribers?": boolean({
-              description:
-                "Return the channels subscribed to the authenticated user",
-            }),
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
+            "managedByMe?": {
+              description: "Return the channels managed by the authenticated user.",
+              schema: boolean(),
+            },
+            "mine?": {
+              description: "Return the ids of channels owned by the authenticated user.",
+              schema: boolean(),
+            },
+            "mySubscribers?": {
+              description: "Return the channels subscribed to the authenticated user",
+              schema: boolean(),
+            },
           },
           security: oauthScopes(
             "https://www.googleapis.com/auth/youtube.readonly",
@@ -6642,39 +6686,45 @@ export default responsibleAPI({
             ),
             "maxResults?": commentMaxResultsSchema,
             "pageToken?": pageTokenSchema,
-            "allThreadsRelatedToChannelId?": string({
-              description:
-                "Returns the comment threads of all videos of the channel and the channel comments as well.",
-            }),
-            "channelId?": string({
-              description:
-                "Returns the comment threads for all the channel comments (ie does not include comments left on videos).",
-            }),
-            "id?": array(string(), {
-              description:
-                "Returns the comment threads with the given IDs for Stubby or Apiary.",
-            }),
-            "moderationStatus?": string({
-              enum: ["published", "heldForReview", "likelySpam", "rejected"],
-              description:
-                "Limits the returned comment threads to those with the specified moderation status. Not compatible with the 'id' filter. Valid values: published, heldForReview, likelySpam.",
-            }),
-            "order?": string({
-              enum: ["orderUnspecified", "time", "relevance"],
-            }),
-            "searchTerms?": string({
-              description:
-                "Limits the returned comment threads to those matching the specified key words. Not compatible with the 'id' filter.",
-            }),
-            "textFormat?": string({
-              enum: ["textFormatUnspecified", "html", "plainText"],
-              description:
-                "The requested text format for the returned comments.",
-            }),
-            "videoId?": string({
-              description:
-                "Returns the comment threads of the specified video.",
-            }),
+            "allThreadsRelatedToChannelId?": {
+              description: "Returns the comment threads of all videos of the channel and the channel comments as well.",
+              schema: string(),
+            },
+            "channelId?": {
+              description: "Returns the comment threads for all the channel comments (ie does not include comments left on videos).",
+              schema: string(),
+            },
+            "id?": {
+              description: "Returns the comment threads with the given IDs for Stubby or Apiary.",
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
+            "moderationStatus?": {
+              description: "Limits the returned comment threads to those with the specified moderation status. Not compatible with the 'id' filter. Valid values: published, heldForReview, likelySpam.",
+              schema: string({
+    enum: ["published", "heldForReview", "likelySpam", "rejected"]
+}),
+            },
+            "order?": {
+              schema: string({
+    enum: ["orderUnspecified", "time", "relevance"],
+}),
+            },
+            "searchTerms?": {
+              description: "Limits the returned comment threads to those matching the specified key words. Not compatible with the 'id' filter.",
+              schema: string(),
+            },
+            "textFormat?": {
+              description: "The requested text format for the returned comments.",
+              schema: string({
+    enum: ["textFormatUnspecified", "html", "plainText"]
+}),
+            },
+            "videoId?": {
+              description: "Returns the comment threads of the specified video.",
+              schema: string(),
+            },
           },
           security: oauthScope(
             "https://www.googleapis.com/auth/youtube.force-ssl",
@@ -6735,7 +6785,9 @@ export default responsibleAPI({
         id: "youtube.comments.delete",
         req: {
           query: {
-            id: string(),
+            id: {
+              schema: string(),
+            },
           },
         },
       },
@@ -6749,19 +6801,22 @@ export default responsibleAPI({
             ),
             "maxResults?": commentMaxResultsSchema,
             "pageToken?": pageTokenSchema,
-            "id?": array(string(), {
-              description:
-                "Returns the comments with the given IDs for One Platform.",
-            }),
-            "parentId?": string({
-              description:
-                "Returns replies to the specified comment. Note, currently YouTube features only one level of replies (ie replies to top level comments). However replies to replies may be supported in the future.",
-            }),
-            "textFormat?": string({
-              enum: ["textFormatUnspecified", "html", "plainText"],
-              description:
-                "The requested text format for the returned comments.",
-            }),
+            "id?": {
+              description: "Returns the comments with the given IDs for One Platform.",
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
+            "parentId?": {
+              description: "Returns replies to the specified comment. Note, currently YouTube features only one level of replies (ie replies to top level comments). However replies to replies may be supported in the future.",
+              schema: string(),
+            },
+            "textFormat?": {
+              description: "The requested text format for the returned comments.",
+              schema: string({
+    enum: ["textFormatUnspecified", "html", "plainText"]
+}),
+            },
           },
         },
         res: {
@@ -6813,10 +6868,12 @@ export default responsibleAPI({
         id: "youtube.comments.markAsSpam",
         req: {
           query: {
-            id: array(string(), {
-              description:
-                "Flags the comments with the given IDs as spam in the caller's opinion.",
-            }),
+            id: {
+              description: "Flags the comments with the given IDs as spam in the caller's opinion.",
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
           },
         },
       }),
@@ -6825,19 +6882,22 @@ export default responsibleAPI({
         id: "youtube.comments.setModerationStatus",
         req: {
           query: {
-            id: array(string(), {
-              description:
-                "Modifies the moderation status of the comments with the given IDs",
-            }),
-            moderationStatus: string({
-              enum: ["published", "heldForReview", "likelySpam", "rejected"],
-              description:
-                "Specifies the requested moderation status. Note, comments can be in statuses, which are not available through this call. For example, this call does not allow to mark a comment as 'likely spam'. Valid values: MODERATION_STATUS_PUBLISHED, MODERATION_STATUS_HELD_FOR_REVIEW, MODERATION_STATUS_REJECTED.",
-            }),
-            "banAuthor?": boolean({
-              description:
-                "If set to true the author of the comment gets added to the ban list. This means all future comments of the author will autmomatically be rejected. Only valid in combination with STATUS_REJECTED.",
-            }),
+            id: {
+              description: "Modifies the moderation status of the comments with the given IDs",
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
+            moderationStatus: {
+              description: "Specifies the requested moderation status. Note, comments can be in statuses, which are not available through this call. For example, this call does not allow to mark a comment as 'likely spam'. Valid values: MODERATION_STATUS_PUBLISHED, MODERATION_STATUS_HELD_FOR_REVIEW, MODERATION_STATUS_REJECTED.",
+              schema: string({
+    enum: ["published", "heldForReview", "likelySpam", "rejected"]
+}),
+            },
+            "banAuthor?": {
+              description: "If set to true the author of the comment gets added to the ban list. This means all future comments of the author will autmomatically be rejected. Only valid in combination with STATUS_REJECTED.",
+              schema: boolean(),
+            },
           },
         },
       }),
@@ -6910,7 +6970,10 @@ export default responsibleAPI({
         req: {
           params: [onBehalfOfContentOwnerSchemaCms],
           query: {
-            id: string({ description: "Broadcast to delete." }),
+            id: {
+              description: "Broadcast to delete.",
+              schema: string(),
+            },
             "onBehalfOfContentOwnerChannel?":
               onBehalfOfContentOwnerChannelSchema,
           },
@@ -6933,31 +6996,38 @@ export default responsibleAPI({
             "pageToken?": pageTokenSchema,
             "onBehalfOfContentOwnerChannel?":
               onBehalfOfContentOwnerChannelSchema,
-            "broadcastStatus?": string({
-              enum: [
-                "broadcastStatusFilterUnspecified",
-                "all",
-                "active",
-                "upcoming",
-                "completed",
-              ],
-              description:
-                "Return broadcasts with a certain status, e.g. active broadcasts.",
-            }),
-            "broadcastType?": string({
-              enum: [
-                "broadcastTypeFilterUnspecified",
-                "all",
-                "event",
-                "persistent",
-              ],
+            "broadcastStatus?": {
+              description: "Return broadcasts with a certain status, e.g. active broadcasts.",
+              schema: string({
+    enum: [
+        "broadcastStatusFilterUnspecified",
+        "all",
+        "active",
+        "upcoming",
+        "completed",
+    ]
+}),
+            },
+            "broadcastType?": {
               description: "Return only broadcasts with the selected type.",
-            }),
-            "id?": array(string(), {
-              description:
-                "Return broadcasts with the given ids from Stubby or Apiary.",
-            }),
-            "mine?": boolean(),
+              schema: string({
+    enum: [
+        "broadcastTypeFilterUnspecified",
+        "all",
+        "event",
+        "persistent",
+    ]
+}),
+            },
+            "id?": {
+              description: "Return broadcasts with the given ids from Stubby or Apiary.",
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
+            "mine?": {
+              schema: boolean(),
+            },
           },
           security: oauthScope(
             "https://www.googleapis.com/auth/youtube.readonly",
@@ -7009,12 +7079,14 @@ export default responsibleAPI({
             ),
             "onBehalfOfContentOwnerChannel?":
               onBehalfOfContentOwnerChannelSchema,
-            id: string({
+            id: {
               description: "Broadcast to bind to the stream",
-            }),
-            "streamId?": string({
+              schema: string(),
+            },
+            "streamId?": {
               description: "Stream to bind, if not set unbind the current one.",
-            }),
+              schema: string(),
+            },
           },
         },
       }),
@@ -7029,10 +7101,10 @@ export default responsibleAPI({
             ),
             "onBehalfOfContentOwnerChannel?":
               onBehalfOfContentOwnerChannelSchema,
-            "id?": string({
-              description:
-                "Broadcast to insert ads to, or equivalently `external_video_id` for internal use.",
-            }),
+            "id?": {
+              description: "Broadcast to insert ads to, or equivalently `external_video_id` for internal use.",
+              schema: string(),
+            },
           },
           security: oauthScope(
             "https://www.googleapis.com/auth/youtubepartner",
@@ -7054,14 +7126,16 @@ export default responsibleAPI({
             ),
             "onBehalfOfContentOwnerChannel?":
               onBehalfOfContentOwnerChannelSchema,
-            broadcastStatus: string({
-              enum: ["statusUnspecified", "testing", "live", "complete"],
-              description:
-                "The status to which the broadcast is going to transition.",
-            }),
-            id: string({
+            broadcastStatus: {
+              description: "The status to which the broadcast is going to transition.",
+              schema: string({
+    enum: ["statusUnspecified", "testing", "live", "complete"]
+}),
+            },
+            id: {
               description: "Broadcast to transition.",
-            }),
+              schema: string(),
+            },
           },
         },
       }),
@@ -7078,7 +7152,9 @@ export default responsibleAPI({
         id: "youtube.liveChatBans.delete",
         req: {
           query: {
-            id: string(),
+            id: {
+              schema: string(),
+            },
           },
         },
         res: {
@@ -7116,7 +7192,9 @@ export default responsibleAPI({
         id: "youtube.liveChatMessages.delete",
         req: {
           query: {
-            id: string(),
+            id: {
+              schema: string(),
+            },
           },
         },
         res: {
@@ -7136,16 +7214,17 @@ export default responsibleAPI({
             ),
             "maxResults?": liveChatListMaxResultsSchema,
             "pageToken?": liveChatMessagesPageTokenSchema,
-            liveChatId: string({
-              description:
-                "The id of the live chat for which comments should be returned.",
-            }),
-            "profileImageSize?": integer({
-              maximum: 720,
-              minimum: 16,
-              description:
-                "Specifies the size of the profile image that should be returned for each user.",
-            }),
+            liveChatId: {
+              description: "The id of the live chat for which comments should be returned.",
+              schema: string(),
+            },
+            "profileImageSize?": {
+              description: "Specifies the size of the profile image that should be returned for each user.",
+              schema: integer({
+    maximum: 720,
+    minimum: 16
+}),
+            },
           },
           security: oauthScope(
             "https://www.googleapis.com/auth/youtube.readonly",
@@ -7189,7 +7268,9 @@ export default responsibleAPI({
         id: "youtube.liveChatModerators.delete",
         req: {
           query: {
-            id: string(),
+            id: {
+              schema: string(),
+            },
           },
         },
         res: {
@@ -7206,10 +7287,10 @@ export default responsibleAPI({
             ),
             "maxResults?": listMaxResultsSchema,
             "pageToken?": pageTokenSchema,
-            liveChatId: string({
-              description:
-                "The id of the live chat for which moderators should be returned.",
-            }),
+            liveChatId: {
+              description: "The id of the live chat for which moderators should be returned.",
+              schema: string(),
+            },
           },
           security: oauthScope(
             "https://www.googleapis.com/auth/youtube.readonly",
@@ -7262,7 +7343,9 @@ export default responsibleAPI({
         req: {
           params: [onBehalfOfContentOwnerSchemaCms],
           query: {
-            id: string(),
+            id: {
+              schema: string(),
+            },
             "onBehalfOfContentOwnerChannel?":
               onBehalfOfContentOwnerChannelSchema,
           },
@@ -7285,11 +7368,15 @@ export default responsibleAPI({
             "pageToken?": pageTokenSchema,
             "onBehalfOfContentOwnerChannel?":
               onBehalfOfContentOwnerChannelSchema,
-            "id?": array(string(), {
-              description:
-                "Return LiveStreams with the given ids from Stubby or Apiary.",
-            }),
-            "mine?": boolean(),
+            "id?": {
+              description: "Return LiveStreams with the given ids from Stubby or Apiary.",
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
+            "mine?": {
+              schema: boolean(),
+            },
           },
           security: oauthScope(
             "https://www.googleapis.com/auth/youtube.readonly",
@@ -7344,19 +7431,20 @@ export default responsibleAPI({
           ),
           "maxResults?": membersListMaxResultsSchema,
           "pageToken?": pageTokenSchema,
-          "filterByMemberChannelId?": string({
-            description:
-              "Comma separated list of channel IDs. Only data about members that are part of this list will be included in the response.",
-          }),
-          "hasAccessToLevel?": string({
-            description:
-              "Filter members in the results set to the ones that have access to a level.",
-          }),
-          "mode?": string({
-            enum: ["listMembersModeUnknown", "updates", "all_current"],
-            description:
-              "Parameter that specifies which channel members to return.",
-          }),
+          "filterByMemberChannelId?": {
+            description: "Comma separated list of channel IDs. Only data about members that are part of this list will be included in the response.",
+            schema: string(),
+          },
+          "hasAccessToLevel?": {
+            description: "Filter members in the results set to the ones that have access to a level.",
+            schema: string(),
+          },
+          "mode?": {
+            description: "Parameter that specifies which channel members to return.",
+            schema: string({
+    enum: ["listMembersModeUnknown", "updates", "all_current"]
+}),
+          },
         },
         security: oauthScope(
           "https://www.googleapis.com/auth/youtube.channel-memberships.creator",
@@ -7413,7 +7501,9 @@ export default responsibleAPI({
         req: {
           params: [onBehalfOfContentOwnerSchemaCms],
           query: {
-            id: string(),
+            id: {
+              schema: string(),
+            },
           },
         },
         res: {
@@ -7431,15 +7521,19 @@ export default responsibleAPI({
             ),
             "maxResults?": listMaxResultsSchema,
             "pageToken?": pageTokenSchema,
-            "id?": array(string()),
-            "playlistId?": string({
-              description:
-                "Return the playlist items within the given playlist.",
-            }),
-            "videoId?": string({
-              description:
-                "Return the playlist items associated with the given video ID.",
-            }),
+            "id?": {
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
+            "playlistId?": {
+              description: "Return the playlist items within the given playlist.",
+              schema: string(),
+            },
+            "videoId?": {
+              description: "Return the playlist items associated with the given video ID.",
+              schema: string(),
+            },
           },
           security: oauthScope(
             "https://www.googleapis.com/auth/youtube.readonly",
@@ -7500,7 +7594,9 @@ export default responsibleAPI({
         req: {
           params: [onBehalfOfContentOwnerSchemaCms],
           query: {
-            id: string(),
+            id: {
+              schema: string(),
+            },
           },
         },
         res: {
@@ -7521,18 +7617,20 @@ export default responsibleAPI({
             "pageToken?": pageTokenSchema,
             "onBehalfOfContentOwnerChannel?":
               onBehalfOfContentOwnerChannelSchema,
-            "channelId?": string({
-              description:
-                "Return the playlists owned by the specified channel ID.",
-            }),
-            "id?": array(string(), {
-              description:
-                "Return the playlists with the given IDs for Stubby or Apiary.",
-            }),
-            "mine?": boolean({
-              description:
-                "Return the playlists owned by the authenticated user.",
-            }),
+            "channelId?": {
+              description: "Return the playlists owned by the specified channel ID.",
+              schema: string(),
+            },
+            "id?": {
+              description: "Return the playlists with the given IDs for Stubby or Apiary.",
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
+            "mine?": {
+              description: "Return the playlists owned by the authenticated user.",
+              schema: boolean(),
+            },
           },
           security: oauthScope(
             "https://www.googleapis.com/auth/youtube.readonly",
@@ -7585,124 +7683,159 @@ export default responsibleAPI({
           ),
           "maxResults?": listMaxResultsSchema,
           "pageToken?": pageTokenSchema,
-          "channelId?": string({
+          "channelId?": {
             description: "Filter on resources belonging to this channelId.",
-          }),
-          "channelType?": string({
-            enum: ["channelTypeUnspecified", "any", "show"],
+            schema: string(),
+          },
+          "channelType?": {
             description: "Add a filter on the channel search.",
-          }),
-          "eventType?": string({
-            enum: ["none", "upcoming", "live", "completed"],
+            schema: string({
+    enum: ["channelTypeUnspecified", "any", "show"]
+}),
+          },
+          "eventType?": {
             description: "Filter on the livestream status of the videos.",
-          }),
-          "forContentOwner?": boolean({
+            schema: string({
+    enum: ["none", "upcoming", "live", "completed"]
+}),
+          },
+          "forContentOwner?": {
             description: "Search owned by a content owner.",
-          }),
-          "forDeveloper?": boolean({
-            description:
-              "Restrict the search to only retrieve videos uploaded using the project id of the authenticated user.",
-          }),
-          "forMine?": boolean({
-            description:
-              "Search for the private videos of the authenticated user.",
-          }),
-          "location?": string({
+            schema: boolean(),
+          },
+          "forDeveloper?": {
+            description: "Restrict the search to only retrieve videos uploaded using the project id of the authenticated user.",
+            schema: boolean(),
+          },
+          "forMine?": {
+            description: "Search for the private videos of the authenticated user.",
+            schema: boolean(),
+          },
+          "location?": {
             description: "Filter on location of the video",
-          }),
-          "locationRadius?": string({
-            description:
-              "Filter on distance from the location (specified above).",
-          }),
-          "order?": string({
-            enum: [
-              "searchSortUnspecified",
-              "date",
-              "rating",
-              "viewCount",
-              "relevance",
-              "title",
-              "videoCount",
-            ],
+            schema: string(),
+          },
+          "locationRadius?": {
+            description: "Filter on distance from the location (specified above).",
+            schema: string(),
+          },
+          "order?": {
             description: "Sort order of the results.",
-          }),
-          "publishedAfter?": string({
+            schema: string({
+    enum: [
+        "searchSortUnspecified",
+        "date",
+        "rating",
+        "viewCount",
+        "relevance",
+        "title",
+        "videoCount",
+    ]
+}),
+          },
+          "publishedAfter?": {
             description: "Filter on resources published after this date.",
-          }),
-          "publishedBefore?": string({
+            schema: string(),
+          },
+          "publishedBefore?": {
             description: "Filter on resources published before this date.",
-          }),
-          "q?": string({
+            schema: string(),
+          },
+          "q?": {
             description: "Textual search terms to match.",
-          }),
-          "regionCode?": string({
-            description:
-              "Display the content as seen by viewers in this country.",
-          }),
-          "relatedToVideoId?": string({
+            schema: string(),
+          },
+          "regionCode?": {
+            description: "Display the content as seen by viewers in this country.",
+            schema: string(),
+          },
+          "relatedToVideoId?": {
             description: "Search related to a resource.",
-          }),
-          "relevanceLanguage?": string({
+            schema: string(),
+          },
+          "relevanceLanguage?": {
             description: "Return results relevant to this language.",
-          }),
-          "safeSearch?": string({
-            enum: [
-              "safeSearchSettingUnspecified",
-              "none",
-              "moderate",
-              "strict",
-            ],
-            description:
-              "Indicates whether the search results should include restricted content as well as standard content.",
-          }),
-          "topicId?": string({
+            schema: string(),
+          },
+          "safeSearch?": {
+            description: "Indicates whether the search results should include restricted content as well as standard content.",
+            schema: string({
+    enum: [
+        "safeSearchSettingUnspecified",
+        "none",
+        "moderate",
+        "strict",
+    ]
+}),
+          },
+          "topicId?": {
             description: "Restrict results to a particular topic.",
-          }),
-          "type?": array(string(), {
-            description:
-              "Restrict results to a particular set of resource types from One Platform.",
-          }),
-          "videoCaption?": string({
-            enum: ["videoCaptionUnspecified", "any", "closedCaption", "none"],
+            schema: string(),
+          },
+          "type?": {
+            description: "Restrict results to a particular set of resource types from One Platform.",
+            explode: true,
+            schema: array(string()),
+            style: "form",
+          },
+          "videoCaption?": {
             description: "Filter on the presence of captions on the videos.",
-          }),
-          "videoCategoryId?": string({
+            schema: string({
+    enum: ["videoCaptionUnspecified", "any", "closedCaption", "none"]
+}),
+          },
+          "videoCategoryId?": {
             description: "Filter on videos in a specific category.",
-          }),
-          "videoDefinition?": string({
-            enum: ["any", "standard", "high"],
+            schema: string(),
+          },
+          "videoDefinition?": {
             description: "Filter on the definition of the videos.",
-          }),
-          "videoDimension?": string({
-            enum: ["any", "2d", "3d"],
+            schema: string({
+    enum: ["any", "standard", "high"]
+}),
+          },
+          "videoDimension?": {
             description: "Filter on 3d videos.",
-          }),
-          "videoDuration?": string({
-            enum: [
-              "videoDurationUnspecified",
-              "any",
-              "short",
-              "medium",
-              "long",
-            ],
+            schema: string({
+    enum: ["any", "2d", "3d"]
+}),
+          },
+          "videoDuration?": {
             description: "Filter on the duration of the videos.",
-          }),
-          "videoEmbeddable?": string({
-            enum: ["videoEmbeddableUnspecified", "any", "true"],
+            schema: string({
+    enum: [
+        "videoDurationUnspecified",
+        "any",
+        "short",
+        "medium",
+        "long",
+    ]
+}),
+          },
+          "videoEmbeddable?": {
             description: "Filter on embeddable videos.",
-          }),
-          "videoLicense?": string({
-            enum: ["any", "youtube", "creativeCommon"],
+            schema: string({
+    enum: ["videoEmbeddableUnspecified", "any", "true"]
+}),
+          },
+          "videoLicense?": {
             description: "Filter on the license of the videos.",
-          }),
-          "videoSyndicated?": string({
-            enum: ["videoSyndicatedUnspecified", "any", "true"],
+            schema: string({
+    enum: ["any", "youtube", "creativeCommon"]
+}),
+          },
+          "videoSyndicated?": {
             description: "Filter on syndicated videos.",
-          }),
-          "videoType?": string({
-            enum: ["videoTypeUnspecified", "any", "movie", "episode"],
+            schema: string({
+    enum: ["videoSyndicatedUnspecified", "any", "true"]
+}),
+          },
+          "videoType?": {
             description: "Filter on videos of a specific type.",
-          }),
+            schema: string({
+    enum: ["videoTypeUnspecified", "any", "movie", "episode"]
+}),
+          },
         },
         security: oauthScopes(
           "https://www.googleapis.com/auth/youtube",
@@ -7731,7 +7864,9 @@ export default responsibleAPI({
         id: "youtube.subscriptions.delete",
         req: {
           query: {
-            id: string(),
+            id: {
+              schema: string(),
+            },
           },
         },
         res: {
@@ -7751,35 +7886,42 @@ export default responsibleAPI({
             "pageToken?": pageTokenSchema,
             "onBehalfOfContentOwnerChannel?":
               onBehalfOfContentOwnerChannelSchema,
-            "channelId?": string({
-              description:
-                "Return the subscriptions of the given channel owner.",
-            }),
-            "forChannelId?": string({
-              description:
-                "Return the subscriptions to the subset of these channels that the authenticated user is subscribed to.",
-            }),
-            "id?": array(string(), {
-              description:
-                "Return the subscriptions with the given IDs for Stubby or Apiary.",
-            }),
-            "mine?": boolean({
-              description:
-                "Flag for returning the subscriptions of the authenticated user.",
-            }),
-            "myRecentSubscribers?": boolean(),
-            "mySubscribers?": boolean({
+            "channelId?": {
+              description: "Return the subscriptions of the given channel owner.",
+              schema: string(),
+            },
+            "forChannelId?": {
+              description: "Return the subscriptions to the subset of these channels that the authenticated user is subscribed to.",
+              schema: string(),
+            },
+            "id?": {
+              description: "Return the subscriptions with the given IDs for Stubby or Apiary.",
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
+            "mine?": {
+              description: "Flag for returning the subscriptions of the authenticated user.",
+              schema: boolean(),
+            },
+            "myRecentSubscribers?": {
+              schema: boolean(),
+            },
+            "mySubscribers?": {
               description: "Return the subscribers of the given channel owner.",
-            }),
-            "order?": string({
-              enum: [
-                "subscriptionOrderUnspecified",
-                "relevance",
-                "unread",
-                "alphabetical",
-              ],
+              schema: boolean(),
+            },
+            "order?": {
               description: "The order of the returned subscriptions",
-            }),
+              schema: string({
+    enum: [
+        "subscriptionOrderUnspecified",
+        "relevance",
+        "unread",
+        "alphabetical",
+    ]
+}),
+            },
           },
           security: oauthScope(
             "https://www.googleapis.com/auth/youtube.readonly",
@@ -7845,7 +7987,9 @@ export default responsibleAPI({
       req: {
         query: {
           part: partArray(),
-          "externalChannelId?": string(),
+          "externalChannelId?": {
+            schema: string(),
+          },
         },
         security: oauthScope(
           "https://www.googleapis.com/auth/youtube.readonly",
@@ -7878,18 +8022,20 @@ export default responsibleAPI({
         req: {
           query: {
             "part?": partArray("Do not use. Required for compatibility."),
-            linkingToken: string({
-              description:
-                "Delete the partner links with the given linking token.",
-            }),
-            type: string({
-              enum: ["linkUnspecified", "channelToStoreLink"],
+            linkingToken: {
+              description: "Delete the partner links with the given linking token.",
+              schema: string(),
+            },
+            type: {
               description: "Type of the link to be deleted.",
-            }),
-            "externalChannelId?": string({
-              description:
-                "Channel ID to which changes should be applied, for delegation.",
-            }),
+              schema: string({
+    enum: ["linkUnspecified", "channelToStoreLink"]
+}),
+            },
+            "externalChannelId?": {
+              description: "Channel ID to which changes should be applied, for delegation.",
+              schema: string(),
+            },
           },
         },
         res: {
@@ -7904,18 +8050,20 @@ export default responsibleAPI({
             part: partArray(
               "The *part* parameter specifies the thirdPartyLink resource parts that the API response will include. Supported values are linkingToken, status, and snippet.",
             ),
-            "externalChannelId?": string({
-              description:
-                "Channel ID to which changes should be applied, for delegation.",
-            }),
-            "linkingToken?": string({
-              description:
-                "Get a third party link with the given linking token.",
-            }),
-            "type?": string({
-              enum: ["linkUnspecified", "channelToStoreLink"],
+            "externalChannelId?": {
+              description: "Channel ID to which changes should be applied, for delegation.",
+              schema: string(),
+            },
+            "linkingToken?": {
+              description: "Get a third party link with the given linking token.",
+              schema: string(),
+            },
+            "type?": {
               description: "Get a third party link of the given type.",
-            }),
+              schema: string({
+    enum: ["linkUnspecified", "channelToStoreLink"]
+}),
+            },
           },
         },
         res: {
@@ -7933,10 +8081,10 @@ export default responsibleAPI({
             part: partArray(
               "The *part* parameter specifies the thirdPartyLink resource parts that the API request and response will include. Supported values are linkingToken, status, and snippet.",
             ),
-            "externalChannelId?": string({
-              description:
-                "Channel ID to which changes should be applied, for delegation.",
-            }),
+            "externalChannelId?": {
+              description: "Channel ID to which changes should be applied, for delegation.",
+              schema: string(),
+            },
           },
           body: ThirdPartyLink,
         },
@@ -7949,10 +8097,10 @@ export default responsibleAPI({
             part: partArray(
               "The *part* parameter specifies the thirdPartyLink resource parts that the API request and response will include. Supported values are linkingToken, status, and snippet.",
             ),
-            "externalChannelId?": string({
-              description:
-                "Channel ID to which changes should be applied, for delegation.",
-            }),
+            "externalChannelId?": {
+              description: "Channel ID to which changes should be applied, for delegation.",
+              schema: string(),
+            },
           },
           body: ThirdPartyLink,
         },
@@ -7965,10 +8113,10 @@ export default responsibleAPI({
       req: {
         params: [onBehalfOfContentOwner],
         query: {
-          videoId: string({
-            description:
-              "Returns the Thumbnail with the given video IDs for Stubby or Apiary.",
-          }),
+          videoId: {
+            description: "Returns the Thumbnail with the given video IDs for Stubby or Apiary.",
+            schema: string(),
+          },
         },
         security: oauthScopes(
           "https://www.googleapis.com/auth/youtube",
@@ -8018,11 +8166,15 @@ export default responsibleAPI({
             "The *part* parameter specifies the videoCategory resource properties that the API response will include. Set the parameter value to snippet.",
           ),
           "hl?": hlQuery(),
-          "id?": array(string(), {
-            description:
-              "Returns the video categories with the given IDs for Stubby or Apiary.",
-          }),
-          "regionCode?": string(),
+          "id?": {
+            description: "Returns the video categories with the given IDs for Stubby or Apiary.",
+            explode: true,
+            schema: array(string()),
+            style: "form",
+          },
+          "regionCode?": {
+            schema: string(),
+          },
         },
         security: oauthScopes(
           "https://www.googleapis.com/auth/youtube",
@@ -8057,7 +8209,9 @@ export default responsibleAPI({
         req: {
           params: [onBehalfOfContentOwner],
           query: {
-            id: string(),
+            id: {
+              schema: string(),
+            },
           },
         },
       },
@@ -8075,36 +8229,48 @@ export default responsibleAPI({
             ),
             "maxResults?": videosListMaxResultsSchema,
             "pageToken?": videosListPageTokenSchema,
-            "chart?": string({
-              enum: ["chartUnspecified", "mostPopular"],
+            "chart?": {
               description: "Return the videos that are in the specified chart.",
-            }),
-            "id?": array(string(), {
+              schema: string({
+    enum: ["chartUnspecified", "mostPopular"]
+}),
+            },
+            "id?": {
               description: "Return videos with the given ids.",
-            }),
-            "locale?": string(),
-            "maxHeight?": integer({
-              maximum: 8192,
-              minimum: 72,
-            }),
-            "maxWidth?": integer({
-              maximum: 8192,
-              minimum: 72,
+              explode: true,
+              schema: array(string()),
+              style: "form",
+            },
+            "locale?": {
+              schema: string(),
+            },
+            "maxHeight?": {
+              schema: integer({
+    maximum: 8192,
+    minimum: 72,
+}),
+            },
+            "maxWidth?": {
               description: "Return the player with maximum height specified in",
-            }),
-            "myRating?": string({
-              enum: ["none", "like", "dislike"],
-              description:
-                "Return videos liked/disliked by the authenticated user. Does not support RateType.RATED_TYPE_NONE.",
-            }),
-            "regionCode?": string({
-              description:
-                "Use a chart that is specific to the specified region",
-            }),
-            "videoCategoryId?": string({
-              description:
-                "Use chart that is specific to the specified video category",
-            }),
+              schema: integer({
+    maximum: 8192,
+    minimum: 72
+}),
+            },
+            "myRating?": {
+              description: "Return videos liked/disliked by the authenticated user. Does not support RateType.RATED_TYPE_NONE.",
+              schema: string({
+    enum: ["none", "like", "dislike"]
+}),
+            },
+            "regionCode?": {
+              description: "Use a chart that is specific to the specified region",
+              schema: string(),
+            },
+            "videoCategoryId?": {
+              description: "Use chart that is specific to the specified video category",
+              schema: string(),
+            },
           },
           security: oauthScope(
             "https://www.googleapis.com/auth/youtube.readonly",
@@ -8128,16 +8294,18 @@ export default responsibleAPI({
             ),
             "onBehalfOfContentOwnerChannel?":
               onBehalfOfContentOwnerChannelSchema,
-            "autoLevels?": boolean({
+            "autoLevels?": {
               description: "Should auto-levels be applied to the upload.",
-            }),
-            "notifySubscribers?": boolean({
-              description:
-                "Notify the channel subscribers about the new video. As default, the notification is enabled.",
-            }),
-            "stabilize?": boolean({
+              schema: boolean(),
+            },
+            "notifySubscribers?": {
+              description: "Notify the channel subscribers about the new video. As default, the notification is enabled.",
+              schema: boolean(),
+            },
+            "stabilize?": {
               description: "Should stabilize be applied to the upload.",
-            }),
+              schema: boolean(),
+            },
           },
           security: oauthScope(
             "https://www.googleapis.com/auth/youtube.upload",
@@ -8305,10 +8473,14 @@ export default responsibleAPI({
         id: "youtube.videos.rate",
         req: {
           query: {
-            id: string(),
-            rating: string({
-              enum: ["none", "like", "dislike"],
-            }),
+            id: {
+              schema: string(),
+            },
+            rating: {
+              schema: string({
+    enum: ["none", "like", "dislike"],
+}),
+            },
           },
         },
       }),
