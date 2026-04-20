@@ -17,7 +17,7 @@ import { openApiPathTemplateNames } from "./path.ts"
 type ParameterSchema = EmittedSchema
 type InlineMapParameter = InlinePathParam | InlineQueryParam | InlineHeaderParam
 type InlineNonPathMapParameter = InlineQueryParam | InlineHeaderParam
-type InlineOrLegacyMapParameter = Schema | InlineNonPathMapParameter
+type SchemaOrInlineMapParameter = Schema | InlineNonPathMapParameter
 
 function isSchemaRef(schema: ParameterSchema): schema is oas31.ReferenceObject {
   return "$ref" in schema
@@ -27,7 +27,7 @@ function isInlineMapParameter(value: unknown): value is InlineMapParameter {
   return typeof value === "object" && value !== null && "schema" in value
 }
 
-function compileLegacyMapParameterFields(
+function compileSchemaMapParameterFields(
   state: ComponentRegistryState,
   schemaSource: Schema,
 ): {
@@ -332,7 +332,7 @@ export function compileParamComponent(
 function compileMapParameter(
   state: ComponentRegistryState,
   rawName: NameWithOptionality,
-  rawParam: InlineOrLegacyMapParameter,
+  rawParam: SchemaOrInlineMapParameter,
   location: "query" | "header",
 ): oas31.ParameterObject {
   const name = isOptional(rawName) ? rawName.slice(0, -1) : rawName
@@ -364,7 +364,7 @@ function compileMapParameter(
     style = rawParam.style
     explode = rawParam.explode
   } else {
-    fields = compileLegacyMapParameterFields(state, rawParam)
+    fields = compileSchemaMapParameterFields(state, rawParam)
   }
 
   const required = !isOptional(rawName)
@@ -547,7 +547,7 @@ function compilePathParametersForLayer(
         style = pathParam.style
         explode = pathParam.explode
       } else {
-        fields = compileLegacyMapParameterFields(state, pathParam)
+        fields = compileSchemaMapParameterFields(state, pathParam)
       }
 
       out.push({

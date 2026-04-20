@@ -74,7 +74,7 @@ describe("request", () => {
     ])
   })
 
-  test("legacy bare-schema map params keep schema metadata nested", async () => {
+  test("bare-schema map params keep schema metadata nested", async () => {
     const api = responsibleAPI({
       partialDoc: {
         openapi: "3.1.0",

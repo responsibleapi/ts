@@ -4,7 +4,7 @@ tasks:
   codex: codex
   cursor: agent --yolo
 
-  code-review-graph:
+  reindex:
     cmd: code-review-graph build
     sources:
       - "src/**/*"

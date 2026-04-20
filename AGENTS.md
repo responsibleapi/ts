@@ -25,7 +25,8 @@ Single pass compiler design:
 
 ## Rules
 
-- verify changes to `src/` with `bun check`
+- before making changes to `src/**/*` run `task reindex`
+- verify changes to `src/**/*` with `bun check`
 - never add `oxlint-disable-next-line` unless explicitly asked
 - never edit [package.json](package.json) unless explicitly asked
 - never edit [bunfig.toml](bunfig.toml) unless explicitly asked
