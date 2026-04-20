@@ -71,21 +71,21 @@ export const headerParam = (r: Omit<HeaderParamRaw, "in">): HeaderParamRaw => ({
  * @see {@link GetOpReq}
  */
 interface InlineParamBase {
-  schema: Schema
-  description?: string
-  example?: unknown
+  readonly schema: Schema
+  readonly description?: string
+  readonly example?: unknown
 }
 
 /** @see {@link PathParams} */
 export interface InlinePathParam extends InlineParamBase {
-  style?: "simple" | "label" | "matrix"
-  explode?: boolean
+  readonly style?: "simple" | "label" | "matrix"
+  readonly explode?: boolean
 }
 
 /** @see {@link QueryParams} */
 export interface InlineQueryParam extends InlineParamBase {
-  style?: "form"
-  explode?: boolean
+  readonly style?: "form"
+  readonly explode?: boolean
 }
 
 /** @see {@link HeaderParams} */

@@ -2,7 +2,7 @@ import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, POST } from "../dsl/methods.ts"
 import { named, ref } from "../dsl/nameable.ts"
 import { resp } from "../dsl/operation.ts"
-import { queryParam, type InlineQueryParam } from "../dsl/params.ts"
+import { type InlineQueryParam, queryParam } from "../dsl/params.ts"
 import {
   array,
   boolean,
@@ -6093,9 +6093,7 @@ const youtubeForceSslSecurity = oauthScopes(
   "https://www.googleapis.com/auth/youtube.force-ssl",
 )
 
-const watermarkChannelIdSchema = {
-  schema: string(),
-}
+const watermarkChannelIdSchema: InlineQueryParam = { schema: string() }
 
 const onBehalfOf = (description: string): InlineQueryParam => ({
   description,
