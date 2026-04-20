@@ -8,7 +8,14 @@ import { headerParam, pathParam, queryParam } from "../dsl/params.ts"
 import { array, int32, object, string } from "../dsl/schema.ts"
 import type { PathRoutes } from "../dsl/scope.ts"
 import { scope } from "../dsl/scope.ts"
-import { headerSecurity, httpSecurity } from "../dsl/security.ts"
+import {
+  headerSecurity,
+  httpSecurity,
+  oauth2Requirement,
+  oauth2Security,
+  securityAND,
+  securityOR,
+} from "../dsl/security.ts"
 import { validateDoc } from "../help/validate-doc.ts"
 
 function operationRequestMime(
@@ -959,6 +966,82 @@ describe("request", () => {
     expect(doc.components?.securitySchemes?.["bearerAuth"]).toEqual({
       type: "http",
       scheme: "bearer",
+    })
+  })
+
+  test("registers named schemes from explicit composed security wrappers", async () => {
+    const Oauth2 = named(
+      "Oauth2",
+      oauth2Security({
+        flows: {
+          implicit: {
+            authorizationUrl: "https://accounts.google.com/o/oauth2/auth",
+            scopes: {
+              "scope:read": "Read data",
+              "scope:write": "Write data",
+            },
+          },
+        },
+      }),
+    )
+    const Oauth2c = named(
+      "Oauth2c",
+      oauth2Security({
+        flows: {
+          authorizationCode: {
+            authorizationUrl: "https://accounts.google.com/o/oauth2/auth",
+            tokenUrl: "https://accounts.google.com/o/oauth2/token",
+            scopes: {
+              "scope:read": "Read data",
+              "scope:write": "Write data",
+            },
+          },
+        },
+      }),
+    )
+
+    const api = responsibleAPI({
+      partialDoc: {
+        openapi: "3.1.0",
+        info: { title: "Sec API", version: "1" },
+      },
+      routes: {
+        "/x": GET({
+          req: {
+            security: securityOR(
+              securityAND(
+                oauth2Requirement(Oauth2, ["scope:read"]),
+                oauth2Requirement(Oauth2c, ["scope:read"]),
+              ),
+              securityAND(
+                oauth2Requirement(Oauth2, ["scope:write"]),
+                oauth2Requirement(Oauth2c, ["scope:write"]),
+              ),
+            ),
+          },
+          res: { 200: object({}) },
+        }),
+      },
+    })
+
+    const doc = await validateDoc(api)
+
+    expect(doc).toEqual(api)
+    expect(doc.paths?.["/x"]?.get?.security).toEqual([
+      {
+        Oauth2: ["scope:read"],
+        Oauth2c: ["scope:read"],
+      },
+      {
+        Oauth2: ["scope:write"],
+        Oauth2c: ["scope:write"],
+      },
+    ] satisfies oas31.SecurityRequirementObject[])
+    expect(doc.components?.securitySchemes?.["Oauth2"]).toMatchObject({
+      type: "oauth2",
+    })
+    expect(doc.components?.securitySchemes?.["Oauth2c"]).toMatchObject({
+      type: "oauth2",
     })
   })
 

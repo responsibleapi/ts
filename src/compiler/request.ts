@@ -7,8 +7,11 @@ import type {
 } from "../dsl/operation.ts"
 import type { ReusableParam, ParamRaw, InlineHeaderParam, InlineQueryParam, InlinePathParam } from "../dsl/params.ts"
 import type { Schema } from "../dsl/schema.ts"
-import type { Security } from "../dsl/security.ts"
-import { getAttachedSecuritySchemes } from "../dsl/security.ts"
+import type {
+  Security,
+  SecurityRequirementWithSchemes,
+  SecurityRequirementsWithSchemes,
+} from "../dsl/security.ts"
 import { deepEqual } from "../help/deep-equal.ts"
 import type { ComponentRegistryState } from "./components.ts"
 import { emitSchemaRefOrValue, type EmittedSchema } from "./emit-schema.ts"
@@ -170,13 +173,51 @@ function compileSecurityScheme(
   return anon
 }
 
-function registerAttachedSecuritySchemes(
+function registerNamedSecuritySchemes(
   state: ComponentRegistryState,
-  sec: Security,
+  schemes: readonly Nameable<oas31.SecuritySchemeObject>[],
 ): void {
-  for (const thunk of getAttachedSecuritySchemes(sec)) {
+  for (const thunk of schemes) {
     compileSecurityScheme(state, thunk)
   }
+}
+
+function isSecurityRequirementWithSchemes(
+  x: unknown,
+): x is SecurityRequirementWithSchemes {
+  if (typeof x !== "object" || x === null) {
+    return false
+  }
+
+  const candidate = x as {
+    requirement?: unknown
+    schemes?: unknown
+  }
+
+  return (
+    isSecurityRequirementObject(candidate.requirement) &&
+    Array.isArray(candidate.schemes)
+  )
+}
+
+function isSecurityRequirementsWithSchemes(
+  x: unknown,
+): x is SecurityRequirementsWithSchemes {
+  if (typeof x !== "object" || x === null) {
+    return false
+  }
+
+  const candidate = x as {
+    requirements?: unknown
+    schemes?: unknown
+  }
+
+  return (
+    Array.isArray(candidate.requirements) &&
+    candidate.requirements.length >= 2 &&
+    candidate.requirements.every(isSecurityRequirementObject) &&
+    Array.isArray(candidate.schemes)
+  )
 }
 
 function compileSecurityInput(
@@ -184,8 +225,6 @@ function compileSecurityInput(
   sec: Security,
 ): oas31.SecurityRequirementObject[] {
   if (Array.isArray(sec)) {
-    registerAttachedSecuritySchemes(state, sec)
-
     return sec.map(item => {
       if (!isSecurityRequirementObject(item)) {
         throw new Error(
@@ -204,9 +243,19 @@ function compileSecurityInput(
   }
 
   if (typeof sec === "object" && sec !== null) {
-    if (isSecurityRequirementObject(sec)) {
-      registerAttachedSecuritySchemes(state, sec)
+    if (isSecurityRequirementsWithSchemes(sec)) {
+      registerNamedSecuritySchemes(state, sec.schemes)
 
+      return [...sec.requirements]
+    }
+
+    if (isSecurityRequirementWithSchemes(sec)) {
+      registerNamedSecuritySchemes(state, sec.schemes)
+
+      return [sec.requirement]
+    }
+
+    if (isSecurityRequirementObject(sec)) {
       return [sec]
     }
 

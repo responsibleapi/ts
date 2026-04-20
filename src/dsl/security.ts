@@ -1,8 +1,6 @@
 import type { oas31 } from "openapi3-ts"
 import type { Nameable, NamedThunk } from "./nameable.ts"
 
-const SECURITY_SCHEMES = Symbol("securitySchemes")
-
 type SecurityScheme = Nameable<oas31.SecuritySchemeObject>
 
 type OAuth2SecuritySchemeObject<
@@ -36,7 +34,24 @@ type NamedOAuth2SecurityScheme<
   TFlows extends oas31.OAuthFlowsObject = oas31.OAuthFlowsObject,
 > = NamedSecurityScheme<OAuth2SecuritySchemeObject<TFlows>>
 
-type SecurityOperand = NamedSecurityScheme | oas31.SecurityRequirementObject
+export interface SecurityRequirementWithSchemes {
+  readonly requirement: oas31.SecurityRequirementObject
+  readonly schemes: readonly NamedSecurityScheme[]
+}
+
+export interface SecurityRequirementsWithSchemes {
+  readonly requirements: readonly [
+    oas31.SecurityRequirementObject,
+    oas31.SecurityRequirementObject,
+    ...oas31.SecurityRequirementObject[],
+  ]
+  readonly schemes: readonly NamedSecurityScheme[]
+}
+
+type SecurityOperand =
+  | NamedSecurityScheme
+  | oas31.SecurityRequirementObject
+  | SecurityRequirementWithSchemes
 
 type SecurityOperands = readonly [
   SecurityOperand,
@@ -48,36 +63,8 @@ export type Security =
   | SecurityScheme
   | oas31.SecurityRequirementObject
   | readonly oas31.SecurityRequirementObject[]
-
-function attachSecuritySchemes<T>(
-  value: T,
-  schemes: readonly NamedSecurityScheme[],
-): T {
-  if (schemes.length === 0 || typeof value !== "object" || value === null) {
-    return value
-  }
-
-  Object.defineProperty(value, SECURITY_SCHEMES, {
-    value: schemes,
-    enumerable: false,
-  })
-
-  return value
-}
-
-function attachedSecuritySchemes(
-  value: unknown,
-): readonly NamedSecurityScheme[] {
-  if (typeof value !== "object" || value === null) {
-    return []
-  }
-
-  const schemes = (
-    value as { [SECURITY_SCHEMES]?: readonly NamedSecurityScheme[] }
-  )[SECURITY_SCHEMES]
-
-  return Array.isArray(schemes) ? schemes : []
-}
+  | SecurityRequirementWithSchemes
+  | SecurityRequirementsWithSchemes
 
 function dedupeSecuritySchemes(
   schemes: readonly NamedSecurityScheme[],
@@ -97,20 +84,40 @@ function dedupeSecuritySchemes(
   return out
 }
 
-export function getAttachedSecuritySchemes(
-  value: Security | SecurityOperand,
-): readonly NamedSecurityScheme[] {
-  if (Array.isArray(value)) {
-    return dedupeSecuritySchemes(
-      value.flatMap(item => getAttachedSecuritySchemes(item)),
-    )
+function isSecurityRequirementWithSchemes(
+  security: SecurityOperand,
+): security is SecurityRequirementWithSchemes {
+  return (
+    typeof security === "object" &&
+    security !== null &&
+    "requirement" in security &&
+    "schemes" in security
+  )
+}
+
+function toSecurityRequirementWithSchemes(
+  security: SecurityOperand,
+): SecurityRequirementWithSchemes {
+  if (isSecurityRequirementWithSchemes(security)) {
+    return security
   }
 
-  if (typeof value === "function") {
-    return value.name ? [value] : []
+  if (typeof security !== "function") {
+    return { requirement: security, schemes: [] }
   }
 
-  return attachedSecuritySchemes(value)
+  if (security.name) {
+    return {
+      requirement: { [security.name]: [] },
+      schemes: [security],
+    }
+  }
+
+  throw new Error(
+    `security requirements need a named scheme; got inline value ${JSON.stringify(
+      security(),
+    )}; use a named function or named()`,
+  )
 }
 
 /**
@@ -184,47 +191,24 @@ export const oauth2Security = <
   ...param,
 })
 
-function toSecurityRequirement(
-  security: SecurityOperand,
-): oas31.SecurityRequirementObject {
-  if (typeof security !== "function") {
-    return security
-  }
-
-  if (security.name) {
-    return attachSecuritySchemes({ [security.name]: [] }, [security])
-  }
-
-  throw new Error(
-    `security requirements need a named scheme; got inline value ${JSON.stringify(
-      security(),
-    )}; use a named function or named()`,
-  )
-}
-
 export const oauth2Requirement = <T extends NamedOAuth2SecurityScheme>(
   scheme: T,
   scopes: readonly OAuth2ScopeName<T>[],
-): oas31.SecurityRequirementObject =>
-  attachSecuritySchemes(
-    {
-      [scheme.name]: [...scopes],
-    },
-    [scheme],
-  )
+): SecurityRequirementWithSchemes => ({
+  requirement: {
+    [scheme.name]: [...scopes],
+  },
+  schemes: [scheme],
+})
 
 export function securityAND(
   ...items: SecurityOperands
-): oas31.SecurityRequirementObject {
+): SecurityRequirementWithSchemes {
   const merged: oas31.SecurityRequirementObject = {}
-  const schemes = dedupeSecuritySchemes(
-    items.flatMap(item => getAttachedSecuritySchemes(item)),
-  )
+  const parts = items.map(toSecurityRequirementWithSchemes)
 
-  for (const item of items) {
-    for (const [scheme, scopes] of Object.entries(
-      toSecurityRequirement(item),
-    )) {
+  for (const { requirement } of parts) {
+    for (const [scheme, scopes] of Object.entries(requirement)) {
       const existingScopes = merged[scheme] ?? []
       const nextScopes = scopes.filter(scope => !existingScopes.includes(scope))
 
@@ -232,21 +216,28 @@ export function securityAND(
     }
   }
 
-  return attachSecuritySchemes(merged, schemes)
+  return {
+    requirement: merged,
+    schemes: dedupeSecuritySchemes(parts.flatMap(part => part.schemes)),
+  }
 }
 
 export const securityOR = (
   ...items: SecurityOperands
-): readonly [
-  oas31.SecurityRequirementObject,
-  oas31.SecurityRequirementObject,
-  ...oas31.SecurityRequirementObject[],
-] => {
+): SecurityRequirementsWithSchemes => {
   const [first, second, ...rest] = items
+  const head = toSecurityRequirementWithSchemes(first)
+  const next = toSecurityRequirementWithSchemes(second)
+  const tail = rest.map(toSecurityRequirementWithSchemes)
 
-  return [
-    toSecurityRequirement(first),
-    toSecurityRequirement(second),
-    ...rest.map(toSecurityRequirement),
-  ]
+  return {
+    requirements: [
+      head.requirement,
+      next.requirement,
+      ...tail.map(item => item.requirement),
+    ],
+    schemes: dedupeSecuritySchemes(
+      [head, next, ...tail].flatMap(item => item.schemes),
+    ),
+  }
 }

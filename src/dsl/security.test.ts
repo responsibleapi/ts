@@ -134,16 +134,19 @@ describe("security", () => {
           oauth2Requirement(Oauth2c, ["scope:write"]),
         ),
       ),
-    ).toEqual([
-      {
-        Oauth2: ["scope:read"],
-        Oauth2c: ["scope:read"],
-      },
-      {
-        Oauth2: ["scope:write"],
-        Oauth2c: ["scope:write"],
-      },
-    ])
+    ).toEqual({
+      requirements: [
+        {
+          Oauth2: ["scope:read"],
+          Oauth2c: ["scope:read"],
+        },
+        {
+          Oauth2: ["scope:write"],
+          Oauth2c: ["scope:write"],
+        },
+      ],
+      schemes: [Oauth2, Oauth2c],
+    })
   })
 
   test("types oauth2 scopes from declared flows", () => {
@@ -177,8 +180,31 @@ describe("security", () => {
     >
 
     expect(oauth2Requirement(Oauth2, ["scope:admin"])).toEqual({
-      Oauth2: ["scope:admin"],
+      requirement: {
+        Oauth2: ["scope:admin"],
+      },
+      schemes: [Oauth2],
     })
+  })
+
+  test("keeps raw requirement objects free of hidden metadata", () => {
+    const Oauth2 = named(
+      "Oauth2",
+      oauth2Security({
+        flows: {
+          implicit: {
+            authorizationUrl: "https://accounts.google.com/o/oauth2/auth",
+            scopes: {
+              "scope:read": "Read data",
+            },
+          },
+        },
+      }),
+    )
+
+    const requirement = oauth2Requirement(Oauth2, ["scope:read"])
+
+    expect(Object.getOwnPropertySymbols(requirement.requirement)).toEqual([])
   })
 
   test("keeps named schemes as security values", () => {
