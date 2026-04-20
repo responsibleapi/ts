@@ -428,6 +428,96 @@ describe("response", () => {
     )
   })
 
+  test("inline response headers keep wrapper metadata outside nested schema", async () => {
+    const TraceValue = named(
+      "TraceValue",
+      string({
+        description: "Trace schema",
+        examples: ["trace-schema-example"],
+      }),
+    )
+
+    const rapi = responsibleAPI({
+      partialDoc: {
+        openapi: "3.1.0",
+        info: { title: "Inline response headers", version: "1" },
+      },
+      forEachOp: { res: { mime: "application/json" } },
+      routes: {
+        "/x": GET({
+          res: {
+            200: resp({
+              headers: {
+                "X-Trace": {
+                  description: "Trace header",
+                  example: "trace-header-example",
+                  style: "simple",
+                  explode: false,
+                  schema: TraceValue,
+                },
+              },
+              body: object({ ok: string() }),
+            }),
+          },
+        }),
+      },
+    })
+
+    expect(await validateDoc(rapi)).toEqual(rapi)
+
+    expect(rapi.components?.schemas?.["TraceValue"]).toEqual({
+      type: "string",
+      description: "Trace schema",
+      examples: ["trace-schema-example"],
+    })
+    expect(rapi.paths?.["/x"]?.get?.responses?.["200"]?.headers).toEqual({
+      "X-Trace": {
+        required: true,
+        description: "Trace header",
+        example: "trace-header-example",
+        style: "simple",
+        explode: false,
+        schema: { $ref: "#/components/schemas/TraceValue" },
+      },
+    })
+  })
+
+  test("optional inline response headers omit required", async () => {
+    const rapi = responsibleAPI({
+      partialDoc: {
+        openapi: "3.1.0",
+        info: { title: "Optional inline response headers", version: "1" },
+      },
+      forEachOp: { res: { mime: "application/json" } },
+      routes: {
+        "/x": GET({
+          res: {
+            200: resp({
+              headers: {
+                "X-Trace?": {
+                  description: "Trace header",
+                  example: "trace-header-example",
+                  schema: string(),
+                },
+              },
+              body: object({ ok: string() }),
+            }),
+          },
+        }),
+      },
+    })
+
+    expect(await validateDoc(rapi)).toEqual(rapi)
+    expect(rapi.paths?.["/x"]?.get?.responses?.["200"]?.headers).toEqual({
+      "X-Trace": {
+        required: false,
+        description: "Trace header",
+        example: "trace-header-example",
+        schema: { type: "string" },
+      },
+    })
+  })
+
   test("the same named header thunk reused across routes stays inline", async () => {
     const rapi = responsibleAPI({
       partialDoc: {

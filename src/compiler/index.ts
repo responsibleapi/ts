@@ -15,6 +15,7 @@ import type {
   OpResp,
   RouteMethodOp,
 } from "../dsl/operation.ts"
+import type { InlineHeaderParam } from "../dsl/params.ts"
 import type { HeaderRaw, ReusableHeader } from "../dsl/response-headers.ts"
 import type { RawSchema, Schema } from "../dsl/schema.ts"
 import type {
@@ -597,9 +598,9 @@ function expandHeaderParamsToMap(
 }
 
 function mergeHeadersAndHeaderParams(
-  headers: Record<string, Schema> | undefined,
+  headers: Record<string, Schema | InlineHeaderParam> | undefined,
   headerParams: readonly ReusableHeader[] | undefined,
-): Record<string, Schema | ReusableHeader> | undefined {
+): Record<string, Schema | InlineHeaderParam | ReusableHeader> | undefined {
   const fromParams = expandHeaderParamsToMap(headerParams)
   const headerKeys =
     headers !== undefined ? Object.keys(headers) : ([] as string[])
@@ -623,7 +624,7 @@ function isHeaderRaw(value: unknown): value is HeaderRaw {
 }
 
 function isNamedResponseHeaderThunk(
-  v: Schema | ReusableHeader,
+  v: Schema | InlineHeaderParam | ReusableHeader,
 ): v is ReusableHeader {
   if (typeof v !== "function") {
     return false
@@ -632,6 +633,12 @@ function isNamedResponseHeaderThunk(
   const d = decodeNameable(v as Nameable<HeaderRaw | RawSchema>)
 
   return d.name !== undefined && d.name !== "" && isHeaderRaw(d.value)
+}
+
+function isInlineResponseHeader(
+  value: Schema | InlineHeaderParam | ReusableHeader,
+): value is InlineHeaderParam {
+  return typeof value === "object" && value !== null && "schema" in value
 }
 
 function headerRawToHeaderObject(
@@ -697,7 +704,9 @@ function compileHeaderComponent(
 
 function compileHeaderMap(
   schemaState: ComponentRegistryState,
-  headers: Record<string, Schema | ReusableHeader> | undefined,
+  headers:
+    | Record<string, Schema | InlineHeaderParam | ReusableHeader>
+    | undefined,
 ): oas31.HeadersObject | undefined {
   if (headers === undefined || Object.keys(headers).length === 0) {
     return undefined
@@ -711,6 +720,20 @@ function compileHeaderMap(
 
     if (isNamedResponseHeaderThunk(val)) {
       out[name] = compileHeaderComponent(schemaState, val)
+      continue
+    }
+
+    if (isInlineResponseHeader(val)) {
+      out[name] = {
+        required,
+        ...(val.description !== undefined
+          ? { description: val.description }
+          : {}),
+        ...(val.example !== undefined ? { example: val.example } : {}),
+        ...(val.style !== undefined ? { style: val.style } : {}),
+        ...(val.explode !== undefined ? { explode: val.explode } : {}),
+        schema: emitSchemaRefOrValue(schemaState, val.schema),
+      }
       continue
     }
 

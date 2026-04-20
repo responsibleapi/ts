@@ -80,17 +80,34 @@ export type ReqAugmentation = OpReq & ReqMimeAugmentation
 
 /** Shared response-shape fields for {@link OpResp} and {@link RespAugmentation}. */
 interface RespBase {
-  readonly headers?: Record<NameWithOptionality, Schema>
+  /**
+   * **DSL**
+   *
+   * One-off headers, nice DSL
+   *
+   * Emits:
+   *
+   * - `name` from prop name
+   * - 'required` from prop name, depends on {@link NameWithOptionality}
+   * - `schema` from {@link schema}
+   *
+   * @dsl
+   */
+  readonly headers?: HeaderParams
 
   /**
-   * Reusable response headers follow the same array-first composition pattern
-   * as {@link GetOpReq.params}. We intentionally do not introduce a dedicated
-   * `resHeaders()` helper because a wrapper API would propagate through
-   * adjacent param/header typings and complicate otherwise simple record
-   * literals.
+   * **DSL**
    *
-   * Keep one-off response headers inline in {@link headers}; declare shared
-   * reusable headers here.
+   * Reused headers, not the best DSL but enables {@link Nameable}
+   *
+   * **Compiler**
+   *
+   * If {@link Nameable} thunk then:
+   *
+   * - Puts header in `#/components/headers/`
+   * - Emits as `$ref`
+   *
+   * Otherwise emits as is
    *
    * @dsl
    */
