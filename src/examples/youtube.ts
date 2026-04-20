@@ -6097,17 +6097,18 @@ const watermarkChannelIdSchema = {
   schema: string(),
 }
 
-const onBehalfOfPage: InlineQueryParam = {
-  description:
-    "ID of the Google+ Page for the channel that the request is on behalf of.",
+const onBehalfOf = (description: string): InlineQueryParam => ({
+  description,
   schema: string(),
-}
+})
 
-const onBehalfOfTypo: InlineQueryParam = {
-  description:
-    "ID of the Google+ Page for the channel that the request is be on behalf of",
-  schema: string(),
-}
+const onBehalfOfPage = onBehalfOf(
+  "ID of the Google+ Page for the channel that the request is on behalf of.",
+)
+
+const onBehalfOfTypo = onBehalfOf(
+  "ID of the Google+ Page for the channel that the request is be on behalf of",
+)
 
 function liveBroadcastResponse() {
   return resp({
