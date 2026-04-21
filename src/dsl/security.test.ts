@@ -1,6 +1,6 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
-import type { Assert, IsEqual, OneExtendsTwo } from "../type-assertions.ts"
+import type { Assert, IsEqual, OneExtendsTwo } from "../help/type-assertions.ts"
 import { named } from "./nameable.ts"
 import {
   type OAuth2ScopeName,

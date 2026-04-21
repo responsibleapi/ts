@@ -1,5 +1,5 @@
 import type { oas31 } from "openapi3-ts"
-import type { AtLeastOne, AtLeastTwo } from "../lib.ts"
+import type { AtLeastOne, AtLeastTwo } from "../help/lib.ts"
 import type { HttpMethod, MethodRoutes } from "./methods.ts"
 import type {
   MatchStatus,

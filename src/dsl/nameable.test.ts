@@ -4,7 +4,7 @@ import type {
   IsEqual,
   IsNever,
   OneExtendsTwo,
-} from "../type-assertions.ts"
+} from "../help/type-assertions.ts"
 import type { Nameable, NamedThunk } from "./nameable.ts"
 import { decodeNameable, named, ref } from "./nameable.ts"
 

@@ -4,7 +4,7 @@ import type {
   IsEqual,
   IsNever,
   OneExtendsTwo,
-} from "../type-assertions.ts"
+} from "../help/type-assertions.ts"
 import type { GetOpWithMethod } from "./methods.ts"
 import type { OpWithMethod } from "./operation.ts"
 import type { CanonicalScope, ScopeOpts, ScopeRes } from "./scope.ts"

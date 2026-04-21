@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import type { Assert, OneExtendsTwo } from "../type-assertions.ts"
+import type { Assert, OneExtendsTwo } from "../help/type-assertions.ts"
 import { named } from "./nameable.ts"
 import type { Op } from "./operation.ts"
 import { queryParam, type PathParamRaw } from "./params.ts"
