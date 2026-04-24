@@ -1,11 +1,11 @@
 version: "3"
 
 tasks:
-  codex: codex
+  codex: codex --yolo
   cursor: agent --yolo
 
   reindex:
-    cmd: code-review-graph build
+    cmd: uvx code-review-graph build
     sources:
       - "src/**/*"
 
