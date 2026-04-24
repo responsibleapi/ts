@@ -1,7 +1,7 @@
 version: "3"
 
 tasks:
-  codex: codex --yolo
+  codex: bunx @openai/codex --yolo
   cursor: agent --yolo
 
   reindex:
