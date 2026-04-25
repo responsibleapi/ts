@@ -11,6 +11,7 @@ export {
   boolean,
   dict,
   double,
+  isoDuration,
   email,
   float,
   httpURL,

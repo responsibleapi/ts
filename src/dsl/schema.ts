@@ -37,6 +37,7 @@ type KnownStringFormat =
   | "binary"
   | "url"
   | "blob"
+  | "duration"
 
 type StringFormat = KnownStringFormat | (string & {})
 
@@ -251,15 +252,6 @@ export const double = (opts?: NumberOpts): Float => ({
   format: "double",
 })
 
-export const httpURL = (): Str =>
-  string({
-    format: "uri",
-    pattern: "^https?://\\S+$",
-  })
-
-export const unixMillis = (): Int =>
-  int64({ description: "UNIX epoch milliseconds" })
-
 const stringifyPattern = (
   pattern: string | RegExp | undefined,
 ): string | undefined => (pattern instanceof RegExp ? pattern.source : pattern)
@@ -333,3 +325,16 @@ export const boolean = (opts?: SchemaOpts<boolean>): Bool => ({
 export const unknown = (): Unknown => ({})
 
 export const email = (): Str => string({ format: "email" })
+
+/** ISO 8601 / RFC 3339 duration string. */
+export const isoDuration = (): Str =>
+  string({ format: "duration", examples: ["P1W", "P1M", "P1Y"] })
+
+export const httpURL = (): Str =>
+  string({
+    format: "uri",
+    pattern: "^https?://\\S+$",
+  })
+
+export const unixMillis = (): Int =>
+  int64({ description: "UNIX epoch milliseconds" })

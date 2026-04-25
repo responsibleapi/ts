@@ -33,6 +33,7 @@ Single pass compiler design:
 - never disable or skip or ignore tests
 - never edit `src/examples/*.json` without asking a human
 - never edit `scripts/publish-guard.ts` without asking a human
+- never call `bun` for project tasks like check or publish, call [Taskfile](Taskfile.yaml) tasks instead
 
 ## Imports from packages
 

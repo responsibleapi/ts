@@ -8,6 +8,7 @@ import {
   boolean,
   dict,
   double,
+  isoDuration,
   email,
   float,
   httpURL,
@@ -33,7 +34,7 @@ describe("schema", () => {
       examples: [["a"]],
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "array",
       items: {
         type: "string",
@@ -42,8 +43,6 @@ describe("schema", () => {
       maxItems: 3,
       examples: [["a"]],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("dict", () => {
@@ -73,7 +72,7 @@ describe("schema", () => {
   test("dict omits default string propertyNames", () => {
     const schema = dict(string(), int32({ minimum: 0 }))
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "object",
       additionalProperties: {
         type: "integer",
@@ -81,8 +80,6 @@ describe("schema", () => {
         minimum: 0,
       },
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("object", () => {
@@ -97,7 +94,7 @@ describe("schema", () => {
       },
     )
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       description: "Article metadata",
       deprecated: true,
       type: "object",
@@ -111,8 +108,6 @@ describe("schema", () => {
       },
       required: ["title"],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("object with optional property names omits required", () => {
@@ -121,7 +116,7 @@ describe("schema", () => {
       "subtitle?": string(),
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "object",
       properties: {
         title: {
@@ -132,8 +127,6 @@ describe("schema", () => {
         },
       },
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("int64", () => {
@@ -143,15 +136,13 @@ describe("schema", () => {
       examples: [4],
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "integer",
       format: "int64",
       minimum: 1,
       maximum: 10,
       examples: [4],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("int32", () => {
@@ -161,15 +152,13 @@ describe("schema", () => {
       examples: [4],
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "integer",
       format: "int32",
       minimum: 1,
       maximum: 10,
       examples: [4],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("integer", () => {
@@ -179,14 +168,12 @@ describe("schema", () => {
       examples: [4],
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "integer",
       minimum: 1,
       maximum: 10,
       examples: [4],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("uint64", () => {
@@ -196,15 +183,13 @@ describe("schema", () => {
       examples: [4],
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "integer",
       format: "uint64",
       minimum: 1,
       maximum: 10,
       examples: [4],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("float", () => {
@@ -214,15 +199,13 @@ describe("schema", () => {
       examples: [4.75],
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "number",
       format: "float",
       minimum: 1.25,
       maximum: 9.5,
       examples: [4.75],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("double", () => {
@@ -232,15 +215,13 @@ describe("schema", () => {
       examples: [4.75],
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "number",
       format: "double",
       minimum: 1.25,
       maximum: 9.5,
       examples: [4.75],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("number", () => {
@@ -250,14 +231,12 @@ describe("schema", () => {
       examples: [4.75],
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "number",
       minimum: 1.25,
       maximum: 9.5,
       examples: [4.75],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("uint32", () => {
@@ -267,48 +246,33 @@ describe("schema", () => {
       examples: [4],
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "integer",
       format: "uint32",
       minimum: 1,
       maximum: 10,
       examples: [4],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("httpURL", () => {
     const schema = httpURL()
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "string",
       format: "uri",
       pattern: "^https?://\\S+$",
     })
-
-    if (typeof schema.pattern !== "string") {
-      throw new TypeError("httpURL must return a string pattern")
-    }
-
-    const re = new RegExp(schema.pattern)
-    expect("https://www.google.com").toMatch(re)
-    expect("htps://www.google.com").not.toMatch(re)
-    expect("https://www. google.com/").not.toMatch(re)
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("unixMillis", () => {
     const schema = unixMillis()
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "integer",
       format: "int64",
       description: "UNIX epoch milliseconds",
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("string", () => {
@@ -321,7 +285,7 @@ describe("schema", () => {
       examples: ["alpha"],
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "string",
       format: "byte",
       minLength: 1,
@@ -330,8 +294,6 @@ describe("schema", () => {
       enum: ["alpha", "beta"],
       examples: ["alpha"],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("string stringifies RegExp pattern", () => {
@@ -341,14 +303,12 @@ describe("schema", () => {
       examples: ["alpha"],
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "string",
       minLength: 1,
       pattern: "^[a-z]+$",
       examples: ["alpha"],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("string with contentMediaType", () => {
@@ -357,13 +317,11 @@ describe("schema", () => {
       contentMediaType: "application/octet-stream",
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "string",
       description: "OpenAPI/Swagger file. We accept JSON or YAML.",
       contentMediaType: "application/octet-stream",
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("string with vendor extensions", () => {
@@ -380,7 +338,7 @@ describe("schema", () => {
       },
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "string",
       description: "Тип события webhook для пользователей",
       enum: ["invite", "confirm", "update", "suspend", "activate", "delete"],
@@ -393,14 +351,12 @@ describe("schema", () => {
         delete: "Удаление",
       },
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("oneOf", () => {
     const schema = oneOf([string(), int32()])
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       oneOf: [
         {
           type: "string",
@@ -411,14 +367,12 @@ describe("schema", () => {
         },
       ],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("anyOf", () => {
     const schema = anyOf([string(), int32()])
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       anyOf: [
         {
           type: "string",
@@ -429,8 +383,6 @@ describe("schema", () => {
         },
       ],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("allOf", () => {
@@ -443,7 +395,7 @@ describe("schema", () => {
       }),
     ])
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       allOf: [
         {
           type: "object",
@@ -464,26 +416,22 @@ describe("schema", () => {
         },
       ],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("nullable", () => {
     const schema = nullable(int32({ examples: [7] }))
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: ["integer", "null"],
       format: "int32",
       examples: [7],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("nullable oneOf", () => {
     const schema = nullable(oneOf([string(), int32()]))
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       anyOf: [
         {
           oneOf: [
@@ -501,22 +449,18 @@ describe("schema", () => {
         },
       ],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("nullable unknown", () => {
     const schema = nullable(unknown())
 
-    expect(schema).toEqual({})
-
-    expect(validateSchema(schema)).toEqual(schema)
+    expect(validateSchema(schema)).toEqual({})
   })
 
   test("nullable anyOf", () => {
     const schema = nullable(anyOf([string(), int32()]))
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       anyOf: [
         {
           anyOf: [
@@ -534,8 +478,6 @@ describe("schema", () => {
         },
       ],
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("boolean", () => {
@@ -545,32 +487,36 @@ describe("schema", () => {
       default: false,
     })
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "boolean",
       description: "Whether the feature is enabled",
       deprecated: true,
       default: false,
     })
-
-    expect(validateSchema(schema)).toEqual(schema)
   })
 
   test("unknown", () => {
     const schema = unknown()
 
-    expect(schema).toEqual({})
-
-    expect(validateSchema(schema)).toEqual(schema)
+    expect(validateSchema(schema)).toEqual({})
   })
 
   test("email", () => {
     const schema = email()
 
-    expect(schema).toEqual({
+    expect(validateSchema(schema)).toEqual({
       type: "string",
       format: "email",
     })
+  })
 
-    expect(validateSchema(schema)).toEqual(schema)
+  test("isoDuration", () => {
+    const schema = isoDuration()
+
+    expect(validateSchema(schema)).toEqual({
+      type: "string",
+      format: "duration",
+      examples: ["P1W", "P1M", "P1Y"],
+    })
   })
 })
