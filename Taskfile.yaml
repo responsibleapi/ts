@@ -45,4 +45,6 @@ tasks:
   publish:
     desc: Publish current version to npm latest
     deps: [build, publish:auth, publish:guard]
-    cmd: bun publish --access public
+    cmds:
+      - bun publish --access public
+      - git tag "$(jq -r .version package.json)"
