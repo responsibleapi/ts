@@ -3881,8 +3881,7 @@ export default responsibleAPI({
         plan: "corporation",
       },
     }),
-    "/bots": scope({
-      "/:id": PUT({
+    "/bots/:id": PUT({
         id: "BotOperations_updateBot",
         description:
           "Редактирование бота\n\nМетод для редактирования бота.\n\nДля редактирования бота вам необходимо знать его `user_id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса. Узнать `user_id` бота можно в настройках бота во вкладке «API».\n\nВы не можете редактировать бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).",
@@ -3934,7 +3933,6 @@ export default responsibleAPI({
           scope: "bots:write",
         },
       }),
-    }),
     "/chats": scope({
       GET: {
         id: "ChatOperations_listChats",
@@ -5547,9 +5545,7 @@ export default responsibleAPI({
         }),
       }),
     }),
-    "/oauth": scope({
-      "/token": scope({
-        "/info": GET({
+    "/oauth/token/info": GET({
           id: "OAuthOperations_getTokenInfo",
           description:
             "Информация о токене\n\nМетод для получения информации о текущем OAuth токене, включая его скоупы, дату создания и последнего использования. Токен в ответе маскируется — видны только первые 8 и последние 4 символа.",
@@ -5565,8 +5561,6 @@ export default responsibleAPI({
             }),
           },
         }),
-      }),
-    }),
     "/profile": scope({
       GET: {
         id: "ProfileOperations_getProfile",
@@ -6175,8 +6169,7 @@ export default responsibleAPI({
         },
       }),
     }),
-    "/threads": scope({
-      "/:id": GET({
+    "/threads/:id": GET({
         id: "ThreadOperations_getThread",
         description:
           "Информация о треде\n\nМетод для получения информации о треде.\n\nДля получения треда вам необходимо знать его `id` и указать его в `URL` запроса.",
@@ -6218,7 +6211,6 @@ export default responsibleAPI({
           scope: "threads:read",
         },
       }),
-    }),
     "/uploads": POST({
       id: "UploadOperations_getUploadParams",
       description:
@@ -6664,8 +6656,7 @@ export default responsibleAPI({
         }),
       }),
     }),
-    "/views": scope({
-      "/open": POST({
+    "/views/open": POST({
         id: "FormOperations_openView",
         description:
           "Открытие представления\n\nМетод для открытия модального окна с представлением для пользователя.\n\nЧтобы открыть модальное окно с представлением, ваше приложение должно иметь действительный, неистекший `trigger_id`.",
@@ -6708,9 +6699,7 @@ export default responsibleAPI({
           scope: "views:write",
         },
       }),
-    }),
-    "/webhooks": scope({
-      "/events": scope({
+    "/webhooks/events": scope({
         GET: {
           id: "BotOperations_getWebhookEvents",
           description:
@@ -6801,6 +6790,5 @@ export default responsibleAPI({
           },
         }),
       }),
-    }),
   },
 })

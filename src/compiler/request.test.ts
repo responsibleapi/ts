@@ -574,20 +574,18 @@ describe("request", () => {
         },
       },
       routes: {
-        "/v1": scope({
+        "/v1/items": scope({
           forEachOp: {
             req: { params: [Locale] },
           },
-          "/items": scope({
-            GET: {
-              req: { params: [Page] },
-              res: { 200: object({}) },
-            },
-            POST: {
-              req: { params: [Limit] },
-              res: { 200: object({}) },
-            },
-          }),
+          GET: {
+            req: { params: [Page] },
+            res: { 200: object({}) },
+          },
+          POST: {
+            req: { params: [Limit] },
+            res: { 200: object({}) },
+          },
         }),
       },
     })
@@ -909,16 +907,11 @@ describe("request", () => {
         },
       },
       routes: {
-        "/v1": scope({
-          forEachOp: {
-            req: { security: ApiKey },
+        "/v1/r": GET({
+          req: {
+            security: securityOR(ApiKey, Basic),
           },
-          "/r": GET({
-            req: {
-              security: Basic,
-            },
-            res: { 200: object({}) },
-          }),
+          res: { 200: object({}) },
         }),
       },
     })

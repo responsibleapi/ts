@@ -32,26 +32,17 @@ describe("compiler scope and path", () => {
         },
       },
       routes: {
-        "/v1": scope({
-          forEachOp: {
-            tags: [tags.users],
-            res: {
-              defaults: {
-                "200..299": {
-                  mime: "application/json",
-                  headers: { "X-Trace": string() },
-                },
-              },
+        "/v1/users/:userId": GET({
+          tags: [tags.users],
+          req: {
+            pathParams: { userId: int32() },
+          },
+          res: {
+            200: {
+              headers: { "X-Trace": string() },
+              body: { "application/json": User },
             },
           },
-          "/users/:userId": GET({
-            req: {
-              pathParams: { userId: int32() },
-            },
-            res: {
-              200: User,
-            },
-          }),
         }),
       },
     })
@@ -216,17 +207,15 @@ describe("compiler scope and path", () => {
         params: [Version],
       },
       routes: {
-        "/users": scope({
-          "/:userId": scope({
-            forEachPath: {
-              pathParams: { userId: int32() },
-            },
-            GET: {
-              res: { 200: object({}) },
-            },
-            "/logs": GET({
-              res: { 200: object({}) },
-            }),
+        "/users/:userId": scope({
+          forEachPath: {
+            pathParams: { userId: int32() },
+          },
+          GET: {
+            res: { 200: object({}) },
+          },
+          "/logs": GET({
+            res: { 200: object({}) },
           }),
         }),
       },

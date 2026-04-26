@@ -7,7 +7,7 @@ import type {
 } from "../help/type-assertions.ts"
 import type { GetOpWithMethod } from "./methods.ts"
 import type { OpWithMethod } from "./operation.ts"
-import type { CanonicalScope, ScopeOpts, ScopeRes } from "./scope.ts"
+import type { CanonicalScope, Scope, ScopeOpts, ScopeRes } from "./scope.ts"
 import { scope } from "./scope.ts"
 import { declareTags } from "./tags.ts"
 
@@ -17,9 +17,7 @@ type TestOp = {
   }
 }
 
-type ScopeInput<T extends Parameters<typeof scope>[0]> = Parameters<
-  typeof scope<T>
->[0]
+type ScopeInput<T extends Scope> = Parameters<typeof scope<T>>[0]
 
 describe("scope", () => {
   test("accepts a pure scope with at least two methods", () => {
@@ -76,9 +74,27 @@ describe("scope", () => {
     type _Test = Assert<OneExtendsTwo<MixedScope, ScopeInput<MixedScope>>>
   })
 
-  test("accepts a scope with a single path", () => {
+  test("rejects a scope with a single path", () => {
     type PathOnlyScope = {
       "/videos": TestOp
+    }
+
+    type _Test = Assert<IsNever<ScopeInput<PathOnlyScope>>>
+  })
+
+  test("rejects a scope with defaults and a single path", () => {
+    type PathOnlyScopeWithDefaults = {
+      forEachOp: ScopeOpts
+      "/videos": TestOp
+    }
+
+    type _Test = Assert<IsNever<ScopeInput<PathOnlyScopeWithDefaults>>>
+  })
+
+  test("accepts a scope with at least two paths", () => {
+    type PathOnlyScope = {
+      "/videos": TestOp
+      "/channels": TestOp
     }
 
     type _Test = Assert<OneExtendsTwo<PathOnlyScope, ScopeInput<PathOnlyScope>>>
@@ -101,6 +117,7 @@ describe("scope", () => {
   test("accepts method helper results on path keys", () => {
     type PathOnlyScope = {
       "/videos": OpWithMethod
+      "/channels": OpWithMethod
     }
 
     type _Test = Assert<OneExtendsTwo<PathOnlyScope, ScopeInput<PathOnlyScope>>>

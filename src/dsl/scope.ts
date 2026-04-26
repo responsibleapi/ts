@@ -3,7 +3,6 @@ import type { AtLeastOne, AtLeastTwo } from "../help/lib.ts"
 import type { HttpMethod, MethodRoutes } from "./methods.ts"
 import type {
   MatchStatus,
-  Op,
   OpBase,
   OpResponses,
   ReqAugmentation,
@@ -87,25 +86,29 @@ export interface ScopeOpts<TTags extends DeclaredTags = DeclaredTags> {
 }
 
 /**
- * Scopes without nested paths are pure method collections, so require at least
- * two HTTP methods in that branch.
+ * Route keys are the only keys that make a scope worth declaring; defaults and
+ * path-level params are ignored for this validation.
+ */
+type ScopeRouteKey<T extends Scope> = Extract<keyof T, HttpMethod | HttpPath>
+
+/**
+ * Require at least two route keys. A scope with a single endpoint should use
+ * the operation helper directly instead of adding an extra scope level.
  *
  * `forEachOp` is ignored here so defaults do not affect the route-shape
  * validation. For single methods, use DSL from {@link file://../methods.ts}
  *
- * If a scope has at least one nested path, it is valid as-is. Otherwise we
- * validate only the method subset.
+ * Path keys and method keys are counted together, so a scope with `GET` and
+ * `/logs` is valid, while a scope with only `/logs` is not.
  *
  * @dsl
  */
 type ValidScopeArg<T extends Scope> =
-  Extract<keyof T, HttpPath> extends never
-    ? Pick<T, Extract<keyof T, HttpMethod>> extends AtLeastTwo<
-        Record<HttpMethod, Op>
-      >
-      ? T
-      : never
-    : T
+  Pick<T, ScopeRouteKey<T>> extends AtLeastTwo<
+    Record<ScopeRouteKey<T>, unknown>
+  >
+    ? T
+    : never
 
 /**
  * Use this when declaring multiple routes under the same subpath. For single
