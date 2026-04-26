@@ -5,6 +5,17 @@
 TypeScript [DSL](src/dsl/) that [compiles](src/compiler/) to OpenAPI 3.1
 documents.
 
+## Rationale
+
+- OpenAPI YAML is hard to refactor.
+- Microservices should not share implementation models, but they do share
+  contract vocabulary: `Money`, `CurrencyCode`, error shapes, pagination, and
+  similar boundary types.
+- `$defs` is valid OpenAPI 3.1, but it is not a reliable public model namespace
+  for generated SDKs. Shared contract types should compile into each service
+  document's local `components.schemas` with stable `#/components/schemas/...`
+  refs.
+
 ## Install
 
 ```sh
