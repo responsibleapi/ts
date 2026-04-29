@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest"
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, POST } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"
-import type { Op } from "../dsl/operation.ts"
+import { resp, type Op } from "../dsl/operation.ts"
 import { headerParam, pathParam, queryParam } from "../dsl/params.ts"
 import { array, int32, object, string } from "../dsl/schema.ts"
 import type { PathRoutes } from "../dsl/scope.ts"
@@ -17,6 +17,7 @@ import {
   securityOR,
 } from "../dsl/security.ts"
 import { validateDoc } from "../help/validate-doc.ts"
+import { ErrorMsg } from "./errors.ts"
 
 function operationRequestMime(
   op: oas31.OperationObject | undefined,
@@ -630,33 +631,65 @@ describe("request", () => {
     ).toBeDefined()
   })
 
-  test("child req.mime overrides inherited default for body", async () => {
-    const api = responsibleAPI({
-      partialDoc: {
-        openapi: "3.1.0",
-        info: { title: "Req API", version: "1" },
-      },
-      forEachOp: { req: { mime: "application/json" } },
-      routes: {
-        "/x": POST({
-          req: {
-            mime: "application/xml",
-            body: string(),
-          } as NonNullable<Op["req"]>,
-          res: { 200: object({}) },
-        }),
-      },
-    })
+  test("rejects operation-level req.mime", () => {
+    expect(() =>
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.1.0",
+          info: { title: "Req API", version: "1" },
+        },
+        forEachOp: { req: { mime: "application/json" } },
+        routes: {
+          "/x": POST({
+            req: {
+              // @ts-expect-error operation-level mime is rejected by types
+              mime: "application/xml",
+              body: string(),
+            },
+            res: { 200: object({}) },
+          }),
+        },
+      }),
+    ).toThrow(ErrorMsg.operationRequestMime)
+  })
 
-    const doc = await validateDoc(api)
+  test("rejects downstream workbook export operation-level req.mime", () => {
+    const WorkbookExportRequest = object({})
+    const WorkbookExportResponse = object({})
 
-    expect(doc).toEqual(api)
-    expect(
-      operationRequestMime(doc.paths!["/x"]?.post, "application/xml"),
-    ).toBeDefined()
-    expect(
-      operationRequestMime(doc.paths!["/x"]?.post, "application/json"),
-    ).toBeUndefined()
+    expect(() =>
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.1.0",
+          info: {
+            title: "Recurring Workbook Export Service API",
+            version: "1",
+          },
+        },
+        routes: {
+          "/healthz": GET({
+            id: "healthCheck",
+            description:
+              "Operational health check for reverse proxies and load balancers.",
+            res: {
+              200: resp({
+                description: "Service is healthy.",
+              }),
+            },
+          }),
+          "/exports/workbook": POST("createWorkbookExport", {
+            req: {
+              // @ts-expect-error operation-level mime is rejected by types
+              mime: "application/json",
+              body: WorkbookExportRequest,
+            },
+            res: {
+              201: WorkbookExportResponse,
+            },
+          }),
+        },
+      }),
+    ).toThrow(ErrorMsg.operationRequestMime)
   })
 
   test('compiles `"body?"` without requestBody.required', async () => {

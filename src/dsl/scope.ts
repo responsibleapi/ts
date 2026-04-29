@@ -1,4 +1,3 @@
-import type { oas31 } from "openapi3-ts"
 import type { AtLeastOne, AtLeastTwo } from "../help/lib.ts"
 import type { HttpMethod, MethodRoutes } from "./methods.ts"
 import type {
@@ -218,8 +217,4 @@ export function normalizeScope<TTags extends DeclaredTags>(
     ...(forEachPath !== undefined ? { forEachPath } : {}),
     routes,
   }
-}
-
-function _scopeToPaths(_: Scope): oas31.PathsObject {
-  throw new Error("not even sure we need this function")
 }

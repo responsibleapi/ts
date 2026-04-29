@@ -5926,7 +5926,7 @@ const tags = declareTags({
   youtube: {},
 })
 
-const __xgafv = named(
+const xgafv = named(
   "_.xgafv",
   queryParam({
     description: "V1 error format.",
@@ -6241,7 +6241,7 @@ export default responsibleAPI({
   },
   forEachPath: {
     params: [
-      __xgafv,
+      xgafv,
       access_token,
       alt,
       callback,

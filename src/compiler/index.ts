@@ -41,6 +41,7 @@ import {
   securityLayerFromScopeReq,
   stripSecurityFields,
 } from "./request.ts"
+import { ErrorMsg } from "./errors.ts"
 
 const OAS_METHOD: Record<HttpMethod, keyof oas31.PathItemObject> = {
   GET: "get",
@@ -147,18 +148,6 @@ function assertInlineComponent<T>(n: Nameable<T>, kind: string): T {
 
 function isMimeValue(x: unknown): x is Mime {
   return typeof x === "string" && x.includes("/")
-}
-
-function readReqMimeRaw(
-  raw: Op["req"] | GetOp["req"] | undefined,
-): Mime | undefined {
-  if (typeof raw !== "object" || raw === null || !("mime" in raw)) {
-    return undefined
-  }
-
-  const boxed: { mime?: unknown } = raw
-
-  return isMimeValue(boxed.mime) ? boxed.mime : undefined
 }
 
 function isDslSchema(x: unknown): x is Schema {
@@ -392,10 +381,13 @@ function scopeForEachPathFromScopeNode(
 function normalizeReqAugmentation(
   raw: Op["req"] | GetOp["req"] | undefined,
 ): ReqAugmentation {
-  const child = normalizeOpReq(raw) ?? {}
-  const mimeFromRaw = readReqMimeRaw(raw)
+  if (typeof raw === "object" && raw !== null && "mime" in raw) {
+    throw new Error(ErrorMsg.operationRequestMime)
+  }
 
-  return mimeFromRaw !== undefined ? { ...child, mime: mimeFromRaw } : child
+  const child = normalizeOpReq(raw) ?? {}
+
+  return child
 }
 
 function mergedReqAndSecurityForOp(
